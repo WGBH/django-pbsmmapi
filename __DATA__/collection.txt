@@ -1,0 +1,19 @@
+COLLECTION
+
+UUID    cid     (aren't all the IDs UUIDs)
+
+S       slug
+S       title
+
+T       description_short
+T       description_long
+
+B       featured
+DT      updated_at
+
+
+
+
+FK      Show
+M2M     Episode
+M2M     Special

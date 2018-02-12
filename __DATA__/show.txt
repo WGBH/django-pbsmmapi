@@ -1,0 +1,30 @@
+SHOW
+
+S       slug
+S       nola
+S       title
+S       title_sortable
+
+T       description_short
+T       description_long
+DT      premiered_on
+B       is_excluded_from_dfp
+S       funder_message
+S       tracking_ga_page
+S       tracking_ga_event
+DT      updated_at
+S       hashtag
+
+B       display_episode_number
+B       can_embed_player
+S       language
+B       ordinal_season
+
+S       genre
+[O]     links
+[O]     images
+O       franchise
+[O]     audience
+[O]     platforms
+
+?       episodes_count

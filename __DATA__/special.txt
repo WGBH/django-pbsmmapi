@@ -1,0 +1,19 @@
+SPECIAL
+
+S       type    "special"
+UUID    id
+[]      links
+
+S       title
+S       slug
+S       title_sortable
+T       description_short
+T       description_long
+
+DT      premiered_on
+DT      encored_on
+DT      updated_at
+
+S       nola
+S       language
+[]      links (at attribute level)

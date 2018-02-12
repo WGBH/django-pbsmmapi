@@ -1,0 +1,44 @@
+Metadata-Version: 1.1
+Name: django-pbsmmapi
+Version: 0.1
+Summary: Django models that import content from the PBS MediaManager API
+Home-page: http://github.com/wgbh/django-pbsmmapi/
+Author: Bob Donahue
+Author-email: bob_donahue@wgbh.org
+License: MIT License, see LICENSE
+Description: ========
+        PBSMMAPI
+        ========
+        
+        This is a Django app to allow Django-based projects to work with the PBS MediaManager API.
+        It is not expected to be a COMPLETE interface to the entirety of the PBS MediaManager; however
+        it should allow access to all of the primary content object types.
+        
+        Documentation is in the "docs" directory.
+        
+        Quick start
+        -----------
+        
+        1. Add "pbsmmapi" to your INSTALLED_APPS setting:
+        
+                INSTALLED_APPS = [
+                        ...
+                        'pbsmmapi',
+                ]
+        
+        2. Run  `python manage.py migrate` to create the PBSMM API models.
+        
+        
+        
+Platform: UNKNOWN
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Environment :: Web Environment
+Classifier: Framework :: Django
+Classifier: Framework :: Django :: 1.11
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Natural Language :: English
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7

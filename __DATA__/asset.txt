@@ -1,0 +1,36 @@
+ASSET (this is the actual replacement for the CoveVideo model)
+
+S       title
+S       title_sortable
+S       slug
+CV      type    ['clip', 'preview', 'full-length']
+B       is_excluded_from_dfp
+I       duration
+S       content_rating
+[S]     content_rating_descriptor
+I       legacy_tp_media_id
+B       can_embed_player
+[]      tags    --- ???
+CV      language
+T       funder_message
+[O]     images
+HTML    player_code
+
+O       franchise
+O       season
+O       show
+O       episode
+
+[]      topics
+{}      videos
+[]      captions
+[]      windows
+{}      platforms
+
+DT      updated_at
+
+{}      availabilities
+            (key)   CV  ['station_members', 'all_members', 'public']
+                DT  start
+                DT  updated_at
+                DT  end

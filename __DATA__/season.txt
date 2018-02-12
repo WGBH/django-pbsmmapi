@@ -1,0 +1,15 @@
+SEASON
+
+ID      ID
+
+S       title
+S       title_sortable
+T       description_short
+T       description_long
+I       ordinal
+DT      updated_at
+
+FK --> show
+
+[]      links
+

@@ -1,0 +1,24 @@
+EPISODE
+
+UUID    ID
+
+I       ordinal
+S       title
+S       title_sorted
+S       slug
+
+T       description_short
+T       description_long
+
+DT      premiered_on
+DT      encored_on
+DT      updated_at
+
+S       nola
+CV      language
+    
+O       Season
+[O]     links
+
+O       Show
+
