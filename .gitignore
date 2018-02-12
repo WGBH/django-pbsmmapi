@@ -1,0 +1,60 @@
+*OBSOLETE*
+
+# Compiled source #
+###################
+*.pyc
+
+# Packages #
+############
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+*.db
+
+# OS generated files #
+######################
+.DS_Store
+
+
+# media #
+#########
+media/
+media/*
+
+# backup #
+##########
+__BACKUP__/
+__BACKUP__/*
+
+# data #
+########
+__DATA__/
+__DATA__/*
+
+# media #
+#########
+static/
+static/*
+
+# Redirection #
+############
+
+# front end tooling #
+**/node_modules/**
+**/.sass-cache/**
+*.css.map
+
+# whoosh
+whoosh_index/
+
