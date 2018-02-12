@@ -173,7 +173,6 @@ class PBSMMAsset(PBSMMGenericAsset):
     canonical_image_tag.allow_tags = True
     
     def save(self, *args, **kwargs):
-        print "SELF API STATUS ", self.last_api_status
         #if self.last_api_status != 200:
         #    return
         super(PBSMMAsset, self).save(*args, **kwargs)
@@ -221,16 +220,10 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     # OK - get the record from the API
     (status, json) = get_PBSMM_record(url)
     
-    # DO SOMETHING TO INFORM the save() function
-    instance.last_api_status = status
-
-    # If we didn't get a record, abort (there's no sense crying over spilled bits)
-    if status != 200:
-        #raise Exception('PBSMM API returned %d - aborted!' % status)
-        return
-    
     # Process the record (code is in ingest.py)
     instance = process_asset_record(json, instance)
+    
+    instance.last_api_status = statu
     # Update this record's time stamp (the API has its own)
     instance.date_last_api_update = datetime.datetime.now()
     # continue saving, but turn off the ingest_on_save flag

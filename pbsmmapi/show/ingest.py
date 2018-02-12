@@ -28,14 +28,13 @@ def process_show_record(obj, instance):
     instance.can_embed_player = attrs.get('can_embed_player', None)
     instance.language = attrs.get('language', None)
     instance.funder_message = attrs.get('funder_message', None)
-    instance.ga_page = attrs.get('ga_page', None)
-    instance.ga_event = attrs.get('ga_event', None)
-    instance.episode_count = attrs.get('episode_count', None)
+    instance.ga_page = attrs.get('tracking_ga_page', None)
+    instance.ga_event = attrs.get('tracking_ga_event', None)
+    instance.episode_count = attrs.get('episodes_count', None)
     instance.display_episode_number = attrs.get('display_episode_number', False)
     instance.sort_episodes_descending = attrs.get('sort_episodes_descending', False)
     instance.ordinal_season = attrs.get('ordinal_season', True)
     instance.hashtag = attrs.get('hashtag', None)
-    
     
 #### Unprocessed - store as JSON fragments
     instance.images = set_json_serialized_field(attrs, 'images', default=None)

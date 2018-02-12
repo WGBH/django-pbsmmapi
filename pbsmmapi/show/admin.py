@@ -14,7 +14,7 @@ class PBSMMShowAdmin(admin.ModelAdmin):
     # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
         'date_created', 'date_last_api_update', 'updated_at', 
-        'link_to_api_record',
+        'link_to_api_record', 'link_to_api_record_link',
         'title', 'title_sortable', 'slug',
         'description_long', 'description_short',
         'updated_at', 'premiered_on', 'nola', 
@@ -83,5 +83,22 @@ class PBSMMShowAdmin(admin.ModelAdmin):
             item.save()
             
     force_reingest.short_description = 'Reingest selected items.'
+    
+    # Switch between the fieldsets depending on whether we're adding or viewing a record
+    def get_fieldsets(self, request, obj=None):
+        if not obj:
+            return self.add_fieldsets
+        return super(PBSMMShowAdmin, self).get_fieldsets(request, obj)
+        
+    # Apply the chosen fieldsets tuple to the viewed form
+    def get_form(self, request, obj=None, **kwargs):
+        defaults = {}
+        if obj is None:
+            kwargs.update({
+                'form': self.add_form,
+                'fields': admin.utils.flatten_fieldsets(self.add_fieldsets),
+            })
+        defaults.update(kwargs)
+        return super(PBSMMShowAdmin, self).get_form(request, obj, **kwargs)
 
 admin.site.register(PBSMMShow, PBSMMShowAdmin)

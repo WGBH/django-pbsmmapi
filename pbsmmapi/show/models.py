@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 
 from ..abstract.models import PBSMMGenericShow
-from ..asset.helpers import get_canonical_image
+from ..abstract.helpers import get_canonical_image
 from ..api.api import get_PBSMM_record
 from .ingest import process_show_record
 
@@ -77,9 +77,10 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     # OK - get the record from the API
     (status, json) = get_PBSMM_record(url)
     # If we didn't get a record, abort (there's no sense crying over spilled bits)
-    if status != 200:
-        raise Exception('PBSMM API returned %d - aborted!' % status)
-        return
+    #if status != 200:
+    #    raise Exception('PBSMM API returned %d - aborted!' % status)
+    #    return
+    instance.last_api_status = status
 
     # Process the record (code is in ingest.py)
     instance = process_show_record(json, instance)
