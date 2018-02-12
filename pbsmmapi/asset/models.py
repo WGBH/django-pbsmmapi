@@ -124,6 +124,10 @@ class PBSMMAsset(PBSMMGenericAsset):
     # 
     # SPECIAL
     #
+    
+    class Meta:
+        verbose_name "PBS Media Manager Asset"
+        verbose_name_plural "PBS Media Manager Assets"
 
 ###
 # Properties and methods
