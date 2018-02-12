@@ -1,4 +1,5 @@
-import json
+
+from ..abstract.helpers import set_json_serialized_field
 
 ### THIS IS THE INGEST SCRIPT FOR ASSET RECORDS
 
@@ -20,13 +21,7 @@ import json
 # Wow - that was simple!
 # RAD - 6 Feb 2018
 
-def set_json_serialized_field(attrs, field, default=None):
-# Return a JSON serialized field, but don't send back [] or {} or '' (return default which default to None)
-    val = attrs.get(field, default)
-    if val:
-        return json.dumps(val)
-    else:
-        return default
+
 
 def process_asset_record(obj, instance):
 # Here is where all the scraping of the Asset record is done

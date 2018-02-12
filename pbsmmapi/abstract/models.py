@@ -400,3 +400,11 @@ class PBSMMGenericShow(PBSMMGenericObject,
         
     class Meta:
         abstract = True
+        
+class PBSMMGenericEpisode(PBSMMGenericObject,
+            PBSMMFunder, PBSMMLanguage,
+            PBSMMBroadcastDates, PBSMMNOLA, PBSMMLinks,
+        ):
+        
+    class Meta:
+        abstract = True

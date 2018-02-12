@@ -38,6 +38,10 @@ class PBSMMRemoteAsset(PBSMMGenericRemoteAsset):
     # Show
     #
     
+    class Meta:
+        verbose_name = 'PBS Media Manager Remote Asset'
+        verbose_name_plural = 'PBS Media Manager Remote Assets'
+    
     def __unicode__(self):
         return "%d | %s | %s" % (self.pk, self.object_id, self.title)
         

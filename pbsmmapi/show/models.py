@@ -16,6 +16,10 @@ from .ingest import process_show_record
 PBSMM_REMOTEASSET_ENDPOINT = 'https://media.services.pbs.org/api/v1/shows/'
 
 class PBSMMShow(PBSMMGenericShow):
+    
+    class Meta:
+        verbose_name = 'PBS Media Manager Show'
+        verbose_name_plural = 'PBS Media Manager Shows'
 
     def __unicode__(self):
         return "%d | %s | %s" % (self.pk, self.object_id, self.title)

@@ -12,7 +12,8 @@ from ..abstract.models import PBSMMGenericAsset
 from ..api.api import get_PBSMM_record
     
 from .ingest import process_asset_record
-from .helpers import check_asset_availability, get_canonical_image
+from .helpers import check_asset_availability
+from ..abstract.helpers import get_canonical_image
 
 AVAILABILITY_GROUPS = (
     ('Station Members', 'station_members'),
@@ -126,8 +127,8 @@ class PBSMMAsset(PBSMMGenericAsset):
     #
     
     class Meta:
-        verbose_name "PBS Media Manager Asset"
-        verbose_name_plural "PBS Media Manager Assets"
+        verbose_name = "PBS Media Manager Asset"
+        verbose_name_plural = "PBS Media Manager Assets"
 
 ###
 # Properties and methods

@@ -34,8 +34,3 @@ def check_asset_availability(start=None, end=None):
             
     return (False, -1, 'unknown')
     
-def get_canonical_image(image_list, image_type='mezzanine'):
-    for img in image_list:
-        if image_type in img['profile']:
-            return img['image']
-    return None
