@@ -30,6 +30,18 @@ class GenericObjectManagement(models.Model):
 
     class Meta:
         abstract = True
+        
+    def last_api_status_color(self):
+        template = '<b><span style="color:#%s;">%d</span></b>'
+        if self.last_api_status:
+            if self.last_api_status == 200:
+                return template % ('0f0', self.last_api_status)
+            else:
+                return template % ('f00', self.last_api_status)
+        return self.last_api_status
+    last_api_status_color.allow_tags = True
+    last_api_status_color.short_description = 'Status'
+
 
 ######################### ABSTRACT MODELS FROM PBSMM FIELDS ##################################
 class PBSMMObjectID(models.Model):
@@ -103,11 +115,7 @@ class PBSMMObjectTitleSortableTitle(PBSMMObjectTitle, PBSMMObjectSortableTitle):
 # Lump them together
     class Meta:
         abstract = True
-        
-class PBSMMObjectTitleSortableTitleSlug(PBSMMObjectTitle, PBSMMObjectSortableTitle, PBSMMObjectSlug):
-# Put all of them together
-    class Meta:
-        abstract = True
+
 
 #############################
 ############################# FIELDS DEFINITELY ASSOCIATED WITH ALL OBJECTS (confirmed)
@@ -364,7 +372,7 @@ class PBSMMHashtag(models.Model):
 ######################### META ABSTRACT MODELS ############################# - common to almost EVERY object type
 class PBSMMGenericObject(
         PBSMMObjectID, 
-        PBSMMObjectTitleSortableTitleSlug, 
+        PBSMMObjectTitleSortableTitle, 
         PBSMMObjectDescription, 
         PBSMMObjectDates, 
         GenericObjectManagement,
@@ -374,7 +382,7 @@ class PBSMMGenericObject(
     class Meta:
         abstract = True
         
-class PBSMMGenericAsset(PBSMMGenericObject,
+class PBSMMGenericAsset(PBSMMGenericObject, PBSMMObjectSlug,
             PBSMMImage, PBSMMFunder, PBSMMPlayerMetadata, PBSMMLinks, PBSMMGeo, 
             PBSMMPlatforms, PBSMMWindows, PBSMMLanguage
         ):
@@ -382,15 +390,12 @@ class PBSMMGenericAsset(PBSMMGenericObject,
     class Meta:
         abstract = True
         
-class PBSMMGenericRemoteAsset(GenericObjectManagement,
-            PBSMMObjectID, PBSObjectMetadata, PBSMMObjectDates,
-            PBSMMObjectTitleSortableTitle, PBSMMObjectDescription
-        ):
+class PBSMMGenericRemoteAsset(PBSMMGenericObject):
 
     class Meta:
         abstract = True
         
-class PBSMMGenericShow(PBSMMGenericObject,
+class PBSMMGenericShow(PBSMMGenericObject, PBSMMObjectSlug,
             PBSMMImage, PBSMMLinks, PBSMMNOLA, PBSMMHashtag,
             PBSMMGenre, PBSMMFunder, PBSMMPlayerMetadata,
             PBSMMGoogleTracking, PBSMMEpisodeSeason,
@@ -401,9 +406,29 @@ class PBSMMGenericShow(PBSMMGenericObject,
     class Meta:
         abstract = True
         
-class PBSMMGenericEpisode(PBSMMGenericObject,
+class PBSMMGenericEpisode(PBSMMGenericObject, PBSMMObjectSlug,
             PBSMMFunder, PBSMMLanguage,
             PBSMMBroadcastDates, PBSMMNOLA, PBSMMLinks,
+        ):
+        
+    class Meta:
+        abstract = True
+    
+class PBSMMGenericSeason(PBSMMGenericObject, PBSMMLinks, PBSMMImage):
+    class Meta:
+        abstract = True
+        
+class PBSMMGenericSpecial(PBSMMGenericObject, PBSMMObjectSlug,
+            #PBSMMPlayerMetadata,
+            #PBSMMFunder, 
+            PBSMMLanguage,
+            #PBSMMImage, 
+            PBSMMLinks,
+            #PBSMMPlatforms, PBSMMAudience, 
+            PBSMMBroadcastDates,
+            #PBSMMGenre, PBSMMGoogleTracking, PBSMMHashtag,
+            #PBSMMEpisodeSeason
+            PBSMMNOLA,
         ):
         
     class Meta:

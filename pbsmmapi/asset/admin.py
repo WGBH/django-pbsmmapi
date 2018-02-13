@@ -12,14 +12,14 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
     add_form = PBSMMAssetCreateForm
     model = PBSMMAsset
     list_display = ('pk',  'object_id', 'legacy_tp_media_id', 'asset_publicly_available', 
-        'title_sortable', 'duration', 'date_last_api_update' )
+        'title_sortable', 'duration', 'date_last_api_update', 'last_api_status_color' )
     list_display_links = ('pk', 'object_id')
     # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
     # want to be able to view it in the context of the Django system.
     #
     # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
-        'date_created', 'date_last_api_update', 'updated_at', 
+        'date_created', 'date_last_api_update', 'updated_at', 'last_api_status_color',
         'link_to_api_record_link',
         'title', 'title_sortable', 'slug', 'object_type',
         'description_long', 'description_short',
@@ -42,7 +42,7 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
         (None, {
             'fields': (
                 'ingest_on_save',
-                ('date_created','date_last_api_update','updated_at'),
+                ('date_created','date_last_api_update','updated_at', 'last_api_status_color'),
                 'link_to_api_record_link',
                 ('object_id', 'legacy_tp_media_id'),
             ),

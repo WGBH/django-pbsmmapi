@@ -129,6 +129,8 @@ class PBSMMAsset(PBSMMGenericAsset):
     class Meta:
         verbose_name = "PBS Media Manager Asset"
         verbose_name_plural = "PBS Media Manager Assets"
+        app_label = 'pbsmmapi'
+        db_table = 'pbsmm_asset'
 
 ###
 # Properties and methods
@@ -219,13 +221,17 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     
     # OK - get the record from the API
     (status, json) = get_PBSMM_record(url)
+    instance.last_api_status = status
     
+    # Update this record's time stamp (the API has its own)
+    instance.date_last_api_update = datetime.datetime.now()
+    
+    if status != 200:
+        return 
+        
     # Process the record (code is in ingest.py)
     instance = process_asset_record(json, instance)
     
-    instance.last_api_status = statu
-    # Update this record's time stamp (the API has its own)
-    instance.date_last_api_update = datetime.datetime.now()
     # continue saving, but turn off the ingest_on_save flag
     instance.ingest_on_save = False # otherwise we could end up in an infinite loop!
     

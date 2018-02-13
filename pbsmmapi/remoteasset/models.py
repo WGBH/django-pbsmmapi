@@ -41,6 +41,8 @@ class PBSMMRemoteAsset(PBSMMGenericRemoteAsset):
     class Meta:
         verbose_name = 'PBS Media Manager Remote Asset'
         verbose_name_plural = 'PBS Media Manager Remote Assets'
+        app_label = 'pbsmmapi'
+        db_table = 'pbsmm_remoteasset'
     
     def __unicode__(self):
         return "%d | %s | %s" % (self.pk, self.object_id, self.title)
@@ -97,15 +99,17 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
 
     # OK - get the record from the API
     (status, json) = get_PBSMM_record(url)
+    # Update this record's time stamp (the API has its own)
+    instance.date_last_api_update = datetime.datetime.now()
+    instance.last_api_status = status
+    
     # If we didn't get a record, abort (there's no sense crying over spilled bits)
     if status != 200:
-        raise Exception('PBSMM API returned %d - aborted!' % status)
         return
 
     # Process the record (code is in ingest.py)
     instance = process_remoteasset_record(json, instance)
-    # Update this record's time stamp (the API has its own)
-    instance.date_last_api_update = datetime.datetime.now()
+
     # continue saving, but turn off the ingest_on_save flag
     instance.ingest_on_save = False # otherwise we could end up in an infinite loop!
 

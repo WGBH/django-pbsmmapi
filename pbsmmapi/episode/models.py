@@ -13,7 +13,7 @@ from ..abstract.helpers import get_canonical_image
 from ..api.api import get_PBSMM_record
 from .ingest import process_episode_record
 
-PBSMM_REMOTEASSET_ENDPOINT = 'https://media.services.pbs.org/api/v1/episodes/'
+PBSMM_EPISODE_ENDPOINT = 'https://media.services.pbs.org/api/v1/episodes/'
 
 class PBSMMEpisode(PBSMMGenericEpisode):
     
@@ -33,6 +33,8 @@ class PBSMMEpisode(PBSMMGenericEpisode):
     class Meta:
         verbose_name = 'PBS Medio Manager Episode'
         verbose_name_plural = 'PBS Media Manager Episodes'
+        app_label = 'pbsmmapi'
+        db_table = 'pbsmm_episode'
         
     def __unicode__(self):
         return "%s | %s (%s) " % (self.object_id, self.title, self.premiered_on)
@@ -86,22 +88,22 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         if not instance.object_id:
             return # do nothing - can't get an ID to look up!
 
-    url = "%s/%s/" % (PBSMM_REMOTEASSET_ENDPOINT, instance.object_id)
+    url = "%s/%s/" % (PBSMM_EPISODE_ENDPOINT, instance.object_id)
 
     # OK - get the record from the API
     (status, json) = get_PBSMM_record(url)
-    print "STATUS: ", status
+    
+    instance.last_api_status = status
+    # Update this record's time stamp (the API has its own)
+    instance.date_last_api_update = datetime.datetime.now()
+    
     # If we didn't get a record, abort (there's no sense crying over spilled bits)
     if status != 200:
         return
 
-
     # Process the record (code is in ingest.py)
     instance = process_episode_record(json, instance)
-    print "INSTANCE: ", instance
-    # Update this record's time stamp (the API has its own)
-    instance.date_last_api_update = datetime.datetime.now()
-    instance.last_api_status = status
+
     # continue saving, but turn off the ingest_on_save flag
     instance.ingest_on_save = False # otherwise we could end up in an infinite loop!
 

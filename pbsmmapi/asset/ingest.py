@@ -21,8 +21,6 @@ from ..abstract.helpers import set_json_serialized_field
 # Wow - that was simple!
 # RAD - 6 Feb 2018
 
-
-
 def process_asset_record(obj, instance):
 # Here is where all the scraping of the Asset record is done
 #
