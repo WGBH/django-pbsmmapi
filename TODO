@@ -1,8 +1,9 @@
 
 Things TO DO:
 
-	1. Assets have related links - some are other Assets, some are RemoteAssets
-	2. Assets have related promos which I THINK are other assets.
+	1. Assets have related_links - some are other Assets, some are RemoteAssets
+	2. Assets have related_promos which I THINK are other assets.
+    3. Assets have parent_tree which points to another object...
 
 Relationships
 	
