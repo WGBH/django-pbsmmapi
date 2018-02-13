@@ -22,8 +22,7 @@ def process_episode_record(obj, instance):
     instance.description_long = attrs.get('description_long', None)
     instance.description_short = attrs.get('description_short', None)
 
-#### Shoe metadata - things related to the show itself
-    instance.premiered_on = attrs.get('premiered_on', None)
+#### Episode metadata - things related to the episode itself
     instance.nola = attrs.get('nola', None)
     instance.language = attrs.get('language', None)
     instance.funder_message = attrs.get('funder_message', None)

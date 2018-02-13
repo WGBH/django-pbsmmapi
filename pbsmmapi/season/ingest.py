@@ -21,7 +21,7 @@ def process_season_record(obj, instance):
     instance.description_short = attrs.get('description_short', None)
 
 
-#### Soecial metadata - things related to the season itself
+#### Season metadata - things related to the season itself
     instance.premiered_on = attrs.get('premiered_on', None)
     instance.funder_message = attrs.get('funder_message', None)
     instance.is_excluded_from_dfp = attrs.get('is_excluded_from_dfp', None)

@@ -169,7 +169,7 @@ class PBSMMAsset(PBSMMGenericAsset):
     canonical_image = property(__get_canonical_image)
     
     def canonical_image_tag(self):
-        if "http" in self.canonical_image:
+        if self.canonical_image and "http" in self.canonical_image:
             return "<img src=\"%s\">" % self.canonical_image
         return None
     canonical_image_tag.allow_tags = True

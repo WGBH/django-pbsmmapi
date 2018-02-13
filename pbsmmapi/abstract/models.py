@@ -151,7 +151,6 @@ class PBSMMObjectDates(models.Model):
 ########## FIELDS ASSOCIATED WITH BROADCAST OR PREMIERE (on whatever platform)
 ###############
 class PBSMMBroadcastDates(models.Model):
-# TO BE CONFIRMED
 # premiered_on exists for Episode, Franchise, Show, and Special but NOT Collection or Season
 # encored_on ONLY exists for Episode
 # so we might have to split them up
@@ -400,7 +399,7 @@ class PBSMMGenericShow(PBSMMGenericObject, PBSMMObjectSlug,
             PBSMMGenre, PBSMMFunder, PBSMMPlayerMetadata,
             PBSMMGoogleTracking, PBSMMEpisodeSeason,
             PBSMMPlatforms, PBSMMAudience, PBSMMBroadcastDates,
-            PBSMMLanguage,
+            PBSMMLanguage
         ):
         
     class Meta:
@@ -419,17 +418,25 @@ class PBSMMGenericSeason(PBSMMGenericObject, PBSMMLinks, PBSMMImage):
         abstract = True
         
 class PBSMMGenericSpecial(PBSMMGenericObject, PBSMMObjectSlug,
-            #PBSMMPlayerMetadata,
-            #PBSMMFunder, 
-            PBSMMLanguage,
-            #PBSMMImage, 
-            PBSMMLinks,
-            #PBSMMPlatforms, PBSMMAudience, 
-            PBSMMBroadcastDates,
-            #PBSMMGenre, PBSMMGoogleTracking, PBSMMHashtag,
-            #PBSMMEpisodeSeason
-            PBSMMNOLA,
+            PBSMMLanguage, 
+            PBSMMBroadcastDates, PBSMMNOLA, PBSMMLinks,
         ):
         
+    class Meta:
+        abstract = True
+        
+class PBSMMGenericCollection(PBSMMGenericObject, PBSMMObjectSlug, PBSMMImage):
+    # There is no sortable title field - it is allowed in the model purely out of laziness since
+    # abstracting it out from PBSGenericObject would be more-complicated than leaving it in.
+    # PLUS I suspect that eventually it'll be added...
+    class Meta:
+        abstract = True
+        
+class PBSMMGenericFranchise(PBSMMGenericObject, PBSMMObjectSlug,
+            PBSMMFunder, PBSMMNOLA, PBSMMBroadcastDates,
+            PBSMMImage, PBSMMPlatforms, PBSMMLinks,
+            PBSMMHashtag, PBSMMGoogleTracking, PBSMMGenre, PBSMMPlayerMetadata
+        ):
+    # There is no can_embed_player field - again, laziness (see above)
     class Meta:
         abstract = True
