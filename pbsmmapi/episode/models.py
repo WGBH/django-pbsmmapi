@@ -25,8 +25,9 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         _('Ordinal'),
         blank = True, null = True
     )
-    segment = models.PositiveIntegerField (
+    segment = models.CharField (
         _('Segment'),
+        max_length = 200,
         blank = True, null = True
     )
     

@@ -32,15 +32,19 @@ def process_season_record(obj, instance):
     instance.episode_count = attrs.get('episode_count', None)
     instance.display_episode_number = attrs.get('display_episode_number', None)
     instance.sort_episodes_descending = attrs.get('sort_episodes_descending', None)
-    instance.ordinal_season = attrs.get('ordinal_season', None)
-    instqnce.hashtag = attrs.get('hashtag', None)
+    instance.ordinal = attrs.get('ordinal', None)
+    instance.hashtag = attrs.get('hashtag', None)
 
 
 #### Unprocessed - store as JSON fragments
     instance.genre = set_json_serialized_field(attrs, 'genre', default=None)
     instance.links = set_json_serialized_field(attrs, 'links', default=None)
-    # The canonical image used for this is the one that has 'mezzanine' in it
+    
+    # The canonical image used for this is the one that has 'mezzanine' in it  
     instance.images = set_json_serialized_field(attrs, 'images', default=None)
+    if instance.images is None:  # try latest_asset_images
+        instance.images = set_json_serialized_field(attrs, 'latest_asset_images', default=None)
+        
     instance.platforms = set_json_serialized_field(attrs, 'platforms', default=None)
     instance.audience = set_json_serialized_field(attrs, 'audience', default=None)
     
