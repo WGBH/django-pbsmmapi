@@ -28,7 +28,8 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
         'duration', 'tags', 'availability', 'asset_publicly_available',
         'links', 'chapters', 'images', 'canonical_image', 'canonical_image_tag',
         'content_rating', 'content_rating_description', 'topics', 'geo_profile',
-        'platforms', 'windows'
+        'platforms', 'windows',
+        'show_related_remoteassets',
     ]
     
     # If we're adding a record - no sense in seeing all the things that aren't there yet, since only these TWO

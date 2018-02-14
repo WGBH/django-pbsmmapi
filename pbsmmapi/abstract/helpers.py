@@ -13,3 +13,4 @@ def get_canonical_image(image_list, image_type='mezzanine'):
         if image_type in img['profile']:
             return img['image']
     return None
+    

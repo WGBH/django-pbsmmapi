@@ -16,11 +16,6 @@ PBSMM_REMOTEASSET_ENDPOINT = 'https://media.services.pbs.org/api/v1/remote-asset
 
 class PBSMMRemoteAsset(PBSMMGenericRemoteAsset):
     
-    #image = models.URLField (
-    #    _('Image'),
-    #    null = True, blank = True
-    #)
-    
     tags = models.TextField (
         _('Tags'),
         null = True, blank = True
@@ -52,16 +47,6 @@ class PBSMMRemoteAsset(PBSMMGenericRemoteAsset):
         return 'remoteasset'
     object_model_type = property(__object_model_type)
         
-    #def __get_canonical_image(self):
-    #    return self.image
-    #canonical_image = property(__get_canonical_image)
-    #
-    #def canonical_image_tag(self):
-    #    if "http" in self.canonical_image:
-    #        return "<img src=\"%s\">" % self.canonical_image
-    #    return None
-    #canonical_image_tag.allow_tags = True
-    
     def remote_url_link(self):
         return '<a href="%s">%s</a>' % (self.remote_url, self.remote_url)
     remote_url_link.allow_tags = True

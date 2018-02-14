@@ -15,6 +15,8 @@ from .ingest import process_asset_record
 from .helpers import check_asset_availability
 from ..abstract.helpers import get_canonical_image
 
+from ..remoteasset.models import PBSMMRemoteAsset
+
 AVAILABILITY_GROUPS = (
     ('Station Members', 'station_members'),
     ('All Members', 'all_members'),
@@ -159,7 +161,6 @@ class PBSMMAsset(PBSMMGenericAsset):
         return self.asset_publicly_available
     is_asset_publicly_available = property(__is_asset_publicly_available)
 
-    
     def __get_canonical_image(self):
         if self.images:
             image_list = json.loads(self.images)
@@ -174,11 +175,26 @@ class PBSMMAsset(PBSMMGenericAsset):
         return None
     canonical_image_tag.allow_tags = True
     
-    def save(self, *args, **kwargs):
-        #if self.last_api_status != 200:
-        #    return
-        super(PBSMMAsset, self).save(*args, **kwargs)
+    def show_related_remoteassets(self):
+        if self.remote_assets:
+            foo = '<table><tr><th>Title</th><th>Remote URL</th><th>RemoteAsset API link</th></tr>'
+            for r in self.remote_assets:
+                remote_url_link = r.remote_asset.remote_url_link
+                remote_api_link = r.remote_asset.link_to_api_record_link
+                remote_title = r.remote_asset.title
+                foo += '<tr><td>%s</td><td>%s</td><td>%s</td></tr>' % (remote_title, remote_url_link, remote_api_link)
+            foo += '</table>'
+        else:
+            return '<b>No Remote Assets</b>'
+    show_related_remoteassets.allow_tags = True
+    show_related_remoteassets.short_description = 'Remote Assets'
 
+class AssetRemoteAssetRelation(models.Model):
+    asset = models.ForeignKey(PBSMMAsset, related_name='remote_assets')
+    remote_asset = models.ForeignKey(PBSMMRemoteAsset)
+
+    
+    
     
 #######################################################################################################################
 ###################

@@ -51,6 +51,11 @@ class PBSMMRemoteAssetAdmin(admin.ModelAdmin):
                 'description_long', 'description_short',
             ),
         }),
+        ('Remote Assets', { 'classes': ('collapse',),
+            'fields': (
+                'show_related_remoteassets',
+            )
+        })
     )
 
     actions = ['force_reingest',]
