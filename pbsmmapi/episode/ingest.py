@@ -1,5 +1,6 @@
-
+from ..api.api import get_PBSMM_record
 from ..abstract.helpers import set_json_serialized_field
+from ..asset.foo import foo
 
 def process_episode_record(obj, instance):
     
@@ -33,5 +34,28 @@ def process_episode_record(obj, instance):
 
 #### Unprocessed - store as JSON fragments
     instance.links = set_json_serialized_field(attrs, 'links', default=None)
+
+#### RELATIONSHIPS
+    if instance.ingest_related_assets:
+        related_assets_endpoint = links.get('assets', None)
+        print "ENDPOINT: ", related_assets_endpoint
+        (status, json) = get_PBSMM_record(related_assets_endpoint)
+        if status == 200:
+            asset_list = json['data']
+            print "TYPE ASSET LIST: ", type(asset_list)
+            print "LEN: ", len(asset_list)
+            for asset in asset_list:
+                asset_id = asset.get('id', None)
+                print "ASSET ID: ", asset_id
+                ingest_related_asset(asset_id)
+                #try: 
+                #    asset_record = PBSMMAsset.object.get(asset_id = asset_id)
+                #except PBSMMAsset.DoesNotExist:
+                #    asset_record = PBSMMAsset()
+                #    asset_record.asset_id = asset_id
+                #asset_record.ingest_on_save = True
+                #asset_record.save()
+            
+                    
 
     return instance

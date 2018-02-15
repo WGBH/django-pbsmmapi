@@ -51,11 +51,6 @@ class PBSMMRemoteAssetAdmin(admin.ModelAdmin):
                 'description_long', 'description_short',
             ),
         }),
-        ('Remote Assets', { 'classes': ('collapse',),
-            'fields': (
-                'show_related_remoteassets',
-            )
-        })
     )
 
     actions = ['force_reingest',]
@@ -84,6 +79,11 @@ class PBSMMRemoteAssetAdmin(admin.ModelAdmin):
         defaults.update(kwargs)
         return super(PBSMMRemoteAssetAdmin, self).get_form(request, obj, **kwargs)
 
-
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super(PBSMMRemoteAssetAdmin, self).get_readonly_fields(request, obj)
+        if obj:
+            return readonly_fields + ['object_id',]
+        else:
+            return self.readonly_fields
 
 admin.site.register(PBSMMRemoteAsset, PBSMMRemoteAssetAdmin)

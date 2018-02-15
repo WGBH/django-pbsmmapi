@@ -31,6 +31,13 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         blank = True, null = True
     )
     
+    ###### RELATIONSHIP INGESTION FLAGS
+    ingest_related_assets = models.BooleanField (
+        _('Ingest Related Assets'),
+        default = False,
+        help_text = 'If true, then will scrape assets from the PBSMM API on save()'
+    )
+    
     class Meta:
         verbose_name = 'PBS Media Manager Episode'
         verbose_name_plural = 'PBS Media Manager Episodes'
@@ -58,8 +65,22 @@ class PBSMMEpisode(PBSMMGenericEpisode):
             return "<img src=\"%s\">" % self.canonical_image
         return None
     canonical_image_tag.allow_tags = True
-        
-
+    
+    ### RELATIONSHIP DISPLAY
+    def show_related_assets(self):
+        related_assets = self.related_asset_list.all()
+        if related_assets and len(related_assets) > 0:
+            foo = '<table><tr><th>Asset Type</th><th>Link to Admin</th><th>Link to API Record</th><th>Last API Status</th></tr>'
+            for item in related_assets:
+                a = item.asset
+                foo += '<tr><td>%s</td><td><a href="/admin/pbsmmapi/pbsmmasset/%d/">%s</a></td><td>%s</td><td>%s</td></tr>' %\
+                    (a.object_type, a.pk, a.title, a.link_to_api_record_link(), a.last_api_status_color())
+            foo += "</table>"
+            return foo
+        else:
+            return "<b>No related assets</b>"
+    show_related_assets.allow_tags = True
+    show_related_assets.short_description = 'Related Assets'
 
 #######################################################################################################################
 ###################
@@ -107,6 +128,6 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
 
     # continue saving, but turn off the ingest_on_save flag
     instance.ingest_on_save = False # otherwise we could end up in an infinite loop!
-
+    instance.ingest_related_assets = False
     # We're done here - continue with the save() operation 
     return

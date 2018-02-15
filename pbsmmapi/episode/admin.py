@@ -17,19 +17,22 @@ class PBSMMEpisodeAdmin(admin.ModelAdmin):
         'title', 'title_sortable', 'slug', 'link_to_api_record_link',
         'description_long', 'description_short', 'funder_message',
         'premiered_on', 'encored_on', 'nola', 'language', 
-        'links', 'ordinal', 'segment'
+        'links', 'ordinal', 'segment',
+        
+        # Relationships
+        'show_related_assets',
     ]
     
     # If we're adding a record - no sense in seeing all the things that aren't there yet, since only these TWO
     # fields are editable anyway...
     add_fieldsets = (
-        (None, {'fields': ('object_id',),} ),
+        (None, {'fields': ('object_id','ingest_related_assets'),} ),
     )
     
     fieldsets = (
         (None, {
             'fields': (
-                'ingest_on_save',
+                ('ingest_on_save', 'ingest_related_assets',),
                 ('date_created','date_last_api_update','updated_at', 'last_api_status_color'),
                 'link_to_api_record_link',
                 'object_id',
@@ -59,6 +62,11 @@ class PBSMMEpisodeAdmin(admin.ModelAdmin):
                 'links',
             ),
         }),
+        ('Relationships', { #'classes': ('collapse',),
+            'fields': (
+                'show_related_assets',
+            )
+        })
     )
 
     actions = ['force_reingest',]
@@ -89,5 +97,12 @@ class PBSMMEpisodeAdmin(admin.ModelAdmin):
             })
         defaults.update(kwargs)
         return super(PBSMMEpisodeAdmin, self).get_form(request, obj, **kwargs)
+        
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super(PBSMMEpisodeAdmin, self).get_readonly_fields(request, obj)
+        if obj:
+            return readonly_fields + ['object_id','legacy_tp_media_id']
+        else:
+            return self.readonly_fields
 
 admin.site.register(PBSMMEpisode, PBSMMEpisodeAdmin)

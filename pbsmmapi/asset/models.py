@@ -15,6 +15,7 @@ from .ingest import process_asset_record
 from .helpers import check_asset_availability
 from ..abstract.helpers import get_canonical_image
 
+from ..episode.models import PBSMMEpisode
 from ..remoteasset.models import PBSMMRemoteAsset
 
 AVAILABILITY_GROUPS = (
@@ -175,26 +176,50 @@ class PBSMMAsset(PBSMMGenericAsset):
         return None
     canonical_image_tag.allow_tags = True
     
+####################### RELATIONSHIP PROPERTIES #####################
+    
     def show_related_remoteassets(self):
-        if self.remote_assets:
+        remote_assets = self.remote_assets.all()
+        if remote_assets and len(remote_assets) > 0:
             foo = '<table><tr><th>Title</th><th>Remote URL</th><th>RemoteAsset API link</th></tr>'
-            for r in self.remote_assets:
+            for r in self.remote_assets.all():
                 remote_url_link = r.remote_asset.remote_url_link
                 remote_api_link = r.remote_asset.link_to_api_record_link
                 remote_title = r.remote_asset.title
                 foo += '<tr><td>%s</td><td>%s</td><td>%s</td></tr>' % (remote_title, remote_url_link, remote_api_link)
-            foo += '</table>'
+                foo += '</table>'
         else:
             return '<b>No Remote Assets</b>'
     show_related_remoteassets.allow_tags = True
-    show_related_remoteassets.short_description = 'Remote Assets'
+    show_related_remoteassets.short_description = 'Related Remote Assets'
+    
+    def show_related_episode(self):
+        related_episode = self.related_episode.first() # since there's only one
+        if related_episode is not None:
+            return '<a href="/admin/pbsmmapi/pbsmmepisode/%d" target="_new">%s</a>' % (related_episode.episode.pk, related_episode.episode.title)
+        else:
+            return "<b>No related Episode</b>"
+    show_related_episode.allow_tags = True
+    show_related_episode.short_description = 'Related Episode'
+    
+####################### RELATIONSHIP MODELS #########################
 
 class AssetRemoteAssetRelation(models.Model):
+    # One can have many RemoteAsset relationships
     asset = models.ForeignKey(PBSMMAsset, related_name='remote_assets')
     remote_asset = models.ForeignKey(PBSMMRemoteAsset)
 
+    class Meta:
+        app_label = 'pbsmmapi'
+        
+class AssetEpisodeRelation(models.Model):
+    # IT APPEARS that an Asset can only have ONE Episode relationship (but an Episode can have many Assets)
+    asset = models.ForeignKey(PBSMMAsset, related_name='related_episode')
+    episode = models.ForeignKey(PBSMMEpisode, related_name='related_asset_list')
     
-    
+    class Meta:
+        app_label = 'pbsmmapi'
+        
     
 #######################################################################################################################
 ###################

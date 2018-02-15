@@ -1,4 +1,3 @@
-
 from ..abstract.helpers import set_json_serialized_field
 
 ### THIS IS THE INGEST SCRIPT FOR ASSET RECORDS
@@ -69,8 +68,19 @@ def process_asset_record(obj, instance):
     # For compatibility (so far)
     instance.platforms = set_json_serialized_field(attrs, 'platforms', default=None)
     
-    return instance
+#### Relationships
+
+    # RELATED LINKS
+    # RELATED PROMOS
     
+    # Episode
+    # Season
+    # Show
+    # Franchise
+    
+    
+    return instance
+
 ##### DFP?
 # It appears to be a signal for DFP Sponsorship - which from what I understand has something to do with Google Videos
 # and I think somehow this is a way to get around viewers seeing third-party ads on those assets.

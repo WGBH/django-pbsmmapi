@@ -29,7 +29,10 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
         'links', 'chapters', 'images', 'canonical_image', 'canonical_image_tag',
         'content_rating', 'content_rating_description', 'topics', 'geo_profile',
         'platforms', 'windows',
+        
+        # relationships
         'show_related_remoteassets',
+        'show_related_episode'
     ]
     
     # If we're adding a record - no sense in seeing all the things that aren't there yet, since only these TWO
@@ -82,6 +85,12 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
                 'links', 'geo_profile', 'platforms', 'windows'
             )
         }),
+        ('Relationships', { 'classes': ('collapse',),
+            'fields': (
+                'show_related_episode',
+                'show_related_remoteassets',
+            )
+        })
     )
     actions = ['force_reingest',]
     
@@ -109,5 +118,12 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
             })
         defaults.update(kwargs)
         return super(PBSMMAssetAdmin, self).get_form(request, obj, **kwargs)
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super(PBSMMAssetAdmin, self).get_readonly_fields(request, obj)
+        if obj:
+            return readonly_fields + ['object_id','legacy_tp_media_id']
+        else:
+            return self.readonly_fields
         
 admin.site.register(PBSMMAsset, PBSMMAssetAdmin)
