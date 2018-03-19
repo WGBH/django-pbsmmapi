@@ -15,8 +15,8 @@ from .ingest import process_asset_record
 from .helpers import check_asset_availability
 from ..abstract.helpers import get_canonical_image
 
-from ..episode.models import PBSMMEpisode
-from ..remoteasset.models import PBSMMRemoteAsset
+#from ..episode.models import PBSMMEpisode
+#from ..remoteasset.models import PBSMMRemoteAsset
 
 AVAILABILITY_GROUPS = (
     ('Station Members', 'station_members'),
@@ -207,7 +207,7 @@ class PBSMMAsset(PBSMMGenericAsset):
 class AssetRemoteAssetRelation(models.Model):
     # One can have many RemoteAsset relationships
     asset = models.ForeignKey(PBSMMAsset, related_name='remote_assets')
-    remote_asset = models.ForeignKey(PBSMMRemoteAsset)
+    remote_asset = models.ForeignKey('pbsmmapi.PBSMMRemoteAsset')
 
     class Meta:
         app_label = 'pbsmmapi'
@@ -215,7 +215,7 @@ class AssetRemoteAssetRelation(models.Model):
 class AssetEpisodeRelation(models.Model):
     # IT APPEARS that an Asset can only have ONE Episode relationship (but an Episode can have many Assets)
     asset = models.ForeignKey(PBSMMAsset, related_name='related_episode')
-    episode = models.ForeignKey(PBSMMEpisode, related_name='related_asset_list')
+    episode = models.ForeignKey('pbsmmapi.PBSMMEpisode', related_name='related_asset_list')
     
     class Meta:
         app_label = 'pbsmmapi'

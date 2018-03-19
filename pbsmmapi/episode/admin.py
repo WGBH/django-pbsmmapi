@@ -26,7 +26,7 @@ class PBSMMEpisodeAdmin(admin.ModelAdmin):
     # If we're adding a record - no sense in seeing all the things that aren't there yet, since only these TWO
     # fields are editable anyway...
     add_fieldsets = (
-        (None, {'fields': ('object_id','ingest_related_assets'),} ),
+        (None, {'fields': ('object_id',),} ),
     )
     
     fieldsets = (

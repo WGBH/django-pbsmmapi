@@ -10,8 +10,11 @@ from django.utils.translation import ugettext_lazy as _
 
 from ..abstract.models import PBSMMGenericEpisode
 from ..abstract.helpers import get_canonical_image
+
 from ..api.api import get_PBSMM_record
 from .ingest import process_episode_record
+
+from ..asset.models import AssetEpisodeRelation
 
 PBSMM_EPISODE_ENDPOINT = 'https://media.services.pbs.org/api/v1/episodes/'
 
@@ -82,19 +85,21 @@ class PBSMMEpisode(PBSMMGenericEpisode):
     show_related_assets.allow_tags = True
     show_related_assets.short_description = 'Related Assets'
 
+
 #######################################################################################################################
 ###################
 ###################  PBS MediaManager API interface
 ###################
 #######################################################################################################################
-
 ##### The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
 #####
 ##### That way, one can force a reingestion from the Admin OR one can do it from a management script
 ##### by simply getting the record, setting ingest_on_save on the record, and calling save().
 #####
+
 @receiver(models.signals.pre_save, sender=PBSMMEpisode)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
+
     if instance.__class__ is not PBSMMEpisode:
         return
 
@@ -103,31 +108,64 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     # the appropriate URL to access.
     if instance.pk and instance.object_id and str(instance.object_id).strip():
         # Object is being edited
-        if not instance.ingest_on_save:
-            return # do nothing - can't get an ID to look up!
+        op = 'edit'
+        #if not instance.ingest_on_save:
+        #    return # do nothing - can't get an ID to look up!
 
     else: # object is being added
+        op = 'create'
         if not instance.object_id:
             return # do nothing - can't get an ID to look up!
 
-    url = "%s/%s/" % (PBSMM_EPISODE_ENDPOINT, instance.object_id)
 
-    # OK - get the record from the API
-    (status, json) = get_PBSMM_record(url)
+    if op == 'create' or instance.ingest_on_save:
+        url = "%s/%s/" % (PBSMM_EPISODE_ENDPOINT, instance.object_id)
+
+        # OK - get the record from the API
+        (status, json) = get_PBSMM_record(url)
+
+        instance.last_api_status = status
+        # Update this record's time stamp (the API has its own)
+        instance.date_last_api_update = datetime.datetime.now()
     
-    instance.last_api_status = status
-    # Update this record's time stamp (the API has its own)
-    instance.date_last_api_update = datetime.datetime.now()
-    
-    # If we didn't get a record, abort (there's no sense crying over spilled bits)
-    if status != 200:
-        return
+        # If we didn't get a record, abort (there's no sense crying over spilled bits)
+        if status != 200:
+            return
 
-    # Process the record (code is in ingest.py)
-    instance = process_episode_record(json, instance)
+        # Process the record (code is in ingest.py)
+        instance = process_episode_record(json, instance)
 
-    # continue saving, but turn off the ingest_on_save flag
-    instance.ingest_on_save = False # otherwise we could end up in an infinite loop!
-    instance.ingest_related_assets = False
+        # continue saving, but turn off the ingest_on_save flag
+        instance.ingest_on_save = False # otherwise we could end up in an infinite loop!
+        .
+    #instance.ingest_related_assets = False
     # We're done here - continue with the save() operation 
-    return
+    return instance
+    
+def foo(instance):
+    if instance.ingest_related_assets:
+        if instance.pk:
+            new_related_assets_list = process_related_assets(json)
+            known_ids = []
+            known_assets = AssetEpisodeRelation.objects.filter(episode__id=instance.pk)
+            for a in known_assets:
+                knowns_ids.append(a.pk)
+                
+            if len(new_related_assets_list) > 0:
+                for item in new_related_asset_list:
+                    if item not in known_ids:
+                        x = AssetEpisodeRelation(episode=instance, asset=)
+    
+def process_related_assets(obj):
+    links = obj['links']
+    related_assets_endpoint = links.get('assets', None)
+    new_related_assets = []
+    (status, json) = get_PBSMM_record(related_assets_endpoint)
+    if status == 200:
+        asset_list = json['data']
+
+        for asset in asset_list:
+            asset_id = asset.get('id', None)
+            (op, asset_pk) = ingest_related_asset(asset_id)                    
+            if op == 'new' and asset_pk:
+                new_related_assets.append(asset_pk)
