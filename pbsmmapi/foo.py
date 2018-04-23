@@ -1,5 +1,5 @@
 # this is just a clipboard until I figure out where this code should go
-
+# RAD
 #### RELATIONSHIPS
     relationships = {}
     new_related_assets = []
