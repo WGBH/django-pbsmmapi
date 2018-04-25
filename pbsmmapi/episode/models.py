@@ -137,24 +137,24 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
 
         # continue saving, but turn off the ingest_on_save flag
         instance.ingest_on_save = False # otherwise we could end up in an infinite loop!
-        .
+
     #instance.ingest_related_assets = False
     # We're done here - continue with the save() operation 
     return instance
     
-def foo(instance):
-    if instance.ingest_related_assets:
-        if instance.pk:
-            new_related_assets_list = process_related_assets(json)
-            known_ids = []
-            known_assets = AssetEpisodeRelation.objects.filter(episode__id=instance.pk)
-            for a in known_assets:
-                knowns_ids.append(a.pk)
-                
-            if len(new_related_assets_list) > 0:
-                for item in new_related_asset_list:
-                    if item not in known_ids:
-                        x = AssetEpisodeRelation(episode=instance, asset=)
+#def foo(instance):
+#    if instance.ingest_related_assets:
+#        if instance.pk:
+#            new_related_assets_list = process_related_assets(json)
+#            known_ids = []
+#            known_assets = AssetEpisodeRelation.objects.filter(episode__id=instance.pk)
+#            for a in known_assets:
+#                knowns_ids.append(a.pk)
+#                
+#            if len(new_related_assets_list) > 0:
+#                for item in new_related_asset_list:
+#                    if item not in known_ids:
+#                        x = AssetEpisodeRelation(episode=instance, asset=)
     
 def process_related_assets(obj):
     links = obj['links']

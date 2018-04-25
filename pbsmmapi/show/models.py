@@ -64,8 +64,8 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     if instance.__class__ is not PBSMMShow:
         return
 
-    # If this is a new record, then someone has started it in the Admin using EITHER a legacy COVE ID
-    # OR a PBSMM UUID.   Depending on which, the retrieval endpoint is slightly different, so this sets
+    # If this is a new record, then someone has started it in the Admin using 
+    # a PBSMM UUID.   Depending on which, the retrieval endpoint is slightly different, so this sets
     # the appropriate URL to access.
     if instance.pk and instance.object_id and str(instance.object_id).strip():
         # Object is being edited
