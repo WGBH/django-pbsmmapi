@@ -11,7 +11,7 @@ from django.utils.translation import ugettext_lazy as _
 from ..abstract.models import PBSMMGenericEpisode
 from ..abstract.helpers import get_canonical_image
 
-from ..api.api import get_PBSMM_record
+from pbsmmapi.api.api import get_PBSMM_record
 from .ingest import process_episode_record
 
 from ..asset.models import AssetEpisodeRelation

@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 
 from ..abstract.models import PBSMMGenericAsset
-from ..api.api import get_PBSMM_record
+from pbsmmapi.api.api import get_PBSMM_record
     
 from .ingest import process_asset_record
 from .helpers import check_asset_availability

@@ -8,34 +8,37 @@ from django.db import models
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 
-from ..abstract.models import PBSMMGenericSpecial
+from ..abstract.models import PBSMMGenericCollection
+from ..abstract.helpers import get_canonical_image
 
-from ..api.api import get_PBSMM_record
-from .ingest import process_special_record
+from pbsmmapi.api.api import get_PBSMM_record
+from .ingest import process_collection_record
 
-PBSMM_SPECIAL_ENDPOINT = 'https://media.services.pbs.org/api/v1/specials/'
+PBSMM_COLLECTION_ENDPOINT = 'https://media.services.pbs.org/api/v1/collections/'
 
-class PBSMMSpecial(PBSMMGenericSpecial):
-    
-    encored_on = models.DateTimeField (
-        _('Encored On'),
-        null = True, blank = True
+class PBSMMCollection(PBSMMGenericCollection):
+    # There is no sortable title field - it is allowed in the model purely out of laziness since
+    # abstracting it out would be more-complicated than leaving it in.
+    # PLUS I suspect that eventually it'll be added...
+    featured = models.BooleanField (
+        _('Featured'),
+        default = False
     )
-
+    
     class Meta:
-        verbose_name = 'PBS Media Manager Special'
-        verbose_name_plural = 'PBS Media Manager Specials'
+        verbose_name = 'PBS Media Manager Collection'
+        verbose_name_plural = 'PBS Media Manager Collections'
         app_label = 'pbsmmapi'
-        db_table = 'pbsmm_special'
+        db_table = 'pbsmm_collection'
         
     def __unicode__(self):
         return "%s | %s " % (self.object_id, self.title)
 
     def __object_model_type(self):
     # This handles the correspondence to the "type" field in the PBSMM JSON object
-        return 'special'
+        return 'collection'
     object_model_type = property(__object_model_type)
-    
+
     def __get_canonical_image(self):
         if self.images:
             image_list = json.loads(self.images)
@@ -50,7 +53,6 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         return None
     canonical_image_tag.allow_tags = True
 
-
 #######################################################################################################################
 ###################
 ###################  PBS MediaManager API interface
@@ -62,9 +64,9 @@ class PBSMMSpecial(PBSMMGenericSpecial):
 ##### That way, one can force a reingestion from the Admin OR one can do it from a management script
 ##### by simply getting the record, setting ingest_on_save on the record, and calling save().
 #####
-@receiver(models.signals.pre_save, sender=PBSMMSpecial)
+@receiver(models.signals.pre_save, sender=PBSMMCollection)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
-    if instance.__class__ is not PBSMMSpecial:
+    if instance.__class__ is not PBSMMCollection:
         return
 
     # If this is a new record, then someone has started it in the Admin using EITHER a legacy COVE ID
@@ -79,10 +81,11 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         if not instance.object_id:
             return # do nothing - can't get an ID to look up!
 
-    url = "%s/%s/" % (PBSMM_SPECIAL_ENDPOINT, instance.object_id)
+    url = "%s/%s/" % (PBSMM_COLLECTION_ENDPOINT, instance.object_id)
 
     # OK - get the record from the API
     (status, json) = get_PBSMM_record(url)
+    
     instance.last_api_status = status
     # Update this record's time stamp (the API has its own)
     instance.date_last_api_update = datetime.datetime.now()
@@ -92,7 +95,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         return
 
     # Process the record (code is in ingest.py)
-    instance = process_special_record(json, instance)
+    instance = process_collection_record(json, instance)
 
     # continue saving, but turn off the ingest_on_save flag
     instance.ingest_on_save = False # otherwise we could end up in an infinite loop!

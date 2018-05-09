@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 
 from ..abstract.models import PBSMMGenericRemoteAsset
-from ..api.api import get_PBSMM_record
+from pbsmmapi.api.api import get_PBSMM_record
 from .ingest import process_remoteasset_record
 
 PBSMM_REMOTEASSET_ENDPOINT = 'https://media.services.pbs.org/api/v1/remote-assets/'
