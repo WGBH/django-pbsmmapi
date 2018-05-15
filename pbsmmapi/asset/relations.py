@@ -1,5 +1,5 @@
-#from pbsmmapi.asset.models import PBSMMAsset
-from .models import PBSMMAsset
+#from pbsmmapi.deluxe.asset.models import PBSMMAsset
+#from .models import PBSMMAsset
 
 def ingest_related_asset(asset_id):
     

@@ -28,7 +28,7 @@ class PBSMMCollection(PBSMMGenericCollection):
     class Meta:
         verbose_name = 'PBS Media Manager Collection'
         verbose_name_plural = 'PBS Media Manager Collections'
-        app_label = 'pbsmmapi'
+        #app_label = 'pbsmmapi'
         db_table = 'pbsmm_collection'
         
     def __unicode__(self):

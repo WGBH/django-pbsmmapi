@@ -14,7 +14,7 @@ from ..abstract.helpers import get_canonical_image
 from pbsmmapi.api.api import get_PBSMM_record
 from .ingest import process_episode_record
 
-from ..asset.models import AssetEpisodeRelation
+#from ..asset.models import AssetEpisodeRelation
 
 PBSMM_EPISODE_ENDPOINT = 'https://media.services.pbs.org/api/v1/episodes/'
 
@@ -44,7 +44,7 @@ class PBSMMEpisode(PBSMMGenericEpisode):
     class Meta:
         verbose_name = 'PBS Media Manager Episode'
         verbose_name_plural = 'PBS Media Manager Episodes'
-        app_label = 'pbsmmapi'
+        #app_label = 'pbsmmapi'
         db_table = 'pbsmm_episode'
         
     def __unicode__(self):

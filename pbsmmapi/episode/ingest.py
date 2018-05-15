@@ -1,7 +1,7 @@
 from pbsmmapi.api.api import get_PBSMM_record
 from ..abstract.helpers import set_json_serialized_field
 from ..asset.relations import ingest_related_asset
-from ..asset.models import AssetEpisodeRelation
+#from ..asset.models import AssetEpisodeRelation
 
 def process_episode_record(obj, instance):
     
