@@ -10,7 +10,7 @@ def process_collection_record(obj, instance):
 #### UUID and updated_on
     instance.object_id = data.get('id', None)  # This should always be set.
     instance.updated_at = attrs.get('updated_at', None) # timestamp of the record in the API
-    instance.link_to_api_record = links.get('self', None) # URL of the request
+    instance.api_endpoint = links.get('self', None) # URL of the request
 
 #### Title, Sortable Ttile, and Slug
     instance.title = attrs.get('title', None)

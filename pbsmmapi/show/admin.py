@@ -14,7 +14,7 @@ class PBSMMShowAdmin(admin.ModelAdmin):
     # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
         'date_created', 'date_last_api_update', 'updated_at', 'last_api_status_color',
-        'link_to_api_record', 'link_to_api_record_link',
+        'api_endpoint', 'api_endpoint_link',
         'title', 'title_sortable', 'slug',
         'description_long', 'description_short',
         'updated_at', 'premiered_on', 'nola', 
@@ -35,7 +35,7 @@ class PBSMMShowAdmin(admin.ModelAdmin):
             'fields': (
                 'ingest_on_save',
                 ('date_created','date_last_api_update','updated_at', 'last_api_status_color'),
-                'link_to_api_record_link',
+                'api_endpoint_link',
                 'object_id',
 
             ),

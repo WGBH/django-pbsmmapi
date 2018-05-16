@@ -13,7 +13,7 @@ class PBSMMSpecialAdmin(admin.ModelAdmin):
     #
     # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
-        'date_created', 'date_last_api_update', 'last_api_status', 'link_to_api_record_link', 'last_api_status_color',
+        'date_created', 'date_last_api_update', 'last_api_status', 'api_endpoint_link', 'last_api_status_color',
         'title', 'title_sortable', 'slug', 
         'description_long', 'description_short', 
         'updated_at', 'premiered_on', 
@@ -40,14 +40,14 @@ class PBSMMSpecialAdmin(admin.ModelAdmin):
             'fields': (
                 'ingest_on_save',
                 ('date_created','date_last_api_update','updated_at', 'last_api_status_color'),
-                'link_to_api_record_link',
+                'api_endpoint_link',
                 'object_id',
 
             ),
         }),
         ('Title, Slug, Link', { #'classes': ('collapse in',),
             'fields': (
-                'title', 'title_sortable', 'slug', 'link_to_api_record_link', 'last_api_status_color'
+                'title', 'title_sortable', 'slug', 'api_endpoint_link', 'last_api_status_color'
             ),
         }),
         ('Description and Texts', { 'classes': ('collapse',),

@@ -184,7 +184,7 @@ class PBSMMAsset(PBSMMGenericAsset):
             foo = '<table><tr><th>Title</th><th>Remote URL</th><th>RemoteAsset API link</th></tr>'
             for r in self.remote_assets.all():
                 remote_url_link = r.remote_asset.remote_url_link
-                remote_api_link = r.remote_asset.link_to_api_record_link
+                remote_api_link = r.remote_asset.api_endpoint_link
                 remote_title = r.remote_asset.title
                 foo += '<tr><td>%s</td><td>%s</td><td>%s</td></tr>' % (remote_title, remote_url_link, remote_api_link)
                 foo += '</table>'

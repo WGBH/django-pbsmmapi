@@ -14,8 +14,8 @@ class PBSMMCollectionAdmin(admin.ModelAdmin):
     # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
         'date_created', 'date_last_api_update', 'updated_at', 'last_api_status_color', 
-        'link_to_api_record_link',
-        'title', 'slug', 'link_to_api_record_link',
+        'api_endpoint_link',
+        'title', 'slug', 'api_endpoint_link',
         'description_long', 'description_short', 
         'featured', 'images', 'canonical_image', 'canonical_image_tag'
     ]
@@ -31,13 +31,13 @@ class PBSMMCollectionAdmin(admin.ModelAdmin):
             'fields': (
                 'ingest_on_save',
                 ('date_created','date_last_api_update','updated_at', 'last_api_status_color'),
-                'link_to_api_record_link',
+                'api_endpoint_link',
                 'object_id',
             ),
         }),
         ('Title, Slug, Link', { #'classes': ('collapse in',),
             'fields': (
-                'title', 'slug', 'link_to_api_record_link'
+                'title', 'slug', 'api_endpoint_link'
             ),
         }),
         ('Description and Texts', { 'classes': ('collapse',),

@@ -20,7 +20,7 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
     # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
         'date_created', 'date_last_api_update', 'updated_at', 'last_api_status_color',
-        'link_to_api_record_link',
+        'api_endpoint_link',
         'title', 'title_sortable', 'slug', 'object_type',
         'description_long', 'description_short',
         'is_excluded_from_dfp', 'can_embed_player', 
@@ -47,7 +47,7 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
             'fields': (
                 'ingest_on_save',
                 ('date_created','date_last_api_update','updated_at', 'last_api_status_color'),
-                'link_to_api_record_link',
+                'api_endpoint_link',
                 ('object_id', 'legacy_tp_media_id'),
             ),
         }),

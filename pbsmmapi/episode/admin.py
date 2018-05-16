@@ -13,8 +13,8 @@ class PBSMMEpisodeAdmin(admin.ModelAdmin):
     # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
         'date_created', 'date_last_api_update', 'updated_at', 'last_api_status_color', 
-        'link_to_api_record_link',
-        'title', 'title_sortable', 'slug', 'link_to_api_record_link',
+        'api_endpoint_link',
+        'title', 'title_sortable', 'slug', 'api_endpoint_link',
         'description_long', 'description_short', 'funder_message',
         'premiered_on', 'encored_on', 'nola', 'language', 
         'links', 'ordinal', 'segment',
@@ -28,20 +28,20 @@ class PBSMMEpisodeAdmin(admin.ModelAdmin):
     add_fieldsets = (
         (None, {'fields': ('object_id',),} ),
     )
-    
+    api_endpoint
     fieldsets = (
         (None, {
             'fields': (
                 ('ingest_on_save', 'ingest_related_assets',),
                 ('date_created','date_last_api_update','updated_at', 'last_api_status_color'),
-                'link_to_api_record_link',
+                'api_endpoint_link',
                 'object_id',
 
             ),
         }),
         ('Title, Slug, Link', { #'classes': ('collapse in',),
             'fields': (
-                'title', 'title_sortable', 'slug', 'link_to_api_record_link'
+                'title', 'title_sortable', 'slug', 'api_endpoint_link'
             ),
         }),
         ('Description and Texts', { 'classes': ('collapse',),

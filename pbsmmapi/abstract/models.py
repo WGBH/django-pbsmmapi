@@ -63,17 +63,17 @@ class PBSMMObjectID(models.Model):
         
 class PBSObjectMetadata(models.Model):
 # Exists for all objects
-    link_to_api_record = models.URLField (
+    api_endpoint = models.URLField (
         _('Link to API Record'),
         null = True, blank = True,
         help_text = 'Endpoint to original record from the API'
     )
     #
     # This just makes the field clickable in the Admin (why cut and paste when you can click?)
-    def link_to_api_record_link(self):
-        return '<a href="%s" target="_new">%s</a>' % (self.link_to_api_record, self.link_to_api_record)
-    link_to_api_record_link.allow_tags = True
-    link_to_api_record_link.short_description = 'Link to API'
+    def api_endpoint_link(self):
+        return '<a href="%s" target="_new">%s</a>' % (self.api_endpoint, self.api_endpoint)
+    api_endpoint_link.allow_tags = True
+    api_endpoint_link.short_description = 'Link to API'
     
     class Meta:
         abstract = True

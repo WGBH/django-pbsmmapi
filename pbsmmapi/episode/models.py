@@ -77,7 +77,7 @@ class PBSMMEpisode(PBSMMGenericEpisode):
             for item in related_assets:
                 a = item.asset
                 foo += '<tr><td>%s</td><td><a href="/admin/pbsmmapi/pbsmmasset/%d/">%s</a></td><td>%s</td><td>%s</td></tr>' %\
-                    (a.object_type, a.pk, a.title, a.link_to_api_record_link(), a.last_api_status_color())
+                    (a.object_type, a.pk, a.title, a.api_endpoint_link(), a.last_api_status_color())
             foo += "</table>"
             return foo
         else:

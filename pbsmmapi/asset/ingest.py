@@ -31,7 +31,7 @@ def process_asset_record(obj, instance):
 #### UUID and updated_on
     instance.object_id = data.get('id', None) # we want this because sometimes we've looked it up via COVE ID, not knowing the UUID
     instance.updated_at = attrs.get('updated_at', None)  # timestamp of the record in the API
-    instance.link_to_api_record = links.get('self', None) # the URL of the request
+    instance.api_endpoint = links.get('self', None) # the URL of the request
 
 #### Title, Sortable Title, and Slug
     instance.title = attrs.get('title', None)
