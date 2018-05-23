@@ -11,12 +11,19 @@ Documentation is in the "docs" directory.
 Quick start
 -----------
 
-1. Add "pbsmmapi" to your INSTALLED_APPS setting:
+1. Add the pbsmmapi apps to your INSTALLED_APPS setting:
 
         INSTALLED_APPS = [
                 ...
-                'pbsmmapi',
+                'pbsmmapi.episode',
+                'pbsmmapi.season',
+                'pbsmmapi.show',
+                'pbsmmapi.special',
         ]
+        
+2. Create your database.  _Be sure to support UTF-8 4-byte characters!_   In MySQL you can use:
+
+    `CREATE DATABASE my_database CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
 
 2. Run  `python manage.py migrate` to create the PBSMM API models.
 
