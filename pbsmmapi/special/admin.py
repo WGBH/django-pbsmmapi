@@ -1,13 +1,17 @@
 from django.contrib import admin
-from .models import PBSMMSpecial
 from .forms import PBSMMSpecialCreateForm, PBSMMSpecialEditForm
-class PBSMMSpecialAdmin(admin.ModelAdmin):
+from .models import PBSMMSpecial, PBSMMSpecialAsset
+from ..abstract.admin import PBSMMAbstractAdmin
+from ..asset.admin import PBSMMAbstractAssetAdmin
+
+class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
     model = PBSMMSpecial
     form = PBSMMSpecialEditForm
     add_form = PBSMMSpecialCreateForm
+    list_filter = ('show__slug',)
     
-    list_display = ('pk',  'object_id', 'title_sortable', 'date_last_api_update', 'last_api_status_color' )
-    list_display_links = ('pk', 'object_id')
+    list_display = ('pk', 'title_sortable', 'show', 'premiered_on', 'date_last_api_update', 'last_api_status_color', 'publish_status' )
+    list_display_links = ('pk', 'title_sortable')
     # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
     # want to be able to view it in the context of the Django system.
     #
@@ -26,7 +30,10 @@ class PBSMMSpecialAdmin(admin.ModelAdmin):
         'language', 
         #'audience', 'hashtag',
         #'canonical_image_tag',
-        'encored_on', 'nola',
+        #'encored_on', 
+        'nola',
+        
+        'assemble_asset_table',
     ]
     
     # If we're adding a record - no sense in seeing all the things that aren't there yet, since only these TWO
@@ -42,7 +49,6 @@ class PBSMMSpecialAdmin(admin.ModelAdmin):
                 ('date_created','date_last_api_update','updated_at', 'last_api_status_color'),
                 'api_endpoint_link',
                 'object_id',
-
             ),
         }),
         ('Title, Slug, Link', { #'classes': ('collapse in',),
@@ -50,6 +56,7 @@ class PBSMMSpecialAdmin(admin.ModelAdmin):
                 'title', 'title_sortable', 'slug', 'api_endpoint_link', 'last_api_status_color'
             ),
         }),
+        ('Assets', {'fields': ('assemble_asset_table',),}),
         ('Description and Texts', { 'classes': ('collapse',),
             'fields': (
                 'description_long', 'description_short',
@@ -63,7 +70,7 @@ class PBSMMSpecialAdmin(admin.ModelAdmin):
         #}),
         ('Special Metadata', { 'classes': ('collapse',),
             'fields': (
-                ('premiered_on', 'encored_on', 'nola'),
+                ('premiered_on', 'nola'),
                 #'is_excluded_from_dfp', 'can_embed_player'),
                 #('display_episode_number', 'sort_episodes_descending', 'ordinal_season'),
                 #'episode_count', 
@@ -80,18 +87,6 @@ class PBSMMSpecialAdmin(admin.ModelAdmin):
             ),
         }),
     )
-
-    actions = ['force_reingest',]
-
-    def force_reingest(self, request, queryset):
-        # queryset is the list of Asset items that were selected.
-        for item in queryset:
-            item.ingest_on_save = True
-            
-            # HOW DO I FIND OUT IF THE save() was successful?
-            item.save()
-            
-    force_reingest.short_description = 'Reingest selected items.'
     
     # Switch between the fieldsets depending on whether we're adding or viewing a record
     def get_fieldsets(self, request, obj=None):
@@ -109,5 +104,17 @@ class PBSMMSpecialAdmin(admin.ModelAdmin):
             })
         defaults.update(kwargs)
         return super(PBSMMSpecialAdmin, self).get_form(request, obj, **kwargs)
+        
+    
+        
+class PBSMMSpecialAssetAdmin(PBSMMAbstractAssetAdmin):
+    model = PBSMMSpecialAsset
+    list_display = ('pk',  'object_id', 'special_title', 'object_type', 'legacy_tp_media_id', 'asset_publicly_available', 
+        'title_sortable', 'duration' )
+        
+    def special_title(self, obj):
+        return obj.special.title
+    special_title.short_description = 'Special'
 
 admin.site.register(PBSMMSpecial, PBSMMSpecialAdmin)
+admin.site.register(PBSMMSpecialAsset, PBSMMSpecialAssetAdmin)

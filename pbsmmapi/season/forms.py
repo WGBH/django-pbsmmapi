@@ -7,7 +7,7 @@ class PBSMMSeasonCreateForm(ModelForm):
     class Meta:
         model = PBSMMSeason
         fields = (
-            'object_id',
+            'object_id',# 'show'
         )
 
 class PBSMMSeasonEditForm(ModelForm):

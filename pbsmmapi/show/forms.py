@@ -7,7 +7,8 @@ class PBSMMShowCreateForm(ModelForm):
     class Meta:
         model = PBSMMShow
         fields = (
-            'object_id',
+            'slug', 'title', 
+            'ingest_seasons', 'ingest_specials', 'ingest_episodes',
         )
 
 class PBSMMShowEditForm(ModelForm):

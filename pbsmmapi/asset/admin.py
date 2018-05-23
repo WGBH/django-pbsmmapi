@@ -1,19 +1,7 @@
 from django.contrib import admin
-from .models import PBSMMAsset
-from .forms import PBSMMAssetCreateForm, PBSMMAssetEditForm
+from django.utils.safestring import mark_safe
 
-### TO BE DONE:
-# 
-# It'd be great to have a listing page function defined so that you could check multiple records and have
-# the back end re-ingest them.
-
-class PBSMMAssetAdmin(admin.ModelAdmin):
-    form = PBSMMAssetEditForm
-    add_form = PBSMMAssetCreateForm
-    model = PBSMMAsset
-    list_display = ('pk',  'object_id', 'legacy_tp_media_id', 'asset_publicly_available', 
-        'title_sortable', 'duration', 'date_last_api_update', 'last_api_status_color' )
-    list_display_links = ('pk', 'object_id')
+class PBSMMAbstractAssetAdmin(admin.ModelAdmin):
     # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
     # want to be able to view it in the context of the Django system.
     #
@@ -30,22 +18,16 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
         'content_rating', 'content_rating_description', 'topics', 'geo_profile',
         'platforms', 'windows',
         
-        # relationships
-        'show_related_remoteassets',
-        'show_related_episode'
+        'player_code_preview'
     ]
-    
-    # If we're adding a record - no sense in seeing all the things that aren't there yet, since only these TWO
-    # fields are editable anyway...
-    add_fieldsets = (
-        (None, {'fields': ('object_id', 'legacy_tp_media_id'),} ),
-    )
+    search_fields = ('title', )
     
     # If we're viewing a record, make it pretty.
-    fieldsets = (
+    fieldsets = [
         (None, {
             'fields': (
                 'ingest_on_save',
+                'is_default_asset',
                 ('date_created','date_last_api_update','updated_at', 'last_api_status_color'),
                 'api_endpoint_link',
                 ('object_id', 'legacy_tp_media_id'),
@@ -60,7 +42,8 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
         ('Images', { 'classes': ('collapse',),
             'fields': (
                 'images',
-                'canonical_image', 'canonical_image_tag',
+                'canonical_image_type_override',
+                'canonical_image_tag',
             ),
         }),
         ('Description', { 'classes': ('collapse',),
@@ -72,7 +55,6 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
             'fields': (
                 ('object_type', 'duration'), 
                 ('can_embed_player', 'is_excluded_from_dfp'),
-                'player_code',
                 'availability',
                 'content_rating',
                 'content_rating_description',
@@ -80,50 +62,28 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
                 'topics', 'tags', 'chapters', 
             ),
         }),
+        ('Asset Preview', { 'classes': ('collapse', ), 
+            'fields': (
+                'player_code', 
+                'player_code_preview',
+            ),
+        }),
         ('Additional Metadata', { 'classes': ('collapse',),
             'fields': (
                 'links', 'geo_profile', 'platforms', 'windows'
-            )
+            ),
         }),
-        ('Relationships', { 'classes': ('collapse',),
-            'fields': (
-                'show_related_episode',
-                'show_related_remoteassets',
-            )
-        })
-    )
-    actions = ['force_reingest',]
+    ]
     
-    def force_reingest(self, request, queryset):
-        # queryset is the list of Asset items that were selected.
-        number_scraped = 0
-        for item in queryset:
-            item.ingest_on_save = True
-            item.save()
-    force_reingest.short_description = 'Reingest selected items.'
-    
-    # Switch between the fieldsets depending on whether we're adding or viewing a record
-    def get_fieldsets(self, request, obj=None):
-        if not obj:
-            return self.add_fieldsets
-        return super(PBSMMAssetAdmin, self).get_fieldsets(request, obj)
-        
-    # Apply the chosen fieldsets tuple to the viewed form
-    def get_form(self, request, obj=None, **kwargs):
-        defaults = {}
-        if obj is None:
-            kwargs.update({
-                'form': self.add_form,
-                'fields': admin.utils.flatten_fieldsets(self.add_fieldsets),
-            })
-        defaults.update(kwargs)
-        return super(PBSMMAssetAdmin, self).get_form(request, obj, **kwargs)
+    def player_code_preview(self, obj):
+        out = ''
+        if obj.player_code and len(obj.player_code)  > 1:
+            out += '<div style=\"width:640px; height: 360px;\">'
+            out += obj.player_code
+            out += '</div>'
+        return mark_safe(out)
 
-    def get_readonly_fields(self, request, obj=None):
-        readonly_fields = super(PBSMMAssetAdmin, self).get_readonly_fields(request, obj)
-        if obj:
-            return readonly_fields + ['object_id','legacy_tp_media_id']
-        else:
-            return self.readonly_fields
-        
-admin.site.register(PBSMMAsset, PBSMMAssetAdmin)
+
+    
+    class Meta:
+        abstract = True

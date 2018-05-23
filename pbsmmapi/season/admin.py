@@ -1,13 +1,19 @@
 from django.contrib import admin
-from .forms import PBSMMSeasonCreateForm, PBSMMSeasonEditForm
-from .models import PBSMMSeason
+from django.utils.safestring import mark_safe
 
-class PBSMMSeasonAdmin(admin.ModelAdmin):
+from .forms import PBSMMSeasonCreateForm, PBSMMSeasonEditForm
+from .models import PBSMMSeason, PBSMMSeasonAsset
+from ..abstract.admin import PBSMMAbstractAdmin
+from ..asset.admin import PBSMMAbstractAssetAdmin
+
+class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
     form = PBSMMSeasonEditForm
     add_form = PBSMMSeasonCreateForm
     model = PBSMMSeason
-    list_display = ('pk',  'object_id',  'ordinal', 'title_sortable', 'date_last_api_update', 'last_api_status_color' )
-    list_display_links = ('pk', 'object_id')
+    list_display = ('pk', 'printable_title', 'show',  'ordinal', 'date_last_api_update',\
+        'last_api_status_color','publish_status' )
+    list_display_links = ('pk', 'printable_title')
+    list_filter = ('show__title_sortable',)
     # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
     # want to be able to view it in the context of the Django system.
     #
@@ -20,22 +26,28 @@ class PBSMMSeasonAdmin(admin.ModelAdmin):
         'updated_at', 'last_api_status',
         'images',
         'canonical_image', 'canonical_image_tag',
-        'links'
+        'links',
+        
+        'format_episode_list',
+        'assemble_asset_table',
     ]
     
     add_fieldsets = (
-        (None, {'fields': ('object_id',),} ),
+        (None, {'fields': ('object_id', 'show', 'ingest_episodes'),} ),
     )
     
     fieldsets = (
         (None, {
             'fields': (
-                'ingest_on_save',
+                ('ingest_on_save', 'ingest_episodes'),
                 ('date_created','date_last_api_update','updated_at', 'last_api_status', 'last_api_status_color'),
                 'api_endpoint_link',
                 'object_id',
 
             ),
+        }),
+        ('Episodes', {
+            'fields': ('format_episode_list', )
         }),
         ('Season Metadata', { #'classes': ('collapse in',),
             'fields': (
@@ -43,6 +55,7 @@ class PBSMMSeasonAdmin(admin.ModelAdmin):
                 'ordinal'
             ),
         }),
+        ('Assets', {'fields': ('assemble_asset_table',),}),
         ('Description and Texts', { 'classes': ('collapse',),
             'fields': (
                 'description_long', 'description_short',
@@ -51,7 +64,8 @@ class PBSMMSeasonAdmin(admin.ModelAdmin):
         ('Images', { 'classes': ('collapse',),
             'fields': (
                 'images',
-                'canonical_image', 'canonical_image_tag',
+                'canonical_image_type_override',
+                'canonical_image_tag',
             ),
         }),
         ('Other', { 'classes': ('collapse',),
@@ -60,18 +74,6 @@ class PBSMMSeasonAdmin(admin.ModelAdmin):
             )
         }),
     )
-
-    actions = ['force_reingest',]
-
-    def force_reingest(self, request, queryset):
-        # queryset is the list of Asset items that were selected.
-        for item in queryset:
-            item.ingest_on_save = True
-            
-            # HOW DO I FIND OUT IF THE save() was successful?
-            item.save()
-            
-    force_reingest.short_description = 'Reingest selected items.'
     
     # Switch between the fieldsets depending on whether we're adding or viewing a record
     def get_fieldsets(self, request, obj=None):
@@ -89,5 +91,35 @@ class PBSMMSeasonAdmin(admin.ModelAdmin):
             })
         defaults.update(kwargs)
         return super(PBSMMSeasonAdmin, self).get_form(request, obj, **kwargs)
+        
+    def format_episode_list(self, obj):
+
+        out = '<table width=\"100%\">\n' + \
+                '<tr>' +\
+                '<th colspan=\"3\">Episodes</th>' + \
+                '<th>API Link</th>' + \
+                '<th># Assets</th>' + \
+                '<th>Last Updated</th>' + \
+                '<th>API Status' + \
+                '<th>Public</th>' + \
+                '</tr>'
+
+        episode_list = obj.episodes.order_by('ordinal')
+        for episode in episode_list:
+            out += episode.create_table_line()
+        out += '</table>'
+        return mark_safe(out)
+    format_episode_list.short_description = 'EPISODE LIST'
+    
+            
+class PBSMMSeasonAssetAdmin(PBSMMAbstractAssetAdmin):
+    model = PBSMMSeasonAsset
+    list_display = ('pk',  'object_id', 'season_title', 'object_type', 'legacy_tp_media_id', 'asset_publicly_available', 
+        'title_sortable', 'duration')
+        
+    def season_title(self, obj):
+        return obj.season.title
+    season_title.short_description = 'Season'
 
 admin.site.register(PBSMMSeason, PBSMMSeasonAdmin)
+admin.site.register(PBSMMSeasonAsset, PBSMMSeasonAssetAdmin)

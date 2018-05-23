@@ -7,16 +7,12 @@ import json
 from django.db import models
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
-
 from ..abstract.models import PBSMMGenericAsset
-from pbsmmapi.api.api import get_PBSMM_record
-    
-from .ingest import process_asset_record
-from .helpers import check_asset_availability
-from ..abstract.helpers import get_canonical_image
 
-from ..episode.models import PBSMMEpisode
-from ..remoteasset.models import PBSMMRemoteAsset
+from ..api.api import get_PBSMM_record
+    
+from .ingest_asset import process_asset_record
+from .helpers import check_asset_availability
 
 AVAILABILITY_GROUPS = (
     ('Station Members', 'station_members'),
@@ -27,7 +23,12 @@ AVAILABILITY_GROUPS = (
 PBSMM_ASSET_ENDPOINT = 'https://media.services.pbs.org/api/v1/assets/' # remember the closing slash
 PBSMM_LEGACY_ASSET_ENDPOINT = 'https://media.services.pbs.org/api/v1/assets/legacy/?tp_media_id='
 
-class PBSMMAsset(PBSMMGenericAsset):
+YES_NO = (
+    (1, 'Yes'),
+    (0, 'No'),
+)
+
+class PBSMMAbstractAsset(PBSMMGenericAsset):
     
 #### These fields are unique to Asset
     legacy_tp_media_id = models.BigIntegerField (
@@ -78,14 +79,6 @@ class PBSMMAsset(PBSMMGenericAsset):
         _('Player Code'),
         null = True, blank = True
     )
-    
-
-    
-    # VIDEOS - hold off until needed
-    # CAPTIONS - hold off until needed
-    # WINDOWS - abstracted
-    # PLATFORMS - abstracted
-    
 
     # CHAPTERS
     chapters = models.TextField (
@@ -105,35 +98,14 @@ class PBSMMAsset(PBSMMGenericAsset):
         null = True, blank = True
     )
     
-###
-# Foreign Key relationships
-###
-
-    # related_promos --- this can be another Asset OR a RemoteAsset
-    #remote_related_promos = models.ManyToManyField
-
-    # PARENT TREE
-    #   this is a generic relation to one of the other objects
-
-
-    ##### LINKS TO OTHER OBJECT TYPES
-    #
-    # FRANCHISE
-    # 
-    # SEASON
-    #
-    # SHOW 
-    #
-    # EPISODE
-    # 
-    # SPECIAL
-    #
+    is_default_asset = models.PositiveIntegerField (
+        _('Is Default Asset'),
+        null = False, choices = YES_NO, default = 0
+    )
     
     class Meta:
-        verbose_name = "PBS Media Manager Asset"
-        verbose_name_plural = "PBS Media Manager Assets"
-        #app_label = 'pbsmmapi'
-        db_table = 'pbsmm_asset'
+        abstract = True
+
 
 ###
 # Properties and methods
@@ -161,121 +133,49 @@ class PBSMMAsset(PBSMMGenericAsset):
     def __is_asset_publicly_available(self):
         return self.asset_publicly_available
     is_asset_publicly_available = property(__is_asset_publicly_available)
-
-    def __get_canonical_image(self):
-        if self.images:
-            image_list = json.loads(self.images)
-            return get_canonical_image(image_list)
-        else:
-            return None
-    canonical_image = property(__get_canonical_image)
     
-    def canonical_image_tag(self):
-        if self.canonical_image and "http" in self.canonical_image:
-            return "<img src=\"%s\">" % self.canonical_image
-        return None
-    canonical_image_tag.allow_tags = True
-    
-####################### RELATIONSHIP PROPERTIES #####################
-    
-    def show_related_remoteassets(self):
-        remote_assets = self.remote_assets.all()
-        if remote_assets and len(remote_assets) > 0:
-            foo = '<table><tr><th>Title</th><th>Remote URL</th><th>RemoteAsset API link</th></tr>'
-            for r in self.remote_assets.all():
-                remote_url_link = r.remote_asset.remote_url_link
-                remote_api_link = r.remote_asset.api_endpoint_link
-                remote_title = r.remote_asset.title
-                foo += '<tr><td>%s</td><td>%s</td><td>%s</td></tr>' % (remote_title, remote_url_link, remote_api_link)
-                foo += '</table>'
-        else:
-            return '<b>No Remote Assets</b>'
-    show_related_remoteassets.allow_tags = True
-    show_related_remoteassets.short_description = 'Related Remote Assets'
-    
-    def show_related_episode(self):
-        related_episode = self.related_episode.first() # since there's only one
-        if related_episode is not None:
-            return '<a href="/admin/pbsmmapi/pbsmmepisode/%d" target="_new">%s</a>' % (related_episode.episode.pk, related_episode.episode.title)
-        else:
-            return "<b>No related Episode</b>"
-    show_related_episode.allow_tags = True
-    show_related_episode.short_description = 'Related Episode'
-    
-####################### RELATIONSHIP MODELS #########################
-#
-#class AssetRemoteAssetRelation(models.Model):
-#    # One can have many RemoteAsset relationships
-#    asset = models.ForeignKey(PBSMMAsset, related_name='remote_assets')
-#    remote_asset = models.ForeignKey('remoteasset.PBSMMRemoteAsset')
-#
-#    class Meta:
-#        app_label = 'pbsmmapi'
-        
-#class AssetEpisodeRelation(models.Model):
-#    # IT APPEARS that an Asset can only have ONE Episode relationship (but an Episode can have many Assets)
-#    asset = models.ForeignKey(PBSMMAsset, related_name='related_episode')
-#    episode = models.ForeignKey('episode.PBSMMEpisode', related_name='related_asset_list')
-#    
-#    class Meta:
-#        app_label = 'pbsmmapi'
-        
-    
-#######################################################################################################################
-###################
-###################  PBS MediaManager API interface
-###################
-#######################################################################################################################
-def __get_api_url(op, id):
-    if op == 'pbsmm':
-        return PBSMM_ASSET_ENDPOINT + str(id) + '/'
-    else:
-        return PBSMM_LEGACY_ASSET_ENDPOINT + id
-
-##### The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
-#####
-##### That way, one can force a reingestion from the Admin OR one can do it from a management script
-##### by simply getting the record, setting ingest_on_save on the record, and calling save().
-#####
-@receiver(models.signals.pre_save, sender=PBSMMAsset)
-def scrape_PBSMMAPI(sender, instance, **kwargs):
-    if instance.__class__ is not PBSMMAsset:
-        return
-
-    # If this is a new record, then someone has started it in the Admin using EITHER a legacy COVE ID
-    # OR a PBSMM UUID.   Depending on which, the retrieval endpoint is slightly different, so this sets
-    # the appropriate URL to access.
-    if instance.pk is None: 
-        if instance.object_id and instance.object_id.strip():
-            url = __get_api_url('pbsmm', instance.object_id)
-        else:
-            if instance.legacy_tp_media_id:
-                url = __get_api_url('cove', str(instance.legacy_tp_media_id))
+    def __duration_hms(self):
+        if self.duration:
+            d = self.duration
+            hours = d // 3600
+            if hours > 0:
+                hstr = '%dh' % hours
             else:
-                return # do nothing - can't get an ID to look up!
-                
-    # Otherwise, it's an existing record and the UUID should be used
-    else: # Editing an existing  record  - do nothing if ingest_on_save is NOT checked!
-        if not instance.ingest_on_save:
-            return
-        url = __get_api_url('pbsmm', instance.object_id)
+                hstr = ''
+            d %= 3600
+            minutes = d // 60
+            if hours > 0:
+                mstr = '%02dm' % minutes
+            else:
+                if minutes > 0:
+                    mstr = '%2dm' % minutes
+                else:
+                    mstr = ''
+            seconds = d % 60
+            if minutes > 0:
+                sstr = '%02ds' % seconds
+            else:
+                sstr = '%ds' % seconds
+            return ' '.join((hstr, mstr, sstr))
+        return ''
+    duration_hms = property(__duration_hms)
     
-    # OK - get the record from the API
-    (status, json) = get_PBSMM_record(url)
-    instance.last_api_status = status
+    def __formatted_duration(self):
+        if self.duration:
+            seconds = self.duration
+            hours = seconds // 3600
+            seconds %= 3600
+            minutes = seconds // 60
+            seconds %= 60
+            return "%d:%02d:%02d" % (hours, minutes, seconds)
+        return ''
+    formatted_duration = property(__formatted_duration)
     
-    # Update this record's time stamp (the API has its own)
-    instance.date_last_api_update = datetime.datetime.now()
+    def __is_default(self):
+        if self.is_default_asset:
+            return True
+        else:
+            return False
+    is_default = property(__is_default)
     
-    if status != 200:
-        return 
-        
-    # Process the record (code is in ingest.py)
-    instance = process_asset_record(json, instance)
-    
-    # continue saving, but turn off the ingest_on_save flag
-    instance.ingest_on_save = False # otherwise we could end up in an infinite loop!
-    
-    # We're done here - continue with the save() operation 
-    return
     

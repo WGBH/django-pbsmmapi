@@ -1,7 +1,19 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from django.utils.translation import ugettext_lazy as _
+import json
+
 from django.db import models
+from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
+
+from jsonfield import JSONField
+
+from .helpers import get_canonical_image, get_default_asset
+
+PUBLISH_STATUS_LIST = (
+    (0, 'NOT AVAIL.'),
+    (1, 'AVAILABLE')
+)
 
 ######################### LOCAL ABSTRACT MODELS ############################
 #
@@ -27,6 +39,16 @@ class GenericObjectManagement(models.Model):
         _('Last API Status'),
         null = True, blank = True
     )
+    json = JSONField (
+        _('JSON'),
+        null = True, blank = True,
+        help_text = 'This is the last JSON uploaded.'
+    )
+    publish_status = models.PositiveIntegerField (
+        _('Publish Status'),
+        default = 0, null = False,
+        choices = PUBLISH_STATUS_LIST
+    )
 
     class Meta:
         abstract = True
@@ -35,13 +57,22 @@ class GenericObjectManagement(models.Model):
         template = '<b><span style="color:#%s;">%d</span></b>'
         if self.last_api_status:
             if self.last_api_status == 200:
-                return template % ('0f0', self.last_api_status)
+                return mark_safe(template % ('0c0', self.last_api_status))
             else:
-                return template % ('f00', self.last_api_status)
-        return self.last_api_status
-    last_api_status_color.allow_tags = True
+                return mark_safe(template % ('f00', self.last_api_status))
+        return mark_safe(self.last_api_status)
     last_api_status_color.short_description = 'Status'
 
+    def show_publish_status(self):
+        if self.publish_status == 0:
+            return mark_safe("<span style=\"color:#f00;\">NO</span>")
+        else:
+            return mark_safe("<span style=\"color:#0c0;\">Yes</span>")
+    show_publish_status.short_description = 'Published?'
+    
+    class Meta:
+        abstract = True
+        
 
 ######################### ABSTRACT MODELS FROM PBSMM FIELDS ##################################
 class PBSMMObjectID(models.Model):
@@ -71,8 +102,7 @@ class PBSObjectMetadata(models.Model):
     #
     # This just makes the field clickable in the Admin (why cut and paste when you can click?)
     def api_endpoint_link(self):
-        return '<a href="%s" target="_new">%s</a>' % (self.api_endpoint, self.api_endpoint)
-    api_endpoint_link.allow_tags = True
+        return mark_safe('<a href="%s" target="_new">%s</a>' % (self.api_endpoint, self.api_endpoint))
     api_endpoint_link.short_description = 'Link to API'
     
     class Meta:
@@ -163,6 +193,10 @@ class PBSMMBroadcastDates(models.Model):
     #    null = True, blank = True
     #)
     
+    def __short_premiere_date(self):
+        return self.premiered_on.strftime('%x')
+    short_premiere_date = property(__short_premiere_date)
+    
     class Meta:
         abstract = True
         
@@ -187,8 +221,35 @@ class PBSMMImage(models.Model):
         help_text = 'JSON serialized field'
     )
     
+    canonical_image_type_override = models.CharField (
+        _('Canonical Image Type Override'),
+        max_length = 80,
+        null = True, blank = True,
+        help_text = 'Profile Image Type to use for Canonical Image'
+    )
+    
     class Meta:
         abstract = True
+        
+    def __get_canonical_image(self):
+        if self.images:
+            image_list = json.loads(self.images)
+            if self.canonical_image_type_override:
+                image_type_override = self.canonical_image_type_override
+            else:
+                image_type_override = None
+            return get_canonical_image(image_list, image_type_override = image_type_override)
+        else:
+            return None
+    canonical_image = property(__get_canonical_image)
+    
+    def canonical_image_tag(self):
+        if self.canonical_image and "http" in self.canonical_image:
+            title = "<a href=\"%s\" target=\"_blank\">%s</a><br/>" % (self.canonical_image, self.canonical_image)
+            img =  "<img src=\"%s\" width=\"400\">" % self.canonical_image
+            return mark_safe(title + img)
+        return None
+    canonical_image_tag.short_description = 'Canonical Image (display width=400px)'
         
 class PBSMMFunder(models.Model):
     funder_message = models.TextField (
@@ -377,6 +438,9 @@ class PBSMMGenericObject(
         GenericObjectManagement,
         PBSObjectMetadata
     ):
+    def __get_default_asset(self):
+        return get_default_asset(self)
+    default_asset = property(__get_default_asset)
     
     class Meta:
         abstract = True
@@ -406,7 +470,7 @@ class PBSMMGenericShow(PBSMMGenericObject, PBSMMObjectSlug,
         abstract = True
         
 class PBSMMGenericEpisode(PBSMMGenericObject, PBSMMObjectSlug,
-            PBSMMFunder, PBSMMLanguage,
+            PBSMMFunder, PBSMMLanguage, PBSMMImage,
             PBSMMBroadcastDates, PBSMMNOLA, PBSMMLinks,
         ):
         

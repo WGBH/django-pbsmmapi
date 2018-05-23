@@ -1,20 +1,21 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import requests
-import datetime
 import json
 
 from django.db import models
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
+from django.utils.safestring import mark_safe
 
+from ..abstract.helpers import non_aware_now
 from ..abstract.models import PBSMMGenericEpisode
-from ..abstract.helpers import get_canonical_image
+from ..api.api import get_PBSMM_record
+from ..api.helpers import check_pagination
+from ..asset.models import PBSMMAbstractAsset
+from ..asset.ingest_asset import process_asset_record
 
-from pbsmmapi.api.api import get_PBSMM_record
-from .ingest import process_episode_record
-
-#from ..asset.models import AssetEpisodeRelation
+from .ingest_episode import process_episode_record
 
 PBSMM_EPISODE_ENDPOINT = 'https://media.services.pbs.org/api/v1/episodes/'
 
@@ -34,57 +35,91 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         blank = True, null = True
     )
     
-    ###### RELATIONSHIP INGESTION FLAGS
-    ingest_related_assets = models.BooleanField (
-        _('Ingest Related Assets'),
-        default = False,
-        help_text = 'If true, then will scrape assets from the PBSMM API on save()'
-    )
-    
+    season = models.ForeignKey ('season.PBSMMSeason',  related_name='episodes')
+
     class Meta:
-        verbose_name = 'PBS Media Manager Episode'
-        verbose_name_plural = 'PBS Media Manager Episodes'
+        verbose_name = 'PBS MM Episode'
+        verbose_name_plural = 'PBS MM Episodes'
         #app_label = 'pbsmmapi'
         db_table = 'pbsmm_episode'
         
     def __unicode__(self):
-        return "%s | %s (%s) " % (self.object_id, self.title, self.premiered_on)
+        #return "%s | %s (%s) " % (self.object_id, self.title, self.premiered_on)
+        return self.title
         
     def __object_model_type(self):
     # This handles the correspondence to the "type" field in the PBSMM JSON object
         return 'episode'
     object_model_type = property(__object_model_type)
+        
+    def __full_episode_code(self):
+        return "%s-%02d%02d" % (self.season.show.slug, self.season.ordinal, self.ordinal)
+    #full_episode_code.short_description = 'Ep #'
+    full_episode_code = property(__full_episode_code)
     
-    def __get_canonical_image(self):
-        if self.images:
-            image_list = json.loads(self.images)
-            return get_canonical_image(image_list)
-        else:
-            return None
-    canonical_image = property(__get_canonical_image)
-
-    def canonical_image_tag(self):
-        if self.canonical_image and "http" in self.canonical_image:
-            return "<img src=\"%s\">" % self.canonical_image
-        return None
-    canonical_image_tag.allow_tags = True
+    def short_episode_code(self):
+        return "%02d%02d" % (self.season.ordinal, self.ordinal)
+    short_episode_code.short_description = 'Ep #'
     
-    ### RELATIONSHIP DISPLAY
-    def show_related_assets(self):
-        related_assets = self.related_asset_list.all()
-        if related_assets and len(related_assets) > 0:
-            foo = '<table><tr><th>Asset Type</th><th>Link to Admin</th><th>Link to API Record</th><th>Last API Status</th></tr>'
-            for item in related_assets:
-                a = item.asset
-                foo += '<tr><td>%s</td><td><a href="/admin/pbsmmapi/pbsmmasset/%d/">%s</a></td><td>%s</td><td>%s</td></tr>' %\
-                    (a.object_type, a.pk, a.title, a.api_endpoint_link(), a.last_api_status_color())
-            foo += "</table>"
-            return foo
-        else:
-            return "<b>No related assets</b>"
-    show_related_assets.allow_tags = True
-    show_related_assets.short_description = 'Related Assets'
+    def create_table_line(self):
+        out = "<tr>"
+        out += "\t<td></td>"
+        out += "\n\t<td>%02d%02d:</td>" % (self.season.ordinal, self.ordinal)
+        out += "\n\t<td><a href=\"/admin/episode/pbsmmepisode/%d/change/\"><b>%s</b></td>" % (self.id, self.title)
+        out += "\n\t<td><a href=\"%s\" target=\"_new\">API</a></td>" % self.api_endpoint
+        out += "\n\t<td>%d</td>" % self.assets.count()
+        out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
+        out += "\n\t<td>%s</td>" % self.last_api_status_color()
+        out += "\n\t<td>%s</td></tr>" % self.show_publish_status()
+        return mark_safe(out)
 
+class PBSMMEpisodeAsset(PBSMMAbstractAsset):
+    episode = models.ForeignKey(PBSMMEpisode, related_name='assets')
+    
+    class Meta:
+        verbose_name = 'PBS MM Episode Asset'
+        verbose_name_plural = 'PBS MM Episodes - Assets'
+        db_table = 'pbsmm_episode_asset'
+    
+    def __unicode__(self):
+        return "%s: %s" % (self.episode.title, self.title)
+        
+
+def process_episode_assets(endpoint, this_episode):
+    # Handle pagination
+    keep_going = True
+    while keep_going:
+        (status, json) = get_PBSMM_record(endpoint) # This is the endpoint for the 'assets' link (page with list of assets)
+        if 'data' in json.keys():
+            asset_list = json['data']
+        else:
+            return
+
+        for item in asset_list:
+            attrs = item.get('attributes')
+            links = item.get('links')
+            object_id = item.get('id')
+        
+            try:
+                instance = PBSMMEpisodeAsset.objects.get(object_id=object_id)
+            except PBSMMEpisodeAsset.DoesNotExist:
+                instance = PBSMMEpisodeAsset()
+                
+            # For now - borrow from the parent object
+            instance.last_api_status = status
+            instance.date_last_api_update = non_aware_now()
+            
+            instance = process_asset_record(item, instance, origin='episode')
+            instance.episode = this_episode
+            instance.ingest_on_save = True
+            
+            # This needs to be here because otherwise it never updates...
+            instance.save()
+        
+        (keep_going, endpoint) = check_pagination(json)
+        
+    return
+    
 
 #######################################################################################################################
 ###################
@@ -126,7 +161,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
 
         instance.last_api_status = status
         # Update this record's time stamp (the API has its own)
-        instance.date_last_api_update = datetime.datetime.now()
+        instance.date_last_api_update = non_aware_now()
     
         # If we didn't get a record, abort (there's no sense crying over spilled bits)
         if status != 200:
@@ -142,30 +177,12 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     # We're done here - continue with the save() operation 
     return instance
     
-#def foo(instance):
-#    if instance.ingest_related_assets:
-#        if instance.pk:
-#            new_related_assets_list = process_related_assets(json)
-#            known_ids = []
-#            known_assets = AssetEpisodeRelation.objects.filter(episode__id=instance.pk)
-#            for a in known_assets:
-#                knowns_ids.append(a.pk)
-#                
-#            if len(new_related_assets_list) > 0:
-#                for item in new_related_asset_list:
-#                    if item not in known_ids:
-#                        x = AssetEpisodeRelation(episode=instance, asset=)
+@receiver(models.signals.post_save, sender=PBSMMEpisode)
+def handle_children(sender, instance, *args, **kwargs):
+            
+    # ALWAYS GET CHILD ASSETS
+    assets_endpoint = instance.json['links'].get('assets')
+    if assets_endpoint:
+        process_episode_assets(assets_endpoint, instance)
     
-def process_related_assets(obj):
-    links = obj['links']
-    related_assets_endpoint = links.get('assets', None)
-    new_related_assets = []
-    (status, json) = get_PBSMM_record(related_assets_endpoint)
-    if status == 200:
-        asset_list = json['data']
-
-        for asset in asset_list:
-            asset_id = asset.get('id', None)
-            (op, asset_pk) = ingest_related_asset(asset_id)                    
-            if op == 'new' and asset_pk:
-                new_related_assets.append(asset_pk)
+    return

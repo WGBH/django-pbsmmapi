@@ -5,7 +5,7 @@ class PBSMMEpisodeCreateForm(forms.ModelForm):
 
     class Meta:
         model = PBSMMEpisode
-        fields = ('object_id',)
+        fields = ('slug', 'season')
 
 class PBSMMEpisodeEditForm(forms.ModelForm):
 

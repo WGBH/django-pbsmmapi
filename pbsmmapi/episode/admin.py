@@ -1,12 +1,18 @@
 from django.contrib import admin
-from .models import PBSMMEpisode
+
+from ..abstract.admin import PBSMMAbstractAdmin
+from ..asset.admin import PBSMMAbstractAssetAdmin
+from .models import PBSMMEpisode, PBSMMEpisodeAsset
 from .forms import PBSMMEpisodeCreateForm, PBSMMEpisodeEditForm
-class PBSMMEpisodeAdmin(admin.ModelAdmin):
+
+class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
     model = PBSMMEpisode
     form = PBSMMEpisodeEditForm
     add_form = PBSMMEpisodeCreateForm
-    list_display = ('pk',  'object_id', 'title_sortable', 'date_last_api_update', 'last_api_status_color')
-    list_display_links = ('pk', 'object_id')
+    
+    list_display = ('pk', 'title_sortable', 'full_episode_code', 'date_last_api_update', 'last_api_status_color', 'publish_status')
+    list_display_links = ('pk', 'title_sortable')
+    list_filter = ('season__show__title_sortable',)
     # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
     # want to be able to view it in the context of the Django system.
     #
@@ -19,29 +25,36 @@ class PBSMMEpisodeAdmin(admin.ModelAdmin):
         'premiered_on', 'encored_on', 'nola', 'language', 
         'links', 'ordinal', 'segment',
         
-        # Relationships
-        'show_related_assets',
+        'assemble_asset_table', 'canonical_image_tag', 'images'
     ]
     
     # If we're adding a record - no sense in seeing all the things that aren't there yet, since only these TWO
     # fields are editable anyway...
     add_fieldsets = (
-        (None, {'fields': ('object_id',),} ),
+        (None, {'fields': ('object_id', 'season'),} ),
     )
-    api_endpoint
+
     fieldsets = (
         (None, {
             'fields': (
-                ('ingest_on_save', 'ingest_related_assets',),
+                #('ingest_on_save', 'ingest_related_assets',),
+                'ingest_on_save',
                 ('date_created','date_last_api_update','updated_at', 'last_api_status_color'),
                 'api_endpoint_link',
                 'object_id',
-
             ),
         }),
         ('Title, Slug, Link', { #'classes': ('collapse in',),
             'fields': (
                 'title', 'title_sortable', 'slug', 'api_endpoint_link'
+            ),
+        }),
+        ('Assets', {'fields': ('assemble_asset_table',),}),
+        ('Images', { 'classes': ('collapse',),
+            'fields': (
+                'images',
+                'canonical_image_type_override',
+                'canonical_image_tag',
             ),
         }),
         ('Description and Texts', { 'classes': ('collapse',),
@@ -62,24 +75,8 @@ class PBSMMEpisodeAdmin(admin.ModelAdmin):
                 'links',
             ),
         }),
-        ('Relationships', { #'classes': ('collapse',),
-            'fields': (
-                'show_related_assets',
-            )
-        })
+
     )
-
-    actions = ['force_reingest',]
-
-    def force_reingest(self, request, queryset):
-        # queryset is the list of Asset items that were selected.
-        for item in queryset:
-            item.ingest_on_save = True
-            
-            # HOW DO I FIND OUT IF THE save() was successful?
-            item.save()
-            
-    force_reingest.short_description = 'Reingest selected items.'
     
     # Switch between the fieldsets depending on whether we're adding or viewing a record
     def get_fieldsets(self, request, obj=None):
@@ -104,5 +101,16 @@ class PBSMMEpisodeAdmin(admin.ModelAdmin):
             return readonly_fields + ['object_id','legacy_tp_media_id']
         else:
             return self.readonly_fields
+            
+class PBSMMEpisodeAssetAdmin(PBSMMAbstractAssetAdmin):
+    model = PBSMMEpisodeAsset
+    list_display = ('pk',  'object_id', 'full_episode_code', 'object_type', 'legacy_tp_media_id', 'asset_publicly_available', 
+        'title_sortable', 'duration' )
+    
+    def full_episode_code(self, obj):
+        return obj.episode.full_episode_code
+    full_episode_code.short_description = 'Episode'
+    
 
 admin.site.register(PBSMMEpisode, PBSMMEpisodeAdmin)
+admin.site.register(PBSMMEpisodeAsset, PBSMMEpisodeAssetAdmin)

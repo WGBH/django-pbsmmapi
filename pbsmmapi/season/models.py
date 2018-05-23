@@ -6,13 +6,19 @@ import json
 
 from django.db import models
 from django.dispatch import receiver
+from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
+from ..abstract.helpers import non_aware_now
 from ..abstract.models import PBSMMGenericSeason
-from ..abstract.helpers import get_canonical_image
 
-from pbsmmapi.api.api import get_PBSMM_record
-from .ingest import process_season_record
+from ..api.api import get_PBSMM_record
+from ..api.helpers import check_pagination
+from ..asset.models import PBSMMAbstractAsset
+from ..asset.ingest_asset import process_asset_record
+
+from .ingest_season import process_season_record
+from .ingest_children import process_episodes
 
 PBSMM_SEASON_ENDPOINT = 'https://media.services.pbs.org/api/v1/seasons/'
 
@@ -22,34 +28,93 @@ class PBSMMSeason(PBSMMGenericSeason):
         _('Ordinal'),
         null = True, blank = True
     )
+    show = models.ForeignKey('show.PBSMMShow', related_name='seasons')
+    
+    ingest_episodes = models.BooleanField (
+        _('Ingest Episodes'),
+        default = False,
+        help_text = 'Also ingest all Episodes (for each Season)'
+    )
     
     class Meta:
-        verbose_name = 'PBS Media Manager Season'
-        verbose_name_plural = 'PBS Media Manager Seasons'
+        verbose_name = 'PBS MM Season'
+        verbose_name_plural = 'PBS MM Seasons'
         #app_label = 'pbsmmapi'
         db_table = 'pbsmm_season'
         
+    def create_table_line(self):
+        this_title = "Season %d: %s" % (self.ordinal, self.title)
+        out = "<tr style=\"background-color: #ddd;\">"
+        out += "<td colspan=\"3\"><a href=\"/admin/season/pbsmmseason/%d/change/\"><b>%s</b></a></td>" % (self.id, this_title)
+        out += "<td><a href=\"%s\" target=\"_new\">API</a></td>" % self.api_endpoint
+        out += "\n\t<td>%d</td>" % self.assets.count()
+        out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
+        out += "\n\t<td>%s</td>" % self.last_api_status_color()
+        out += "<td>%s</td></tr>" % self.show_publish_status()
+        return mark_safe(out)
+
+        
     def __unicode__(self):
-        return "%s | %s " % (self.object_id, self.title)
+        return "%s | %d | %s " % (self.object_id, self.ordinal, self.title)
 
     def __object_model_type(self):
     # This handles the correspondence to the "type" field in the PBSMM JSON object
         return 'season'
     object_model_type = property(__object_model_type)
     
-    def __get_canonical_image(self):
-        if self.images:
-            image_list = json.loads(self.images)
-            return get_canonical_image(image_list)
+    def __printable_title(self):
+        if self.title_sortable:
+            return self.title_sortable
+        elif self.title:
+            return self.title
         else:
-            return None
-    canonical_image = property(__get_canonical_image)
+            return '%s Season %d' % (self.show.title, self.ordinal)
+    printable_title = property(__printable_title)
+        
+class PBSMMSeasonAsset(PBSMMAbstractAsset):
+    season = models.ForeignKey(PBSMMSeason, related_name='assets')
     
-    def canonical_image_tag(self):
-        if self.canonical_image and "http" in self.canonical_image:
-            return "<img src=\"%s\">" % self.canonical_image
-        return None
-    canonical_image_tag.allow_tags = True
+    class Meta:
+        verbose_name = 'PBS MM Season Asset'
+        verbose_name_plural = 'PBS MM Seasons - Assets'
+        db_table = 'pbsmm_season_asset'
+        
+    def __unicode__(self):
+        return "%s: %s" % (self.season.title, self.title)
+        
+def process_season_assets(endpoint, this_season):
+    
+    keep_going = True
+    while keep_going:
+        (status, json) = get_PBSMM_record(endpoint) 
+        asset_list = json['data']
+
+        for item in asset_list:
+            attrs = item.get('attributes')
+            links = item.get('links')
+            object_id = item.get('id')
+        
+            try:
+                instance = PBSMMSeasonAsset.objects.get(object_id=object_id)
+            except PBSMMSeasonAsset.DoesNotExist:
+                instance = PBSMMSeasonAsset()
+            
+            instance = process_asset_record(item, instance, origin='special')
+            instance.season = this_season
+            
+            # For now - borrow from the parent object
+            instance.last_api_status = status
+            instance.date_last_api_update = non_aware_now()
+            
+            instance.ingest_on_save = True
+            
+            # This needs to be here because otherwise it never updates...
+            instance.save()
+        
+        (keep_going, endpoint) = check_pagination(json)
+        
+    return
+        
 
 #######################################################################################################################
 ###################
@@ -86,7 +151,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     
     instance.last_api_status = status
     # Update this record's time stamp (the API has its own)
-    instance.date_last_api_update = datetime.datetime.now()
+    instance.date_last_api_update = non_aware_now()
     
     # If we didn't get a record, abort (there's no sense crying over spilled bits)
     if status != 200:
@@ -99,4 +164,26 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     instance.ingest_on_save = False # otherwise we could end up in an infinite loop!
 
     # We're done here - continue with the save() operation 
+    return
+
+
+@receiver(models.signals.post_save, sender=PBSMMSeason)
+def handle_children(sender, instance, *args, **kwargs):
+    
+    if instance.ingest_episodes:
+        # This is the FIRST endpoint - there might be more, depending on pagination!
+        episodes_endpoint = instance.json['links'].get('episodes')
+
+        if episodes_endpoint:
+            process_episodes(episodes_endpoint, instance)
+            
+    # ALWAYS GET CHILD ASSETS
+    assets_endpoint = instance.json['links'].get('assets')
+    if assets_endpoint:
+        process_season_assets(assets_endpoint, instance)
+            
+    # This is a tricky way to unset ingest_seasons without calling save()      
+    rec = PBSMMSeason.objects.filter(pk = instance.id)
+    rec.update(ingest_episodes = False)
+    
     return
