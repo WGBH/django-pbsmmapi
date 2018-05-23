@@ -98,8 +98,8 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         null = True, blank = True
     )
     
-    is_default_asset = models.PositiveIntegerField (
-        _('Is Default Asset'),
+    override_default_asset = models.PositiveIntegerField (
+        _('Override Default Asset'),
         null = False, choices = YES_NO, default = 0
     )
     
@@ -172,7 +172,7 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
     formatted_duration = property(__formatted_duration)
     
     def __is_default(self):
-        if self.is_default_asset:
+        if self.override_default_asset:
             return True
         else:
             return False
