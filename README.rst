@@ -24,7 +24,29 @@ Quick start
 2. Create your database.  _Be sure to support UTF-8 4-byte characters!_   In MySQL you can use:
 
     `CREATE DATABASE my_database CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;`
+    
+3. You'll need to change your settings DATABASES accordingly:
 
-2. Run  `python manage.py migrate` to create the PBSMM API models.
+    ```
+    DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'HOST': '',
+        'NAME': 'my_database',
+        'OPTIONS': {
+            'read_default_file': '~/.my.cnf',
+            'charset': 'utf8mb4',
+        }
+    }
+}
+    ```
+
+4. You ALSO need to have PBS Media Manager credentials - an API KEY and a SECRET KEY.  These also go into the base settings.py file of your project:
+
+    ```
+    PBSMM_API_ID='abcdefghijklmnop'
+    PBSMM_API_SECRET= 'aAbBcCdDeEfFgGhHjJkKmMnNpPqQrRsS'
+    ```
+    
 
 
