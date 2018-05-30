@@ -42,16 +42,16 @@ def get_abstract_asset_table(object_list, default_asset, parent_type):
     url = '/admin/%s/pbsmm%sasset' % (parent_type, parent_type)
     if len(object_list) < 1:
         return "(No assets)"
-    out = "<p>Red asterisk indicates which Asset will appear on the parent object's detail page.</p>"
+    out = "<p>Highlighted row indicates which Asset will appear on the parent object's detail page.</p>"
     out += "<table width=\"100%\" border=2>"
-    out += "\n<tr><th>Title</th><th>Type</th><th>Duration</th><th>Avail?</th><th>API</th><th>Set as Default?</th></tr>"
+    out += "\n<tr style=\"background-color: #999;\"><th>Title</th><th>Type</th><th>Duration</th><th>Avail?</th><th>API</th><th>Set as Default?</th></tr>"
     for item in object_list:
-        default_mark = '&nbsp;&nbsp;'
+        row_color = '#ffffff;'
         if default_asset is not None and item == default_asset:
-            default_mark = '<span style=\"color: #f00;\">*</span>&nbsp;'
+            row_color = '#ffff66;'
 
-        out += "\n<tr>"
-        out += "\n\t<td>%s<a href=\"%s/%d/change/\" target=\"_new\">%s</a></td>" % (default_mark, url, item.id, item.title)
+        out += "\n<tr style=\"background-color:%s\">" % row_color
+        out += "\n\t<td><a href=\"%s/%d/change/\" target=\"_new\">%s</a></td>" % (url, item.id, item.title)
         out += "\n\t<td>%s</td>" % item.object_type
         out += '\n\t<td>%s</td>' % item.formatted_duration
         out += "\n\t<td>%s</td>" % item.asset_publicly_available()
