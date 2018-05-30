@@ -39,7 +39,7 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
         'episode_count', 'display_episode_number', 'sort_episodes_descending', 
         'ordinal_season', 'language', 'audience', 'hashtag',
         
-        'format_seasons_list', 'format_specials_list',
+        'format_seasons_list', 'format_specials_list', 'pretty_image_list',
         'assemble_asset_table',
     ]
     add_readonly_fields = []
@@ -61,8 +61,12 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
                 'object_id',
             ),
         }),
-        ('Seasons and Specials', {'fields': ('format_seasons_list', 'format_specials_list'),}),
-        ('Show Metadata', { #'classes': ('collapse in',),
+        ('Seasons and Specials', { 
+            #'classes': ('collapse in',),
+            'fields': ('format_seasons_list', 'format_specials_list'),
+        }),
+        ('Show Metadata', { 
+            'classes': ('collapse in',),
             'fields': (
                 ('slug', 'title', 'title_sortable'), 
                 ('episode_count', 'display_episode_number', 'sort_episodes_descending'),
@@ -79,7 +83,7 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
         }),
         ('Images', { 'classes': ('collapse',),
             'fields': (
-                'images',
+                'images', 'pretty_image_list',
                 'canonical_image_type_override',
                 'canonical_image_tag',
             ),

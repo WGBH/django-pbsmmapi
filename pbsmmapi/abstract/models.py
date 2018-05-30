@@ -250,6 +250,24 @@ class PBSMMImage(models.Model):
             return mark_safe(title + img)
         return None
     canonical_image_tag.short_description = 'Canonical Image (display width=400px)'
+    
+    def pretty_image_list(self):
+        canonical = self.canonical_image
+        if self.images:
+            image_list = json.loads(self.images)
+            out = '<table width=\"100%\">'
+            out += '<tr><th>Profile</th><th>Canonical?</th><th>Updated At</th></tr>'
+            for image in image_list:
+                out += '\n<tr>'
+                out += '<td><a href=\"%s\" target=\"_new\">%s</a></td>' % (image['image'], image['profile'])
+                out += '<td>%s</td>' % str(image['image'] == canonical)
+                out += '<td>%s</td>' % image['updated_at']
+                out += '</tr>'
+            out += '</table>'
+            return mark_safe(out)
+        else:
+            return None
+    pretty_image_list.short_description = 'Image List'
         
 class PBSMMFunder(models.Model):
     funder_message = models.TextField (

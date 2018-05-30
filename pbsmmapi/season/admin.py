@@ -24,7 +24,7 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
         'title', 'title_sortable', 'ordinal',
         'description_long', 'description_short',
         'updated_at', 'last_api_status',
-        'images',
+        'images', 'pretty_image_list',
         'canonical_image', 'canonical_image_tag',
         'links',
         
@@ -63,7 +63,7 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
         }),
         ('Images', { 'classes': ('collapse',),
             'fields': (
-                'images',
+                'images', 'pretty_image_list',
                 'canonical_image_type_override',
                 'canonical_image_tag',
             ),
