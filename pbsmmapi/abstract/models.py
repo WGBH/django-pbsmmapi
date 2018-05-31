@@ -9,10 +9,12 @@ from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
 
 from .helpers import get_canonical_image, get_default_asset
+#from .manager import PBSMMObjectManager
 
 PUBLISH_STATUS_LIST = (
-    (0, 'NOT AVAIL.'),
-    (1, 'AVAILABLE')
+    (-1, 'NEVER Available'),
+    (0, 'USE "Live as of Date"'),
+    (1, 'ALWAYS Available')
 )
 
 ######################### LOCAL ABSTRACT MODELS ############################
@@ -44,11 +46,7 @@ class GenericObjectManagement(models.Model):
         null = True, blank = True,
         help_text = 'This is the last JSON uploaded.'
     )
-    publish_status = models.PositiveIntegerField (
-        _('Publish Status'),
-        default = 0, null = False,
-        choices = PUBLISH_STATUS_LIST
-    )
+
 
     class Meta:
         abstract = True
@@ -69,6 +67,23 @@ class GenericObjectManagement(models.Model):
         else:
             return mark_safe("<span style=\"color:#0c0;\">Yes</span>")
     show_publish_status.short_description = 'Published?'
+    
+    class Meta:
+        abstract = True
+        
+class GenericAccessControl(models.Model):
+    publish_status = models.IntegerField (
+        _('Publish Status'),
+        default = 0, null = False,
+        choices = PUBLISH_STATUS_LIST
+    )
+    live_as_of = models.DateTimeField (
+        _('Live As Of'),
+        null = True, blank = True,
+        help_text = 'You can Set this to a future date/time to schedule availability.'
+    )   
+    
+    #objects = PBSMMObjectManager()
     
     class Meta:
         abstract = True
@@ -471,12 +486,13 @@ class PBSMMGenericAsset(PBSMMGenericObject, PBSMMObjectSlug,
     class Meta:
         abstract = True
         
+# There's no GenericAccessControl yet... presumbly if the object is "on" its assets are reachable.
 class PBSMMGenericRemoteAsset(PBSMMGenericObject):
 
     class Meta:
         abstract = True
         
-class PBSMMGenericShow(PBSMMGenericObject, PBSMMObjectSlug,
+class PBSMMGenericShow(PBSMMGenericObject, GenericAccessControl, PBSMMObjectSlug,
             PBSMMImage, PBSMMLinks, PBSMMNOLA, PBSMMHashtag,
             PBSMMGenre, PBSMMFunder, PBSMMPlayerMetadata,
             PBSMMGoogleTracking, PBSMMEpisodeSeason,
@@ -487,7 +503,7 @@ class PBSMMGenericShow(PBSMMGenericObject, PBSMMObjectSlug,
     class Meta:
         abstract = True
         
-class PBSMMGenericEpisode(PBSMMGenericObject, PBSMMObjectSlug,
+class PBSMMGenericEpisode(PBSMMGenericObject, GenericAccessControl, PBSMMObjectSlug,
             PBSMMFunder, PBSMMLanguage, PBSMMImage,
             PBSMMBroadcastDates, PBSMMNOLA, PBSMMLinks,
         ):
@@ -495,11 +511,11 @@ class PBSMMGenericEpisode(PBSMMGenericObject, PBSMMObjectSlug,
     class Meta:
         abstract = True
     
-class PBSMMGenericSeason(PBSMMGenericObject, PBSMMLinks, PBSMMImage):
+class PBSMMGenericSeason(PBSMMGenericObject, GenericAccessControl, PBSMMLinks, PBSMMImage):
     class Meta:
         abstract = True
         
-class PBSMMGenericSpecial(PBSMMGenericObject, PBSMMObjectSlug,
+class PBSMMGenericSpecial(PBSMMGenericObject, GenericAccessControl, PBSMMObjectSlug,
             PBSMMLanguage, 
             PBSMMBroadcastDates, PBSMMNOLA, PBSMMLinks,
         ):
@@ -507,14 +523,14 @@ class PBSMMGenericSpecial(PBSMMGenericObject, PBSMMObjectSlug,
     class Meta:
         abstract = True
         
-class PBSMMGenericCollection(PBSMMGenericObject, PBSMMObjectSlug, PBSMMImage):
+class PBSMMGenericCollection(PBSMMGenericObject, GenericAccessControl, PBSMMObjectSlug, PBSMMImage):
     # There is no sortable title field - it is allowed in the model purely out of laziness since
     # abstracting it out from PBSGenericObject would be more-complicated than leaving it in.
     # PLUS I suspect that eventually it'll be added...
     class Meta:
         abstract = True
         
-class PBSMMGenericFranchise(PBSMMGenericObject, PBSMMObjectSlug,
+class PBSMMGenericFranchise(PBSMMGenericObject, GenericAccessControl, PBSMMObjectSlug,
             PBSMMFunder, PBSMMNOLA, PBSMMBroadcastDates,
             PBSMMImage, PBSMMPlatforms, PBSMMLinks,
             PBSMMHashtag, PBSMMGoogleTracking, PBSMMGenre, PBSMMPlayerMetadata
