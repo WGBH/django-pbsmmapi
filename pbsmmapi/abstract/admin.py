@@ -44,7 +44,7 @@ def get_abstract_asset_table(object_list, default_asset, parent_type):
         return "(No assets)"
     out = "<p>Highlighted row indicates which Asset will appear on the parent object's detail page.</p>"
     out += "<table width=\"100%\" border=2>"
-    out += "\n<tr style=\"background-color: #999;\"><th>Title</th><th>Type</th><th>Duration</th><th>Avail?</th><th>API</th><th>Set as Default?</th></tr>"
+    out += "\n<tr style=\"background-color: #999;l\"><th>Title</th><th>Type</th><th>Duration</th><th>Avail?</th><th>API</th><th>Set as Default?</th></tr>"
     for item in object_list:
         row_color = '#ffffff;'
         if default_asset is not None and item == default_asset:
