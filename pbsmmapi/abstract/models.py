@@ -9,7 +9,6 @@ from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
 
 from .helpers import get_canonical_image, get_default_asset
-#from .manager import PBSMMObjectManager
 
 PUBLISH_STATUS_LIST = (
     (-1, 'NEVER Available'),
@@ -82,8 +81,6 @@ class GenericAccessControl(models.Model):
         null = True, blank = True,
         help_text = 'You can Set this to a future date/time to schedule availability.'
     )   
-    
-    #objects = PBSMMObjectManager()
     
     class Meta:
         abstract = True
