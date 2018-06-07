@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from ..abstract.helpers import non_aware_now
+from ..abstract.helpers import time_zone_aware_now
 from ..abstract.models import PBSMMGenericSeason
 
 from ..api.api import get_PBSMM_record
@@ -41,6 +41,10 @@ class PBSMMSeason(PBSMMGenericSeason):
         verbose_name_plural = 'PBS MM Seasons'
         #app_label = 'pbsmmapi'
         db_table = 'pbsmm_season'
+        
+    @models.permalink
+    def get_absolute_url(self):
+        return ('season-detail', (), {'pk': self.pk})
         
     def create_table_line(self):
         this_title = "Season %d: %s" % (self.ordinal, self.title)
@@ -104,7 +108,7 @@ def process_season_assets(endpoint, this_season):
             
             # For now - borrow from the parent object
             instance.last_api_status = status
-            instance.date_last_api_update = non_aware_now()
+            instance.date_last_api_update = time_zone_aware_now()
             
             instance.ingest_on_save = True
             
@@ -151,7 +155,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     
     instance.last_api_status = status
     # Update this record's time stamp (the API has its own)
-    instance.date_last_api_update = non_aware_now()
+    instance.date_last_api_update = time_zone_aware_now()
     
     # If we didn't get a record, abort (there's no sense crying over spilled bits)
     if status != 200:

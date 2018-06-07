@@ -10,7 +10,7 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
     form = PBSMMEpisodeEditForm
     add_form = PBSMMEpisodeCreateForm
     
-    list_display = ('pk', 'title_sortable', 'full_episode_code', 'date_last_api_update', 'last_api_status_color', 'publish_status')
+    list_display = ('pk', 'title_sortable', 'full_episode_code', 'date_last_api_update', 'last_api_status_color', 'show_publish_status')
     list_display_links = ('pk', 'title_sortable')
     list_filter = ('season__show__title_sortable',)
     # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
@@ -25,7 +25,7 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
         'premiered_on', 'encored_on', 'nola', 'language', 
         'links', 'ordinal', 'segment',
         
-        'assemble_asset_table', 'canonical_image_tag', 'images'
+        'assemble_asset_table', 'canonical_image_tag', 'images', 'show_publish_status'
     ]
     
     # If we're adding a record - no sense in seeing all the things that aren't there yet, since only these TWO
@@ -37,11 +37,22 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
     fieldsets = (
         (None, {
             'fields': (
-                #('ingest_on_save', 'ingest_related_assets',),
-                'ingest_on_save',
-                ('date_created','date_last_api_update','updated_at', 'last_api_status_color'),
-                'api_endpoint_link',
+                ('object_id', 'date_created', 'api_endpoint_link',),            
+                ('date_last_api_update','updated_at', 'last_api_status_color'),
+            ),
+        }),
+        ('Administration', {
+            'fields': (
+                ('publish_status', 'live_as_of', ),
+            ),
+        }),
+        ('API Metadata', {
+            'classes': ('collapse in',),
+            'fields': (
                 'object_id',
+                ('date_last_api_update','updated_at', 'last_api_status_color'),
+                'api_endpoint_link',
+
             ),
         }),
         ('Title, Slug, Link', { #'classes': ('collapse in',),

@@ -10,7 +10,7 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
     add_form = PBSMMSpecialCreateForm
     list_filter = ('show__slug',)
     
-    list_display = ('pk', 'title_sortable', 'show', 'premiered_on', 'date_last_api_update', 'last_api_status_color', 'publish_status' )
+    list_display = ('pk', 'title_sortable', 'show', 'premiered_on', 'date_last_api_update', 'last_api_status_color', 'show_publish_status' )
     list_display_links = ('pk', 'title_sortable')
     # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
     # want to be able to view it in the context of the Django system.
@@ -18,19 +18,11 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
     # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
         'date_created', 'date_last_api_update', 'last_api_status', 'api_endpoint_link', 'last_api_status_color',
-        'title', 'title_sortable', 'slug', 
+        'title', 'title_sortable', 
         'description_long', 'description_short', 
         'updated_at', 'premiered_on', 
-        #'images', 'funder_message',
-        #'is_excluded_from_dfp', 'can_embed_player', 
         'links', 
-        #'platforms', 'ga_page', 'ga_event', 'genre', 'episode_count',
-        #'display_episode_number', 'sort_episodes_descending', 
-        #'ordinal_season', 
         'language', 
-        #'audience', 'hashtag',
-        #'canonical_image_tag',
-        #'encored_on', 
         'nola',
         
         'assemble_asset_table',
@@ -39,7 +31,7 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
     # If we're adding a record - no sense in seeing all the things that aren't there yet, since only these TWO
     # fields are editable anyway...
     add_fieldsets = (
-        (None, {'fields': ('object_id',),} ),
+        (None, {'fields': ('slug', 'show'),} ),
     )
     
     fieldsets = (
@@ -71,19 +63,12 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
         ('Special Metadata', { 'classes': ('collapse',),
             'fields': (
                 ('premiered_on', 'nola'),
-                #'is_excluded_from_dfp', 'can_embed_player'),
-                #('display_episode_number', 'sort_episodes_descending', 'ordinal_season'),
-                #'episode_count', 
-                #('hashtag', 'ga_page', 'ga_event'),
                 'language',
             ),
         }),
         ('Other', { 'classes': ('collapse',),
             'fields': (
                 'links',
-                #'audience', 
-                #'genre',
-                #'platforms', 
             ),
         }),
     )

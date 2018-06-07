@@ -1,25 +1,26 @@
 from datetime import datetime #, tzinfo, timedelta
-
+import pytz
 import dateutil.parser
 import json
-from django.utils import timezone
 
-### This is to set up timezone-aware timestamps.   
-###  The PBSMM API stores dates in UTC as strings that are ISO-8601/RFC-3339 compliant
-#ZERO = timedelta(0)
-#
-#class UTC(tzinfo):
-#  def utcoffset(self, dt):
-#    return ZERO
-#  def tzname(self, dt):
-#    return "UTC"
-#  def dst(self, dt):
-#    return ZERO
-#
-#utc = UTC()
+
 
 def check_asset_availability(start=None, end=None):
-    now = datetime.now(tz=timezone.utc)
+    """
+    Am I within the Asset's availablity window?
+    
+    If "start" is defined,  now >= start must be True
+    If "end" is defined, now <= end must be True.
+    
+    Otherwise each condition is presumed TRUE
+        (e.g., no "end" date means that it doesn't expire, hence "True")
+        
+    Returns a 3-ple:
+        0: True or False 
+        1: A code  -1 = unknown, 0 = not-yet-available, 1 = available, 2 = expired
+        2: the text associated with the code (see previous line)
+    """
+    now = datetime.now(pytz.utc)
     
     if start:
         start_date = dateutil.parser.parse(start)

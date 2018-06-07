@@ -23,7 +23,7 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
     model = PBSMMShow
     #inlines = [ShowAssetInline,]
     list_display = ('pk', 'slug',  'object_id', 'title_sortable', 
-        'publish_status', 'date_last_api_update', 'last_api_status_color')
+        'show_publish_status', 'date_last_api_update', 'last_api_status_color')
     list_display_links = ('pk', 'slug', 'object_id')
     readonly_fields = [
         'date_created', 'date_last_api_update', 'updated_at', 'last_api_status_color',
@@ -40,7 +40,7 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
         'ordinal_season', 'language', 'audience', 'hashtag',
         
         'format_seasons_list', 'format_specials_list', 'pretty_image_list',
-        'assemble_asset_table',
+        'assemble_asset_table', 'show_publish_status'
     ]
     add_readonly_fields = []
     add_fieldsets = (
@@ -55,10 +55,23 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
     fieldsets = (
         (None, {
             'fields': (
+                ('object_id', 'date_created', 'api_endpoint_link',),            
+                ('date_last_api_update','updated_at', 'last_api_status_color'),
+            ),
+        }),
+        ('Administration', {
+            'fields': (
                 ('ingest_on_save', 'ingest_seasons', 'ingest_specials', 'ingest_episodes'),
-                ('date_created','date_last_api_update','updated_at', 'last_api_status_color'),
-                'api_endpoint_link',
+                ('publish_status', 'live_as_of', )
+            ),
+        }),
+        ('API Metadata', {
+            'classes': ('collapse in',),
+            'fields': (
                 'object_id',
+                ('date_last_api_update','updated_at', 'last_api_status_color'),
+                'api_endpoint_link',
+
             ),
         }),
         ('Seasons and Specials', { 

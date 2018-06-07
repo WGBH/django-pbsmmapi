@@ -4,6 +4,14 @@ from ..episode.models import PBSMMEpisode
 from ..episode.ingest_episode import process_episode_record
 
 def process_episodes(endpoint, this_season): 
+    """
+    Step through each page of a list of PBSMM API Episodes, and ingest each episode.
+    
+    As Episodes are always associated with a Season, that's the only parameter.
+    """
+    if this_season is None: # oops no season - escape doing nothing...
+        return
+        
     keep_going = True
     while keep_going:
         (status, json) = get_PBSMM_record(endpoint) # this is the "Seasons" endpoint for the show

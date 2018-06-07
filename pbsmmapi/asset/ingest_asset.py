@@ -1,5 +1,17 @@
 from ..abstract.helpers import set_json_serialized_field, fix_non_aware_datetime
 
+"""
+
+This is the code that parses the JSON for an Asset returned by the PBSMM API, and
+puts it into the schema for an *-Asset object (e.g., EpisodeAsset, ShowAsset, etc.;
+all *-Asset models have the same structure, only the FK to the parent changes).
+
+This is USUALLY called when ingesting a ancestral object, i.e.:
+    After an ancestral object is ingested from the API (e.g., an Episode),
+    all of the associated Assets are ingested (with the code below).
+    
+"""
+
 ### THIS IS THE INGEST SCRIPT FOR ASSET RECORDS
 
 # This just makes nice serialized JSON content fragments from the API record's JSON content.

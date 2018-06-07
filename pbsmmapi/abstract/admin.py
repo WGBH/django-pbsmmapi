@@ -1,3 +1,6 @@
+import pytz
+from datetime import datetime
+
 from django.contrib import admin
 from django.contrib.admin import site
 from django.utils.safestring import mark_safe
@@ -7,7 +10,7 @@ from django.utils.safestring import mark_safe
 site.disable_action('delete_selected')
 
 class PBSMMAbstractAdmin(admin.ModelAdmin):
-    actions = ['force_reingest', 'make_publicly_available','take_offline']
+    actions = ['force_reingest', 'permanently_online','take_online_now', 'conditionally_online', 'take_offline', ]
     search_fields = ['title',]
     def force_reingest(self, request, queryset):
         # queryset is the list of Asset items that were selected.
@@ -17,17 +20,30 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
             item.save()
     force_reingest.short_description = 'Reingest selected items.'
     
-    def make_publicly_available(self, request, queryset):
+    def permanently_online(self, request, queryset):
         for item in queryset:
             item.publish_status = 1
             item.save()
-    make_publicly_available.short_description = 'Take item LIVE (to the public)'
-            
-    def take_offline(self, request, queryset):
+    permanently_online.short_description = 'Take item PERMANTENTLY LIVE'
+    
+    def conditionally_online(self, request, queryset):
         for item in queryset:
             item.publish_status = 0
             item.save() 
-    take_offline.short_description = 'Take item OFFLINE (admin only)'
+    conditionally_online.short_description = 'Online using live_as_of Date'
+           
+    def take_online_now(self, request, queryset):
+        for item in queryset:
+            item.publish_status = 0
+            item.live_as_of = datetime.now(pytz.utc)
+            item.save()
+    take_online_now.short_description = 'Take Live as of Right Now'
+    
+    def take_offline(self, request, queryset):
+        for item in queryset:
+            item.publish_status = -1
+            item.save() 
+    take_offline.short_description = 'Take item COMPLETELY OFFLINE'
     
     def assemble_asset_table(self, obj):
         asset_list = obj.assets.all()

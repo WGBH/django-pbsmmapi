@@ -8,7 +8,8 @@ from django.db import models
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 
-from ..abstract.helpers import non_aware_now
+from ..abstract.gatekeeper import can_object_page_be_shown
+from ..abstract.helpers import time_zone_aware_now
 from ..abstract.models import PBSMMGenericShow
 
 from ..api.api import get_PBSMM_record
@@ -45,6 +46,10 @@ class PBSMMShow(PBSMMGenericShow):
         verbose_name_plural = 'PBS MM Shows'
         #app_label = 'pbsmmapi'
         db_table = 'pbsmm_show'
+        
+    @models.permalink
+    def get_absolute_url(self):
+        return ('show-detail', (), {'slug': self.slug})
 
     def __unicode__(self):
         if self.title:
@@ -57,7 +62,9 @@ class PBSMMShow(PBSMMGenericShow):
         return 'show'
     object_model_type = property(__object_model_type)
         
-
+    def __available_to_public(self):
+        return can_object_page_be_shown(None, self)
+    available_to_public = property(__available_to_public)
             
 #
 class PBSMMShowAsset(PBSMMAbstractAsset):
@@ -91,7 +98,7 @@ def process_show_assets(endpoint, this_show):
             
             # For now - borrow from the parent object
             instance.last_api_status = status
-            instance.date_last_api_update = non_aware_now()
+            instance.date_last_api_update = time_zone_aware_now()
 
             instance.show = this_show
             instance.ingest_on_save = True
@@ -137,7 +144,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     
     instance.last_api_status = status
     # Update this record's time stamp (the API has its own)
-    instance.date_last_api_update = non_aware_now()
+    instance.date_last_api_update = time_zone_aware_now()
     
     # If we didn't get a record, abort (there's no sense crying over spilled bits)
     if status != 200:

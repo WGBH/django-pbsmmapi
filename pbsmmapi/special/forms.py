@@ -7,7 +7,7 @@ class PBSMMSpecialCreateForm(ModelForm):
     class Meta:
         model = PBSMMSpecial
         fields = (
-            'object_id', 'show'
+            'slug', 'show'
         )
 
 class PBSMMSpecialEditForm(ModelForm):

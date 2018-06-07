@@ -9,6 +9,8 @@ from django.utils.translation import ugettext_lazy as _
 from jsonfield import JSONField
 
 from .helpers import get_canonical_image, get_default_asset
+from ..abstract.gatekeeper import can_object_page_be_shown
+from ..abstract.helpers import is_in_the_future
 
 PUBLISH_STATUS_LIST = (
     (-1, 'NEVER Available'),
@@ -61,14 +63,21 @@ class GenericObjectManagement(models.Model):
     last_api_status_color.short_description = 'Status'
 
     def show_publish_status(self):
-        if self.publish_status == 0:
-            return mark_safe("<span style=\"color:#f00;\">NO</span>")
-        else:
-            return mark_safe("<span style=\"color:#0c0;\">Yes</span>")
-    show_publish_status.short_description = 'Published?'
-    
-    class Meta:
-        abstract = True
+        if self.publish_status > 0:
+            return mark_safe("<span style=\"color: #0c0;\"><b>ALWAYS</b></span> Available")
+        elif self.publish_status < 0:
+            return mark_safe("<span style=\"color: #c00;\"><B>NEVER</b></span> Available")
+        else: # it EQUALS zero
+            if self.live_as_of is None:
+                return "Never Published"
+            else:
+                dstr = self.live_as_of.strftime("%x")
+                if is_in_the_future(self.live_as_of):
+                    return mark_safe("<b>Goes LIVE: %s</b>"% dstr)
+                else:
+                    return mark_safe("<B>LIVE</B> <span style=\"color: #999;\">as of: %s</style>" % dstr)
+        return "???"
+    show_publish_status.short_description = 'Pub. Status'
         
 class GenericAccessControl(models.Model):
     publish_status = models.IntegerField (
@@ -76,6 +85,14 @@ class GenericAccessControl(models.Model):
         default = 0, null = False,
         choices = PUBLISH_STATUS_LIST
     )
+    ###
+    ### live_as_of starts out as NULL meaning "I am still being worked on" (if publish_status == 0)
+    ### OR "I have deliberately been pushed live (if publish_status == 1)"
+    ###
+    ### if set, then after that date/time the object is "live".
+    ###
+    ### This allows content producers to 'set it and forget it'.
+    ### 
     live_as_of = models.DateTimeField (
         _('Live As Of'),
         null = True, blank = True,
@@ -85,6 +102,11 @@ class GenericAccessControl(models.Model):
     class Meta:
         abstract = True
         
+    def __is_publicly_available(self):
+        # can_object_page_be_shown is the site gatekeeper.
+        # if the user is None (as is called here) that means "not logged into the Amdin": i.e., the general public.
+        return can_object_page_be_shown(None, self)
+    is_publicly_available = property(__is_publicly_available)
 
 ######################### ABSTRACT MODELS FROM PBSMM FIELDS ##################################
 class PBSMMObjectID(models.Model):
@@ -483,7 +505,6 @@ class PBSMMGenericAsset(PBSMMGenericObject, PBSMMObjectSlug,
     class Meta:
         abstract = True
         
-# There's no GenericAccessControl yet... presumbly if the object is "on" its assets are reachable.
 class PBSMMGenericRemoteAsset(PBSMMGenericObject):
 
     class Meta:

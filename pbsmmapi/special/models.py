@@ -9,7 +9,7 @@ from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-from ..abstract.helpers import non_aware_now
+from ..abstract.helpers import time_zone_aware_now
 from ..abstract.models import PBSMMGenericSpecial
 
 from ..api.api import get_PBSMM_record
@@ -29,6 +29,10 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         verbose_name_plural = 'PBS MM Specials'
         #app_label = 'pbsmmapi'
         db_table = 'pbsmm_special'
+        
+    @models.permalink
+    def get_absolute_url(self):
+        return ('special-detail', (), {'slug': self.slug})
         
     def __unicode__(self):
         return "%s | %s | %s " % (self.object_id, self.show, self.title)
@@ -85,7 +89,7 @@ def process_special_assets(endpoint, this_special):
             
             # For now - borrow from the parent object
             instance.last_api_status = status
-            instance.date_last_api_update = non_aware_now()
+            instance.date_last_api_update = time_zone_aware_now()
             
             instance.special = this_special
             instance.ingest_on_save = True
@@ -116,22 +120,22 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     # If this is a new record, then someone has started it in the Admin using EITHER a legacy COVE ID
     # OR a PBSMM UUID.   Depending on which, the retrieval endpoint is slightly different, so this sets
     # the appropriate URL to access.
-    if instance.pk and instance.object_id and str(instance.object_id).strip():
+    if instance.pk and instance.slug and str(instance.slug).strip():
         # Object is being edited
         if not instance.ingest_on_save:
             return # do nothing - can't get an ID to look up!
 
     else: # object is being added
-        if not instance.object_id:
+        if not instance.slug:
             return # do nothing - can't get an ID to look up!
 
-    url = "%s/%s/" % (PBSMM_SPECIAL_ENDPOINT, instance.object_id)
+    url = "%s/%s/" % (PBSMM_SPECIAL_ENDPOINT, instance.slug)
 
     # OK - get the record from the API
     (status, json) = get_PBSMM_record(url)
     instance.last_api_status = status
     # Update this record's time stamp (the API has its own)
-    instance.date_last_api_update = non_aware_now()
+    instance.date_last_api_update = time_zone_aware_now()
     
     # If we didn't get a record, abort (there's no sense crying over spilled bits)
     if status != 200:

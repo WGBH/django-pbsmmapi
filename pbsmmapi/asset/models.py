@@ -29,8 +29,14 @@ YES_NO = (
 )
 
 class PBSMMAbstractAsset(PBSMMGenericAsset):
+    """
+    These are fields unique to Assets.
+    Each object model has a *-Asset table, e.g., PBSMMEpisode has PBSMMEpisodeAsset, 
+    PBSMMShow has PBSShowAsset, etc.
     
-#### These fields are unique to Asset
+    Aside from the FK reference to the parent, each of these *-Asset models are identical in structure.
+    """
+    #### These fields are unique to Asset
     legacy_tp_media_id = models.BigIntegerField (
         _('COVE ID'),
         null = True, blank = True,
@@ -98,6 +104,14 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         null = True, blank = True
     )
     
+    ######## This is a custom field that lies outside of the API.
+    #
+    # It alloes the content producer to define WHICH Asset is shown on the parental object's Detail page.
+    # Since the PBSMM API does not know how to distinguish mutliple "clips" from one another, this is necessary
+    # to show a Promo vs. a Short Form video, etc.
+    #
+    # ... thanks PBS.
+    #
     override_default_asset = models.PositiveIntegerField (
         _('Override Default Asset'),
         null = False, choices = YES_NO, default = 0
@@ -107,20 +121,27 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         abstract = True
 
 
-###
-# Properties and methods
-###
+    ###
+    # Properties and methods
+    ###
     
     def __unicode__(self):
         return "%d | %s (%d) | %s" % (self.pk, self.object_id, self.legacy_tp_media_id, self.title)
 
     def __object_model_type(self):
-    # This handles the correspondence to the "type" field in the PBSMM JSON object
+        """
+        This handles the correspondence to the "type" field in the PBSMM JSON object.
+        Basically this just makes it easy to identify whether an object is an asset or not.
+        """
         return 'asset'
     object_model_type = property(__object_model_type)
-    
-    #def __is_asset_publicly_available(self):
+
     def asset_publicly_available(self):
+        """
+        This is mostly for tables listing Assets in the Admin detail page for ancestral objects:
+        e.g., an Episode's page in the Admin has a list of the episode's assets, and this provides
+        a simple column to show availability in that list.
+        """
         if self.availability:
             a = json.loads(self.availability)
             p = a.get('public', None)
@@ -131,10 +152,16 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
     asset_publicly_available.boolean = True
     
     def __is_asset_publicly_available(self):
+        """
+        Am I available to the public?  True/False.
+        """
         return self.asset_publicly_available
     is_asset_publicly_available = property(__is_asset_publicly_available)
     
     def __duration_hms(self):
+        """
+        Show the asset's duration as #h ##m ##s.
+        """
         if self.duration:
             d = self.duration
             hours = d // 3600
@@ -161,6 +188,9 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
     duration_hms = property(__duration_hms)
     
     def __formatted_duration(self):
+        """
+        Show the Asset's duration as ##:##:##
+        """
         if self.duration:
             seconds = self.duration
             hours = seconds // 3600
@@ -172,6 +202,9 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
     formatted_duration = property(__formatted_duration)
     
     def __is_default(self):
+        """
+        Return True/False if the Asset is the "default" Asset for it's parent.
+        """
         if self.override_default_asset:
             return True
         else:

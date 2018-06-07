@@ -11,7 +11,7 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
     add_form = PBSMMSeasonCreateForm
     model = PBSMMSeason
     list_display = ('pk', 'printable_title', 'show',  'ordinal', 'date_last_api_update',\
-        'last_api_status_color','publish_status' )
+        'last_api_status_color','show_publish_status' )
     list_display_links = ('pk', 'printable_title')
     list_filter = ('show__title_sortable',)
     # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
@@ -29,7 +29,8 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
         'links',
         
         'format_episode_list',
-        'assemble_asset_table',
+        'assemble_asset_table', 
+        'show_publish_status'
     ]
     
     add_fieldsets = (
