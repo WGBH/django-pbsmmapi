@@ -1,7 +1,9 @@
 from ..abstract.helpers import set_json_serialized_field, fix_non_aware_datetime
 
 def process_season_record(obj, instance, origin='season'):
-    
+    """
+    Take the data returned from a single Season's API JSON content and map it to a PBSMMEpisode database record.
+    """
 # These are the top-level fields - almost everything else is under attrs
     if 'attributes' not in obj.keys():
         attrs = obj['data']['attributes']

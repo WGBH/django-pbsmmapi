@@ -23,13 +23,18 @@ from .ingest_children import process_episodes
 PBSMM_SEASON_ENDPOINT = 'https://media.services.pbs.org/api/v1/seasons/'
 
 class PBSMMSeason(PBSMMGenericSeason):
-    
+    """
+    These are the fields that are unique to PBSMMSeason
+    """
     ordinal = models.PositiveIntegerField (
         _('Ordinal'),
         null = True, blank = True
     )
+    
+    ####### This is the parental Show
     show = models.ForeignKey('show.PBSMMShow', related_name='seasons')
     
+    # This triggers cascading ingestion of child Episodes - set from the admin before a save()
     ingest_episodes = models.BooleanField (
         _('Ingest Episodes'),
         default = False,
@@ -44,6 +49,9 @@ class PBSMMSeason(PBSMMGenericSeason):
         
     @models.permalink
     def get_absolute_url(self):
+        """
+        This enables the "Show on Site" link on the Admin page
+        """
         return ('season-detail', (), {'pk': self.pk})
         
     def create_table_line(self):
@@ -62,11 +70,18 @@ class PBSMMSeason(PBSMMGenericSeason):
         return "%s | %d | %s " % (self.object_id, self.ordinal, self.title)
 
     def __object_model_type(self):
+        """
+        This return the object type.
+        """
     # This handles the correspondence to the "type" field in the PBSMM JSON object
         return 'season'
     object_model_type = property(__object_model_type)
     
     def __printable_title(self):
+        """
+        This creates a human friendly title out of the Season metadata 
+        if an explicit title is not set from the Show title and Episode ordinal.
+        """
         if self.title_sortable:
             return self.title_sortable
         elif self.title:
@@ -87,7 +102,9 @@ class PBSMMSeasonAsset(PBSMMAbstractAsset):
         return "%s: %s" % (self.season.title, self.title)
         
 def process_season_assets(endpoint, this_season):
-    
+    """
+    For each Asset associated with this Season, ingest them page by page.
+    """
     keep_going = True
     while keep_going:
         (status, json) = get_PBSMM_record(endpoint) 
@@ -133,6 +150,9 @@ def process_season_assets(endpoint, this_season):
 #####
 @receiver(models.signals.pre_save, sender=PBSMMSeason)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
+    """
+    Get a Season's data from the PBS MM API.   Either update or create a PBSMMSeason record.
+    """
     if instance.__class__ is not PBSMMSeason:
         return
 
@@ -173,7 +193,12 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
 
 @receiver(models.signals.post_save, sender=PBSMMSeason)
 def handle_children(sender, instance, *args, **kwargs):
+    """
+    If the ingest_episodes flag is set, then also ingest every episode for this Season.
     
+    Also, always ingest the Assets associated with this Season.
+    
+    """
     if instance.ingest_episodes:
         # This is the FIRST endpoint - there might be more, depending on pagination!
         episodes_endpoint = instance.json['links'].get('episodes')

@@ -7,6 +7,10 @@ from pbsmmapi.abstract.mixins import PBSMMObjectDetailMixin, PBSMMObjectListMixi
 from pbsmmapi.abstract.mixin_helpers import filter_offline_shows
 
 class PBSMMSeasonListView(ListView, PBSMMObjectListMixin):
+    """
+    This is the Season Listing View - it's generic and is Show agnostic.
+    Gate-keeping is handled in the PBSMMObjectListMixin class.
+    """
     model = Season
     template_name = 'season/season_list.html'
     context_object_name = 'season_list'
@@ -22,6 +26,10 @@ class PBSMMSeasonListView(ListView, PBSMMObjectListMixin):
 
         
 class PBSMMSeasonDetailView(DetailView, PBSMMObjectDetailMixin):
+    """
+    This is the Season detail view.
+    Gate-keeping is handled in the PBSMMObjectDetailMixin class.
+    """
     model = Season
     template_name = 'season/season_detail.html'
     context_object_name = 'season'
