@@ -12,11 +12,6 @@ class PBSMMShowListView(ListView, PBSMMObjectListMixin):
     
     def get_context_data(self, **kwargs):
         context = super(PBSMMShowListView, self).get_context_data(**kwargs)
-        user = self.request.user
-        if user.is_authenticated:
-            context['login'] = True
-        else:
-            context['login'] = False
         return context
 
         
@@ -27,10 +22,5 @@ class PBSMMShowDetailView(DetailView, PBSMMObjectDetailMixin):
     
     def get_context_data(self, **kwargs):
         context = super(PBSMMShowDetailView, self).get_context_data(**kwargs)
-        user = self.request.user
-        if user.is_authenticated:
-            context['login'] = True
-        else:
-            context['login'] = False
         return context
         

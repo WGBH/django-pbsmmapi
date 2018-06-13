@@ -1,6 +1,7 @@
 import pytz
 from datetime import datetime
 from django.db.models import Q
+from .gatekeeper import can_object_page_be_shown
 """
 These functions are extensions of the generic PBSMMObject mixins.
 

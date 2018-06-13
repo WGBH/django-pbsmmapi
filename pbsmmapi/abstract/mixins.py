@@ -3,6 +3,7 @@ from datetime import datetime
 
 from django.db.models import Q
 from django.http import Http404
+from django.views.generic.base import ContextMixin
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.list import MultipleObjectMixin
 
@@ -17,13 +18,23 @@ They apply the gatekeeper rules.
 See the documentation in gatekeeper.py for details.
 
 """
+class GenericAuthenticationMixin(ContextMixin):
+    """
+    These are done for all the Listing and Detail pages...
+    
+    Aren't mixins just freaking cool?
+    """
+    def get_context_data(self, **kwargs):
+        context = super(GenericAuthenticationMixin, self).get_context_data(**kwargs)
+        context['is_logged_in'] = self.request.user.is_authenticated
+        return context
 
-class PBSMMObjectListMixin(MultipleObjectMixin):
+class PBSMMObjectListMixin(MultipleObjectMixin, GenericAuthenticationMixin):
     """
     This is for Listing views that apply to all object ListView classes.
     
     This handles self-filtering.  Some object types ALSO require ancestral "back filtering" 
-        (e.g., Episodes must have a Season that is available;  Specials and Seasons require
+        (e.g., Episodes must have a Season that is available;  Specials and S(easons require
         their Show is available, etc.).   Those filters are applied AFTER these, and are 
         called from the specific ListView class.
     """
@@ -44,7 +55,7 @@ class PBSMMObjectListMixin(MultipleObjectMixin):
             qs = qs.exclude(condition_1 & condition_3)
         return qs
 
-class PBSMMObjectDetailMixin(SingleObjectMixin):
+class PBSMMObjectDetailMixin(SingleObjectMixin, GenericAuthenticationMixin):
     """
     This is for detail views that apply to all object DetailView classes.
     
