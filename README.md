@@ -65,9 +65,9 @@ Documentation is in the "docs" directory.
 
         | Value | Description |
         |  ---  | --- |
-        |   -1  | GLOBALLY OFFLINE - unavailable to anyone (public, admins)  |
-        |    0  | PROVISIONAL - availability depends on `live_as_of` value   | 
-        |    1  | PERMANENTLY LIVE - available to everyone                   |
+        | -1 | GLOBALLY OFFLINE - unavailable to anyone (public, admins) |
+        | 0 | PROVISIONAL - availability depends on `live_as_of` value  |
+        | 1 | PERMANENTLY LIVE - available to everyone |
 
         2. The `live_as_of` time stamp.
 
