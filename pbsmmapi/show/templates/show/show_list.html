@@ -1,10 +1,11 @@
 {% extends "base.html" %}
-{% load cms_tags sekizai_tags staticfiles  %}
+{% load cms_tags sekizai_tags staticfiles pbsmm_tags %}
 
 {% block content %}
 <h1> this is the show listing page </h1>
+<h2>THIS IS THE SKELETON TEMPLATE FROM THE PBSMMAPI APP</h2>
 
-You are {% if not login %} NOT {% endif %} logged in.   {{ foo }}
+You are {% if not is_logged_in %} NOT {% endif %} logged in.   {{ foo }}
 
 <h2> Shows </h2>
     <table style="width: 100%;">

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load cms_tags sekizai_tags staticfiles pbsmm_tags %}
+
+{% block content %}
+<h1>Season Detail Page - {{ season.printable_title }}</h1>
+<h2>THIS IS THE SKELETON SEASON LISTING PAGE FROM THE PBSMMAPI APP</h2>
+
+<h2>Fields</h2>
+
+<table width="100%" border="2">
+    <tr><th>Field</th><th>Value</th></tr>
+    <tr><td> Description (short) </td><td> {{ season.description_short }} </td></tr>
+    <tr><td> Description (long) </td><td> {{ season.description_long }} </td></tr>
+    <tr><td> Publicly Available? </td><td> {{ season.is_publicly_available }} </td></tr>
+    <tr><td> Ordinal </td><td> &nbsp;{{ season.ordinal }} </td></tr>
+    <tr><td> Printable Title  </td><td> {{ season.printable_title }} </td></tr>
+    <tr><td> # Episodes  </td><td> {{ season.episode.count }} </td></tr>
+    <tr><td> Publish Status </td><td> {{ season.show_publish_status }} </td></tr>
+    <tr><td> Show </td><td> {{ season.show.title }} </td></tr>
+</table>
+
+<h2>Episodes</h2>
+
+{% if season.episodes.count %}
+<table width="100%" border="2">
+    <tr style="background-color: #999;">
+        <th>Episode #</th>
+        <th>Title</th>
+        <th>Admin</th>
+        <th># Assets</th>
+        <th>Publish Status</th>
+    </tr>
+    {% for episode in season.episodes.all %}
+    <tr>
+        <td>{{ season.ordinal|stringformat:"02d"}}{{ episode.ordinal|stringformat:"02d"}}</td>
+        <td>{{ episode.title }}</td>
+        <td><a href="/admin/episode/pbsmmepisode/{{ episode.id }}/change/\">Admin</a></td>
+        <td>&nbsp;{{ episode.assets.all|length }}</td>
+        <td>{{ episode.show_publish_status }}</td>
+    </tr>
+    {% endfor %}
+</table>
+{% else %}
+<p>There are no episodes</p>
+{% endif %}
+
+<h3>SEASON ASSETS</h3>
+
+{% if season.assets.count %}
+<p>The highlighted on is the one that would appear as the default "season.default_asset".
+It can be changed in the SeasonAsset admin by changing the "OVERRIDE DEFAILT ASSET" to "yes".</p>
+
+<table width="100%" border="2">
+    <tr><th>Title</th><th>Type</th><th>Duration</th><th>Admin</th></tr>
+    {% for asset in season.assets.all %}
+        <tr {% if asset == season.default_asset %}style="background-color: #FF0;"{% endif %}>
+            <td>{{ asset.title }}</td>
+            <td>{{ asset.object_type }}</td>
+            <td>{{ asset.formatted_duration }}</td>
+            <td><a href="/admin/season/pbsmmseasonasset/{{ asset.id }}/change/">Admin</a></td>
+        </tr>
+    {% endfor %}
+</table>
+
+<h4>Default Asset Player</h4>
+
+{{ season.default_asset.player_code }}
+<br/>
+<div style="width: 640px; height: 360px;">
+{{ season.default_asset.player_code|safe }}
+</div>
+{% else %}
+<p>There are no assets.</p>
+{% endif %}
+
+<h3>IMAGES</h3>
+
+Here are the images associated with the Show
+I need to create a template tag that can read the stored JSON and return things.
+But there are also properties for getting the canonical image.
+
+{{ season.images }}
+
+<h4>Image List</h4>
+{% comment %} I'm being lazy and just spitting out the table I made for the admin.  It has been a long day.{% endcomment %}
+{{ season.pretty_image_list|safe }}
+<br/>
+Canonical Image Type Override:  {{ season.canonical_image_type_override }}
+<br/>
+Canonical Image: <img src="{{ season.canonical_image }}">
+
+{% endblock content %}
