@@ -63,18 +63,18 @@ Documentation is in the "docs" directory.
 
 1. The `publish_status` flag which can take 3 different values:
 
-| Value | Description |
-|  ---  | --- |
-| -1 | GLOBALLY OFFLINE - unavailable to anyone (public, admins) |
-| 0 | PROVISIONAL - availability depends on `live_as_of` value  |
-| 1 | PERMANENTLY LIVE - available to everyone |
+  | Value | Description |
+  |  ---  | --- |
+  | -1 | GLOBALLY OFFLINE - unavailable to anyone (public, admins) |
+  | 0 | PROVISIONAL - availability depends on `live_as_of` value  |
+  | 1 | PERMANENTLY LIVE - available to everyone |
 
 2. The `live_as_of` time stamp.
 
-* The default (upon object creation) is NULL, which indicates a "never published" status.
-* If the Admin sets the date in the future, it is unavailable to the public UNTIL the `live_as_of` date/time is reached;
-* If the date is set in the past, the page is "live".
-* NOTE THAT the "PERMANENTLY LIVE" and "GLOBALLY OFFLINE" `publish_status` settings OVERRIDE this behavior.
+  * The default (upon object creation) is NULL, which indicates a "never published" status.
+  * If the Admin sets the date in the future, it is unavailable to the public UNTIL the `live_as_of` date/time is reached;
+  * If the date is set in the past, the page is "live".
+  * NOTE THAT the "PERMANENTLY LIVE" and "GLOBALLY OFFLINE" `publish_status` settings OVERRIDE this behavior.
 
 Admins can access every record on the site EXCEPT those whose publish_status is "GLOBALLY OFFLINE"
 
