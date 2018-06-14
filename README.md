@@ -64,8 +64,8 @@ Documentation is in the "docs" directory.
         1. The `publish_status` flag which can take 3 different values:
 
         | Value | Description |
+        |  ---  | --- |
         |   -1  | GLOBALLY OFFLINE - unavailable to anyone (public, admins)  |
-        |  --:  | ---------------------------------------------------------- |
         |    0  | PROVISIONAL - availability depends on `live_as_of` value   | 
         |    1  | PERMANENTLY LIVE - available to everyone                   |
 
