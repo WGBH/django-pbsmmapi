@@ -98,3 +98,16 @@ On each object's Admin listing page, there are several "bulk actions" available 
 | Take Item COMPLETELY OFFLINE | -1 | (same) | Item is taken off of the site. |
 
 
+## Using PBSMMAPI as part of your Django project
+
+Once you have everything installed and the database migrated, you can start to ingest content.
+
+In order to build your site, you have to - at the least - create templates for each object's listing page and detail page:
+
+    * `show/show_detail.html` and `show/show_list.html`
+    * `season/season_detail.html` and `season/season_list.html`
+    * `special/special_detail.html` and `special/special_list.html`
+    * `episode/episode.detail.html` and `episode/episode_list.html`
+
+There are "default" skeleton templates build into `django-pbsmm` which will show up if Django can't find your project's templates, but they are definitely not usable for a production environment.
+
