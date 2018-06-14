@@ -13,7 +13,7 @@ Quick start
 
 1. Add the pbsmmapi apps to your INSTALLED_APPS setting:
 
-.. highlight:: python
+.. code-block:: python
    INSTALLED_APPS = [
       ...
       'pbsmmapi',
@@ -25,12 +25,12 @@ Quick start
         
 2. Create your database.  *Be sure to support UTF-8 4-byte characters!*   In MySQL you can use:
 
-.. highlight:: python
+.. code-block:: python
    CREATE DATABASE my_database CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
     
 3. You'll need to change your settings DATABASES accordingly:
 
-.. highlight:: python
+.. code-block:: python
    DATABASES = {
        'default': {
            'ENGINE': 'django.db.backends.mysql',
@@ -45,7 +45,7 @@ Quick start
 
 4. You ALSO need to have PBS Media Manager credentials - an API KEY and a SECRET KEY.  These also go into the base settings.py file of your project:
 
-.. highlight:: python
+.. code-block:: python
    PBSMM_API_ID='abcdefghijklmnop'
    PBSMM_API_SECRET= 'aAbBcCdDeEfFgGhHjJkKmMnNpPqQrRsS'
     
