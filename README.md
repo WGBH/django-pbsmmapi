@@ -66,9 +66,6 @@ A good place to start is with the Show Admin page. (`/admin/show/pbsmmshow/add/`
     * Ditto for "Ingest Specials".
     * To use "Ingest Episodes", you also have to select "Ingest Seasons".
 
-
-
-
 ### Each object has two parameters that control public access to it:
 
 1. The `publish_status` flag which can take 3 different values:
@@ -92,12 +89,11 @@ Admins can access every record on the site EXCEPT those whose publish_status is 
 
 On each object's Admin listing page, there are several "bulk actions" available to you:
 
-    | Action | `publish_status` | `live_as_of` date | Description |
-    | --- | --- | --- | --- |
-    | Reingest Selected Items | (same) | (same) | This essentially "updates" the record from PBSMM.  No status change is made. |
-    | Take Item PERMANENTLY LIVE | 1 | (same) | Item "goes live", `live_as_of` date is ignored. | 
-    | Take Live as of Right Now | 0 | "now" | Item "goes live" by resetting `live_as_of` to "right now". |
-    | CONDITIONALLY Online Using `live_as_of` Date | 0 | (same) | Item will go live automatically as of the `live_as_of` date. |
-    | Take Item COMPLETELY OFFLINE | -1 | (same) | Item is taken off of the site. |
-
+| Action | `publish_status` | `live_as_of` date | Description |
+| --- | --- | --- | --- |
+| Reingest Selected Items | (same) | (same) | This essentially "updates" the record from PBSMM.  No status change is made. |
+| Take Item PERMANENTLY LIVE | 1 | (same) | Item "goes live", `live_as_of` date is ignored. | 
+| Take Live as of Right Now | 0 | "now" | Item "goes live" by resetting `live_as_of` to "right now". |
+| CONDITIONALLY Online Using `live_as_of` Date | 0 | (same) | Item will go live automatically as of the `live_as_of` date. |
+| Take Item COMPLETELY OFFLINE | -1 | (same) | Item is taken off of the site. |
 
