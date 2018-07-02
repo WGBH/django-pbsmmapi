@@ -30,7 +30,7 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
         for item in queryset:
             item.publish_status = 0
             item.save() 
-    conditionally_online.short_description = 'Online using live_as_of Date'
+    conditionally_online.short_description = 'CONDITIONALLY Online using live_as_of Date'
            
     def take_online_now(self, request, queryset):
         for item in queryset:
