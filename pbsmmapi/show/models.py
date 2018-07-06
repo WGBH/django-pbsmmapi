@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 import requests
 import datetime
-import json
+
 
 from django.db import models
 from django.dispatch import receiver
