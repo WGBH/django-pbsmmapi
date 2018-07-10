@@ -114,6 +114,14 @@ class PBSMMEpisodeAsset(PBSMMAbstractAsset):
     def __unicode__(self):
         return "%s: %s" % (self.episode.title, self.title)
         
+    def __get_nola_code(self):
+        if self.nola is None or self.nola == '':
+            return None
+        if self.season.show.nola is None or self.season.show.nola == '':
+            return None
+        return "%s-%s" % (self.season.show.nola, self.nola)
+    nola_code = property(__get_nola_code)
+    
 
 def process_episode_assets(endpoint, this_episode):
     """

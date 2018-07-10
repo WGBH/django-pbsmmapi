@@ -41,6 +41,14 @@ class PBSMMSpecial(PBSMMGenericSpecial):
     # This handles the correspondence to the "type" field in the PBSMM JSON object
         return 'special'
     object_model_type = property(__object_model_type)
+
+    def __get_nola_code(self):
+        if self.nola is None or self.nola == '':
+            return None
+        if self.show.nola is None or self.show.nola == '':
+            return None
+        return "%s-%s" % (self.show.nola, self.nola)
+    nola_code = property(__get_nola_code)
     
     def create_table_line(self):
         out = "<tr>"
