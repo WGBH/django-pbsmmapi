@@ -10,7 +10,7 @@ from django.utils.translation import ugettext_lazy as _
 from ..abstract.models import PBSMMGenericAsset
 
 from ..api.api import get_PBSMM_record
-    
+
 from .ingest_asset import process_asset_record
 from .helpers import check_asset_availability
 
@@ -20,7 +20,8 @@ AVAILABILITY_GROUPS = (
     ('Public', 'public')
 )
 
-PBSMM_ASSET_ENDPOINT = 'https://media.services.pbs.org/api/v1/assets/' # remember the closing slash
+# remember the closing slash
+PBSMM_ASSET_ENDPOINT = 'https://media.services.pbs.org/api/v1/assets/'
 PBSMM_LEGACY_ASSET_ENDPOINT = 'https://media.services.pbs.org/api/v1/assets/legacy/?tp_media_id='
 
 YES_NO = (
@@ -28,83 +29,84 @@ YES_NO = (
     (0, 'No'),
 )
 
+
 class PBSMMAbstractAsset(PBSMMGenericAsset):
     """
     These are fields unique to Assets.
-    Each object model has a *-Asset table, e.g., PBSMMEpisode has PBSMMEpisodeAsset, 
+    Each object model has a *-Asset table, e.g., PBSMMEpisode has PBSMMEpisodeAsset,
     PBSMMShow has PBSShowAsset, etc.
-    
+
     Aside from the FK reference to the parent, each of these *-Asset models are identical in structure.
     """
-    #### These fields are unique to Asset
-    legacy_tp_media_id = models.BigIntegerField (
+    # These fields are unique to Asset
+    legacy_tp_media_id = models.BigIntegerField(
         _('COVE ID'),
-        null = True, blank = True,
-        unique = True, 
-        help_text = '(Legacy TP Media ID)'
-    )
-    
-    availability = models.TextField (
-        _('Availability'),
-        null = True, blank = True,
-        help_text = 'JSON serialized Field'
-    )
-    
-    duration = models.IntegerField (
-        _('Duration'),
-        null = True, blank = True,
-        help_text = "(in seconds)"
+        null=True, blank=True,
+        unique=True,
+        help_text='(Legacy TP Media ID)'
     )
 
-    object_type = models.CharField (  # This is 'clip', etc. 
+    availability = models.TextField(
+        _('Availability'),
+        null=True, blank=True,
+        help_text='JSON serialized Field'
+    )
+
+    duration = models.IntegerField(
+        _('Duration'),
+        null=True, blank=True,
+        help_text="(in seconds)"
+    )
+
+    object_type = models.CharField(  # This is 'clip', etc.
         _('Object Type'),
-        max_length = 40,
-        null = True, blank = True,
+        max_length=40,
+        null=True, blank=True,
     )
-    
-    ##### CAPTIONS
-    has_captions = models.BooleanField (
+
+    # CAPTIONS
+    has_captions = models.BooleanField(
         _('Has Captions'),
-        default = False
+        default=False
     )
-    
+
     ##### TAGS, Topics
-    tags = models.TextField (
+    tags = models.TextField(
         _('Tags'),
-        null = True, blank = True,
-        help_text = 'JSON serialized field'
+        null=True, blank=True,
+        help_text='JSON serialized field'
     )
-    topics = models.TextField (
+    topics = models.TextField(
         _('Topics'),
-        null = True, blank = True,
-        help_text = 'JSON serialized field'
+        null=True, blank=True,
+        help_text='JSON serialized field'
     )
-    
-    ##### PLAYER FIELDS
-    player_code = models.TextField (
+
+    # PLAYER FIELDS
+    player_code = models.TextField(
         _('Player Code'),
-        null = True, blank = True
+        null=True, blank=True
     )
 
     # CHAPTERS
-    chapters = models.TextField (
+    chapters = models.TextField(
         _('Chapters'),
-        null = True, blank = True,
-        help_text = "JSON serialized field"
+        null=True, blank=True,
+        help_text="JSON serialized field"
     )
-    
-    content_rating = models.CharField (
+
+    content_rating = models.CharField(
         _('Content Rating'),
-        max_length = 100,
-        null = True, blank = True,
+        max_length=100,
+        null=True, blank=True,
     )
-    
-    content_rating_description = models.TextField (
+
+    content_rating_description = models.TextField(
         _('Content Rating Description'),
-        null = True, blank = True
+        null=True, blank=True
     )
-    
-    ######## This is a custom field that lies outside of the API.
+
+    # This is a custom field that lies outside of the API.
     #
     # It alloes the content producer to define WHICH Asset is shown on the parental object's Detail page.
     # Since the PBSMM API does not know how to distinguish mutliple "clips" from one another, this is necessary
@@ -112,21 +114,21 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
     #
     # ... thanks PBS.
     #
-    override_default_asset = models.PositiveIntegerField (
+    override_default_asset = models.PositiveIntegerField(
         _('Override Default Asset'),
-        null = False, choices = YES_NO, default = 0
+        null=False, choices=YES_NO, default=0
     )
-    
+
     class Meta:
         abstract = True
-
 
     ###
     # Properties and methods
     ###
-    
+
     def __unicode__(self):
-        return "%d | %s (%d) | %s" % (self.pk, self.object_id, self.legacy_tp_media_id, self.title)
+        return "%d | %s (%d) | %s" % (self.pk, self.object_id,
+                                      self.legacy_tp_media_id, self.title)
 
     def __object_model_type(self):
         """
@@ -146,18 +148,19 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
             a = json.loads(self.availability)
             p = a.get('public', None)
             if p:
-                return check_asset_availability(start=p['start'], end=p['end'])[0]
+                return check_asset_availability(
+                    start=p['start'], end=p['end'])[0]
         return None
     asset_publicly_available.short_description = 'Pub. Avail.'
     asset_publicly_available.boolean = True
-    
+
     def __is_asset_publicly_available(self):
         """
         Am I available to the public?  True/False.
         """
         return self.asset_publicly_available
     is_asset_publicly_available = property(__is_asset_publicly_available)
-    
+
     def __duration_hms(self):
         """
         Show the asset's duration as #h ##m ##s.
@@ -186,7 +189,7 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
             return ' '.join((hstr, mstr, sstr))
         return ''
     duration_hms = property(__duration_hms)
-    
+
     def __formatted_duration(self):
         """
         Show the Asset's duration as ##:##:##
@@ -200,7 +203,7 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
             return "%d:%02d:%02d" % (hours, minutes, seconds)
         return ''
     formatted_duration = property(__formatted_duration)
-    
+
     def __is_default(self):
         """
         Return True/False if the Asset is the "default" Asset for it's parent.
@@ -210,5 +213,3 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         else:
             return False
     is_default = property(__is_default)
-    
-    
