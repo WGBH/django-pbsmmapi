@@ -45,44 +45,44 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         verbose_name_plural = 'PBS MM Episodes'
         #app_label = 'pbsmmapi'
         db_table = 'pbsmm_episode'
-        
+
     @models.permalink
     def get_absolute_url(self):
         """
         This is so the Admin can have a "view on site" button
         """
         return ('episode-detail', (), {'slug': self.slug})
-        
+
     def __unicode__(self):
         #return "%s | %s (%s) " % (self.object_id, self.title, self.premiered_on)
         return self.title
-        
+
     def __object_model_type(self):
         """
         This just returns object "type"
         """
         return 'episode'
     object_model_type = property(__object_model_type)
-        
+
     def __full_episode_code(self):
         """
         This just formats the Episode as:
             show-XXYY where XX is the season and YY is the ordinal, e.g.,:  roadshow-2305
             for Roadshow, Season 23, Episode 5.
-            
+
             Useful in lists of episodes that cross Seasons/Shows.
         """
         return "%s-%02d%02d" % (self.season.show.slug, self.season.ordinal, self.ordinal)
     #full_episode_code.short_description = 'Ep #'
     full_episode_code = property(__full_episode_code)
-    
+
     def short_episode_code(self):
         """
         This is just the Episode "code" without the Show slug, e.g.,  0523 for the 23rd episode of Season 5
         """
         return "%02d%02d" % (self.season.ordinal, self.ordinal)
     short_episode_code.short_description = 'Ep #'
-    
+
     def __get_nola_code(self):
         if self.nola is None or self.nola == '':
             return None
@@ -91,7 +91,7 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         return "%s-%s" % (self.season.show.nola, self.nola)
     nola_code = property(__get_nola_code)
 
-    
+
     def create_table_line(self):
         """
         This just formats a line in a Table of Episodes.
@@ -109,20 +109,20 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         return mark_safe(out)
 
 class PBSMMEpisodeAsset(PBSMMAbstractAsset):
-    
+
     """
     These are the Assets associated with an episode.
     """
     episode = models.ForeignKey(PBSMMEpisode, related_name='assets')
-    
+
     class Meta:
         verbose_name = 'PBS MM Episode Asset'
         verbose_name_plural = 'PBS MM Episodes - Assets'
         db_table = 'pbsmm_episode_asset'
-    
+
     def __unicode__(self):
         return "%s: %s" % (self.episode.title, self.title)
-        
+
 def process_episode_assets(endpoint, this_episode):
     """
     Scrape assets for this episode, page by page, until there are no more.
@@ -141,27 +141,27 @@ def process_episode_assets(endpoint, this_episode):
             attrs = item.get('attributes')
             links = item.get('links')
             object_id = item.get('id')
-        
+
             try:
                 instance = PBSMMEpisodeAsset.objects.get(object_id=object_id)
             except PBSMMEpisodeAsset.DoesNotExist:
                 instance = PBSMMEpisodeAsset()
-                
+
             # For now - borrow from the parent object
             instance.last_api_status = status
             instance.date_last_api_update = time_zone_aware_now()
-            
+
             instance = process_asset_record(item, instance, origin='episode')
             instance.episode = this_episode
             instance.ingest_on_save = True
-            
+
             # This needs to be here because otherwise it never updates...
             instance.save()
-        
+
         (keep_going, endpoint) = check_pagination(json)
-        
+
     return
-    
+
 
 #######################################################################################################################
 ###################
@@ -206,7 +206,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         instance.last_api_status = status
         # Update this record's time stamp (the API has its own)
         instance.date_last_api_update = time_zone_aware_now()
-    
+
         # If we didn't get a record, abort (there's no sense crying over spilled bits)
         if status != 200:
             return
@@ -218,20 +218,20 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         instance.ingest_on_save = False # otherwise we could end up in an infinite loop!
 
     #instance.ingest_related_assets = False
-    # We're done here - continue with the save() operation 
+    # We're done here - continue with the save() operation
     return instance
-    
+
 @receiver(models.signals.post_save, sender=PBSMMEpisode)
 def handle_children(sender, instance, *args, **kwargs):
     """
     This gets all the children.
     For the case of Episodes, that just means the Episode Assets.
-    
+
     We ALWAYS get the Assets when the Episode is ingested.
     """
     # ALWAYS GET CHILD ASSETS
     assets_endpoint = instance.json['links'].get('assets')
     if assets_endpoint:
         process_episode_assets(assets_endpoint, instance)
-    
+
     return
