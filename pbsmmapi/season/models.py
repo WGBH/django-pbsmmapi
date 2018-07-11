@@ -22,23 +22,28 @@ from .ingest_children import process_episodes
 
 PBSMM_SEASON_ENDPOINT = 'https://media.services.pbs.org/api/v1/seasons/'
 
+
 class PBSMMSeason(PBSMMGenericSeason):
     """
     These are the fields that are unique to PBSMMSeason
     """
-    ordinal = models.PositiveIntegerField (
+    ordinal = models.PositiveIntegerField(
         _('Ordinal'),
-        null = True, blank = True
+        null=True, blank=True
     )
 
-    ####### This is the parental Show
-    show = models.ForeignKey('show.PBSMMShow', related_name='seasons')
+    # This is the parental Show
+    show = models.ForeignKey(
+        'show.PBSMMShow', related_name='seasons',
+        on_delete=models.CASCADE
+    )
 
-    # This triggers cascading ingestion of child Episodes - set from the admin before a save()
-    ingest_episodes = models.BooleanField (
+    # This triggers cascading ingestion of child Episodes - set from the admin
+    # before a save()
+    ingest_episodes = models.BooleanField(
         _('Ingest Episodes'),
-        default = False,
-        help_text = 'Also ingest all Episodes (for each Season)'
+        default=False,
+        help_text='Also ingest all Episodes (for each Season)'
     )
 
     class Meta:
@@ -57,14 +62,14 @@ class PBSMMSeason(PBSMMGenericSeason):
     def create_table_line(self):
         this_title = "Season %d: %s" % (self.ordinal, self.title)
         out = "<tr style=\"background-color: #ddd;\">"
-        out += "<td colspan=\"3\"><a href=\"/admin/season/pbsmmseason/%d/change/\"><b>%s</b></a></td>" % (self.id, this_title)
+        out += "<td colspan=\"3\"><a href=\"/admin/season/pbsmmseason/%d/change/\"><b>%s</b></a></td>" % (
+            self.id, this_title)
         out += "<td><a href=\"%s\" target=\"_new\">API</a></td>" % self.api_endpoint
         out += "\n\t<td>%d</td>" % self.assets.count()
         out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
         out += "<td>%s</td></tr>" % self.show_publish_status()
         return mark_safe(out)
-
 
     def __unicode__(self):
         return "%s | %d | %s " % (self.object_id, self.ordinal, self.title)
@@ -73,7 +78,8 @@ class PBSMMSeason(PBSMMGenericSeason):
         """
         This return the object type.
         """
-    # This handles the correspondence to the "type" field in the PBSMM JSON object
+    # This handles the correspondence to the "type" field in the PBSMM JSON
+    # object
         return 'season'
     object_model_type = property(__object_model_type)
 
@@ -90,8 +96,12 @@ class PBSMMSeason(PBSMMGenericSeason):
             return '%s Season %d' % (self.show.title, self.ordinal)
     printable_title = property(__printable_title)
 
+
 class PBSMMSeasonAsset(PBSMMAbstractAsset):
-    season = models.ForeignKey(PBSMMSeason, related_name='assets')
+    season = models.ForeignKey(
+        PBSMMSeason, related_name='assets',
+        on_delete=models.CASCADE
+    )
 
     class Meta:
         verbose_name = 'PBS MM Season Asset'
@@ -100,6 +110,7 @@ class PBSMMSeasonAsset(PBSMMAbstractAsset):
 
     def __unicode__(self):
         return "%s: %s" % (self.season.title, self.title)
+
 
 def process_season_assets(endpoint, this_season):
     """
@@ -137,16 +148,16 @@ def process_season_assets(endpoint, this_season):
     return
 
 
-#######################################################################################################################
+##########################################################################
 ###################
-###################  PBS MediaManager API interface
+# PBS MediaManager API interface
 ###################
-#######################################################################################################################
+##########################################################################
 
-##### The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
+# The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
 #####
-##### That way, one can force a reingestion from the Admin OR one can do it from a management script
-##### by simply getting the record, setting ingest_on_save on the record, and calling save().
+# That way, one can force a reingestion from the Admin OR one can do it from a management script
+# by simply getting the record, setting ingest_on_save on the record, and calling save().
 #####
 @receiver(models.signals.pre_save, sender=PBSMMSeason)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
@@ -162,11 +173,11 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     if instance.pk and instance.object_id and str(instance.object_id).strip():
         # Object is being edited
         if not instance.ingest_on_save:
-            return # do nothing - can't get an ID to look up!
+            return  # do nothing - can't get an ID to look up!
 
-    else: # object is being added
+    else:  # object is being added
         if not instance.object_id:
-            return # do nothing - can't get an ID to look up!
+            return  # do nothing - can't get an ID to look up!
 
     url = "%s/%s/" % (PBSMM_SEASON_ENDPOINT, instance.object_id)
 
@@ -177,7 +188,8 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     # Update this record's time stamp (the API has its own)
     instance.date_last_api_update = time_zone_aware_now()
 
-    # If we didn't get a record, abort (there's no sense crying over spilled bits)
+    # If we didn't get a record, abort (there's no sense crying over spilled
+    # bits)
     if status != 200:
         return
 
@@ -185,7 +197,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     instance = process_season_record(json, instance)
 
     # continue saving, but turn off the ingest_on_save flag
-    instance.ingest_on_save = False # otherwise we could end up in an infinite loop!
+    instance.ingest_on_save = False  # otherwise we could end up in an infinite loop!
 
     # We're done here - continue with the save() operation
     return
@@ -200,7 +212,8 @@ def handle_children(sender, instance, *args, **kwargs):
 
     """
     if instance.ingest_episodes:
-        # This is the FIRST endpoint - there might be more, depending on pagination!
+        # This is the FIRST endpoint - there might be more, depending on
+        # pagination!
         episodes_endpoint = instance.json['links'].get('episodes')
 
         if episodes_endpoint:
@@ -212,7 +225,7 @@ def handle_children(sender, instance, *args, **kwargs):
         process_season_assets(assets_endpoint, instance)
 
     # This is a tricky way to unset ingest_seasons without calling save()
-    rec = PBSMMSeason.objects.filter(pk = instance.id)
-    rec.update(ingest_episodes = False)
+    rec = PBSMMSeason.objects.filter(pk=instance.id)
+    rec.update(ingest_episodes=False)
 
     return
