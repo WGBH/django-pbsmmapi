@@ -29,11 +29,11 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         verbose_name_plural = 'PBS MM Specials'
         #app_label = 'pbsmmapi'
         db_table = 'pbsmm_special'
-        
+
     @models.permalink
     def get_absolute_url(self):
         return ('special-detail', (), {'slug': self.slug})
-        
+
     def __unicode__(self):
         return "%s | %s | %s " % (self.object_id, self.show, self.title)
 
@@ -49,7 +49,7 @@ class PBSMMSpecial(PBSMMGenericSpecial):
             return None
         return "%s-%s" % (self.show.nola, self.nola)
     nola_code = property(__get_nola_code)
-    
+
     def create_table_line(self):
         out = "<tr>"
         out += "\n\t<td><a href=\"/admin/special/pbsmmspecial/%d/change/\"><B>%s</b></a></td>" % (self.id, self.title)
@@ -63,21 +63,21 @@ class PBSMMSpecial(PBSMMGenericSpecial):
 
 class PBSMMSpecialAsset(PBSMMAbstractAsset):
     special = models.ForeignKey(PBSMMSpecial, related_name='assets')
-    
+
     class Meta:
         verbose_name = 'PBS MM Special Asset'
         verbose_name_plural = 'PBS MM Specials - Assets'
         db_table = 'pbsmm_special_asset'
-    
+
     def __unicode__(self):
         return "%s: %s" % (self.special.title, self.title)
-    
+
 def process_special_assets(endpoint, this_special):
     # Handle pagination
     keep_going = True
     while keep_going:
         (status, json) = get_PBSMM_record(endpoint)
-        
+
         if 'data' in json.keys():
             asset_list = json['data']
         else:
@@ -87,26 +87,26 @@ def process_special_assets(endpoint, this_special):
             attrs = item.get('attributes')
             links = item.get('links')
             object_id = item.get('id')
-        
+
             try:
                 instance = PBSMMSpecialAsset.objects.get(object_id=object_id)
             except PBSMMSpecialAsset.DoesNotExist:
                 instance = PBSMMSpecialAsset()
-            
+
             instance = process_asset_record(item, instance, origin='special')
-            
+
             # For now - borrow from the parent object
             instance.last_api_status = status
             instance.date_last_api_update = time_zone_aware_now()
-            
+
             instance.special = this_special
             instance.ingest_on_save = True
-            
+
             # This needs to be here because otherwise it never updates...
             instance.save()
-        
+
         (keep_going, endpoint) = check_pagination(json)
-        
+
     return
 
 #######################################################################################################################
@@ -144,7 +144,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     instance.last_api_status = status
     # Update this record's time stamp (the API has its own)
     instance.date_last_api_update = time_zone_aware_now()
-    
+
     # If we didn't get a record, abort (there's no sense crying over spilled bits)
     if status != 200:
         return
@@ -155,7 +155,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     # continue saving, but turn off the ingest_on_save flag
     instance.ingest_on_save = False # otherwise we could end up in an infinite loop!
 
-    # We're done here - continue with the save() operation 
+    # We're done here - continue with the save() operation
     return
 
 @receiver(models.signals.post_save, sender=PBSMMSpecial)
@@ -166,5 +166,5 @@ def handle_child_objects(sender, instance, *args, **kwargs):
     assets_endpoint = this_json['links'].get('assets')
     if assets_endpoint:
         process_special_assets(assets_endpoint, instance)
-            
+
     return
