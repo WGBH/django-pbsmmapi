@@ -21,8 +21,12 @@ from .ingest_special import process_special_record
 
 PBSMM_SPECIAL_ENDPOINT = 'https://media.services.pbs.org/api/v1/specials/'
 
+
 class PBSMMSpecial(PBSMMGenericSpecial):
-    show = models.ForeignKey('show.PBSMMShow', related_name = 'specials')
+    show = models.ForeignKey(
+        'show.PBSMMShow', related_name='specials',
+        on_delete=models.CASCADE
+    )
 
     class Meta:
         verbose_name = 'PBS MM Special'
@@ -38,7 +42,8 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         return "%s | %s | %s " % (self.object_id, self.show, self.title)
 
     def __object_model_type(self):
-    # This handles the correspondence to the "type" field in the PBSMM JSON object
+        # This handles the correspondence to the "type" field in the PBSMM JSON
+        # object
         return 'special'
     object_model_type = property(__object_model_type)
 
@@ -52,8 +57,9 @@ class PBSMMSpecial(PBSMMGenericSpecial):
 
     def create_table_line(self):
         out = "<tr>"
-        out += "\n\t<td><a href=\"/admin/special/pbsmmspecial/%d/change/\"><B>%s</b></a></td>" % (self.id, self.title)
-        out += "\n\t<td><a href=\"%s\" target=\"_new\">API</a></td>" %  self.api_endpoint
+        out += "\n\t<td><a href=\"/admin/special/pbsmmspecial/%d/change/\"><B>%s</b></a></td>" % (
+            self.id, self.title)
+        out += "\n\t<td><a href=\"%s\" target=\"_new\">API</a></td>" % self.api_endpoint
         out += "\n\t<td>%d</td>" % self.assets.count()
         out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
@@ -61,8 +67,12 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         out += "\n</tr>"
         return mark_safe(out)
 
+
 class PBSMMSpecialAsset(PBSMMAbstractAsset):
-    special = models.ForeignKey(PBSMMSpecial, related_name='assets')
+    special = models.ForeignKey(
+        PBSMMSpecial, related_name='assets',
+        on_delete=models.CASCADE
+    )
 
     class Meta:
         verbose_name = 'PBS MM Special Asset'
@@ -71,6 +81,7 @@ class PBSMMSpecialAsset(PBSMMAbstractAsset):
 
     def __unicode__(self):
         return "%s: %s" % (self.special.title, self.title)
+
 
 def process_special_assets(endpoint, this_special):
     # Handle pagination
@@ -109,17 +120,19 @@ def process_special_assets(endpoint, this_special):
 
     return
 
-#######################################################################################################################
+##########################################################################
 ###################
-###################  PBS MediaManager API interface
+# PBS MediaManager API interface
 ###################
-#######################################################################################################################
+##########################################################################
 
-##### The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
+# The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
 #####
-##### That way, one can force a reingestion from the Admin OR one can do it from a management script
-##### by simply getting the record, setting ingest_on_save on the record, and calling save().
+# That way, one can force a reingestion from the Admin OR one can do it from a management script
+# by simply getting the record, setting ingest_on_save on the record, and calling save().
 #####
+
+
 @receiver(models.signals.pre_save, sender=PBSMMSpecial)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
     if instance.__class__ is not PBSMMSpecial:
@@ -131,11 +144,11 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     if instance.pk and instance.slug and str(instance.slug).strip():
         # Object is being edited
         if not instance.ingest_on_save:
-            return # do nothing - can't get an ID to look up!
+            return  # do nothing - can't get an ID to look up!
 
-    else: # object is being added
+    else:  # object is being added
         if not instance.slug:
-            return # do nothing - can't get an ID to look up!
+            return  # do nothing - can't get an ID to look up!
 
     url = "%s/%s/" % (PBSMM_SPECIAL_ENDPOINT, instance.slug)
 
@@ -145,7 +158,8 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     # Update this record's time stamp (the API has its own)
     instance.date_last_api_update = time_zone_aware_now()
 
-    # If we didn't get a record, abort (there's no sense crying over spilled bits)
+    # If we didn't get a record, abort (there's no sense crying over spilled
+    # bits)
     if status != 200:
         return
 
@@ -153,10 +167,11 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     instance = process_special_record(json, instance)
 
     # continue saving, but turn off the ingest_on_save flag
-    instance.ingest_on_save = False # otherwise we could end up in an infinite loop!
+    instance.ingest_on_save = False  # otherwise we could end up in an infinite loop!
 
     # We're done here - continue with the save() operation
     return
+
 
 @receiver(models.signals.post_save, sender=PBSMMSpecial)
 def handle_child_objects(sender, instance, *args, **kwargs):
