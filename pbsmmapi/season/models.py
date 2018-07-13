@@ -35,7 +35,7 @@ class PBSMMSeason(PBSMMGenericSeason):
     # This is the parental Show
     show = models.ForeignKey(
         'show.PBSMMShow', related_name='seasons',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE, # required for Django 2.0
     )
 
     # This triggers cascading ingestion of child Episodes - set from the admin
@@ -100,7 +100,7 @@ class PBSMMSeason(PBSMMGenericSeason):
 class PBSMMSeasonAsset(PBSMMAbstractAsset):
     season = models.ForeignKey(
         PBSMMSeason, related_name='assets',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE, # required for Django 2.0
     )
 
     class Meta:

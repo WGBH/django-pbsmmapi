@@ -25,7 +25,7 @@ PBSMM_SPECIAL_ENDPOINT = 'https://media.services.pbs.org/api/v1/specials/'
 class PBSMMSpecial(PBSMMGenericSpecial):
     show = models.ForeignKey(
         'show.PBSMMShow', related_name='specials',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,  # required for Django 2.0
     )
 
     class Meta:
@@ -71,7 +71,7 @@ class PBSMMSpecial(PBSMMGenericSpecial):
 class PBSMMSpecialAsset(PBSMMAbstractAsset):
     special = models.ForeignKey(
         PBSMMSpecial, related_name='assets',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,  # required for Django 2.0
     )
 
     class Meta:

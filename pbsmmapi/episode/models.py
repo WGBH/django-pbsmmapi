@@ -41,7 +41,8 @@ class PBSMMEpisode(PBSMMGenericEpisode):
     # THIS IS THE (required) PARENTAL SEASON
     season = models.ForeignKey(
         'season.PBSMMSeason', related_name='episodes',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE, # required for Django 2.0
+
     )
 
     class Meta:
@@ -121,7 +122,7 @@ class PBSMMEpisodeAsset(PBSMMAbstractAsset):
     """
     episode = models.ForeignKey(
         PBSMMEpisode, related_name='assets',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE, # required for Django 2.0
     )
 
     class Meta:

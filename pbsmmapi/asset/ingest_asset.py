@@ -9,7 +9,7 @@ all *-Asset models have the same structure, only the FK to the parent changes).
 This is USUALLY called when ingesting a ancestral object, i.e.:
     After an ancestral object is ingested from the API (e.g., an Episode),
     all of the associated Assets are ingested (with the code below).
-    
+
 """
 
 ### THIS IS THE INGEST SCRIPT FOR ASSET RECORDS
@@ -18,7 +18,7 @@ This is USUALLY called when ingesting a ancestral object, i.e.:
 # It's a dirty way to avoid having to create ancillary tables with foreign keys back to objects.
 # For example, let's say there's a field that shows all of the available languages for an object; do you
 # REALLY want to have N records for EACH object that just says object #1234 is in English/Spanish?
-# No - of course you don't.   So instead have a SINGLE simple field that has the value of, e.g., 
+# No - of course you don't.   So instead have a SINGLE simple field that has the value of, e.g.,
 # ['en', 'es'] that you can de-serialize as necessary with the appropriate tests.
 #
 # I find that this works GREAT with model properties.  Using the above example you could quickly create
@@ -38,18 +38,18 @@ def process_asset_record(obj, instance, origin=None):
 # These are the top-level fields - almost everything else is under attrs
     #attrs = obj['attributes']
     #links = obj['links']
-     
+
     if 'attributes' in obj.keys():
         attrs = obj.get('attributes')
     else:
         if 'data' in obj.keys():
             attrs = obj['data'].get('attributes')
-            
+
     links = obj.get('links')
-    
+
 #### UUID and updated_on
     instance.object_id = obj.get('id', None) # we want this because sometimes we've looked it up via COVE ID, not knowing the UUID
-    
+
     instance.updated_at = fix_non_aware_datetime(attrs.get('updated_at', None))  # timestamp of the record in the API
     instance.api_endpoint = links.get('self', None) # the URL of the request
 
@@ -58,11 +58,11 @@ def process_asset_record(obj, instance, origin=None):
     instance.title_sortable = attrs.get('title_sortable', None)
     instance.slug = attrs.get('slug', None)
     instance.legacy_tp_media_id = attrs.get('legacy_tp_media_id', None)
-    
+
     #### Descriptions
     instance.description_long = attrs.get('description_long', None)
     instance.description_short = attrs.get('description_short', None)
-    
+
 #### Asset metadata - things related to the asset itself
     instance.is_excluded_from_dfp = attrs.get('is_excluded_from_dfp', False) # see the bottom of the file for notes
     instance.player_code = attrs.get('player_code', None) # this is the <iframe> to show the asset
@@ -72,7 +72,7 @@ def process_asset_record(obj, instance, origin=None):
     instance.content_rating = attrs.get('content_rating', None) # e.g., 'TV-G'
     instance.content_rating_description = attrs.get('content_rating_description', None)
     instance.language = attrs.get('language', None)
-    
+
 #### Unprocessed
     instance.tags = set_json_serialized_field(attrs, 'tags', default=None)
     # According to PBS this isn't really used - legacy for some third parties - skipping
@@ -88,6 +88,5 @@ def process_asset_record(obj, instance, origin=None):
     instance.geo_profile = set_json_serialized_field(attrs, 'geo_profile', default=None)
     # For compatibility (so far)
     instance.platforms = set_json_serialized_field(attrs, 'platforms', default=None)
-    
-    return instance
 
+    return instance
