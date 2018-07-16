@@ -24,7 +24,7 @@ from .ingest_children import process_seasons, process_specials
 PBSMM_SHOW_ENDPOINT = 'https://media.services.pbs.org/api/v1/shows/'
 
 
-class PBSMMShow(PBSMMGenericShow):
+class PBSMMAbstractShow(PBSMMGenericShow):
 
     ingest_seasons = models.BooleanField(
         _('Ingest Seasons'),
@@ -47,6 +47,7 @@ class PBSMMShow(PBSMMGenericShow):
         verbose_name_plural = 'PBS MM Shows'
         #app_label = 'pbsmmapi'
         db_table = 'pbsmm_show'
+        abstract = True
 
     @models.permalink
     def get_absolute_url(self):
@@ -67,7 +68,9 @@ class PBSMMShow(PBSMMGenericShow):
     def __available_to_public(self):
         return can_object_page_be_shown(None, self)
     available_to_public = property(__available_to_public)
-
+    
+class PBSMMShow(PBSMMAbstractShow):
+    pass
 
 class PBSMMShowAsset(PBSMMAbstractAsset):
     show = models.ForeignKey(
