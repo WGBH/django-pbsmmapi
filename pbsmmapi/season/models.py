@@ -23,7 +23,7 @@ from .ingest_children import process_episodes
 PBSMM_SEASON_ENDPOINT = 'https://media.services.pbs.org/api/v1/seasons/'
 
 
-class PBSMMSeason(PBSMMGenericSeason):
+class PBSMMAbtractSeason(PBSMMGenericSeason):
     """
     These are the fields that are unique to PBSMMSeason
     """
@@ -95,6 +95,9 @@ class PBSMMSeason(PBSMMGenericSeason):
         else:
             return '%s Season %d' % (self.show.title, self.ordinal)
     printable_title = property(__printable_title)
+    
+class PBSMMSeason(PBSMMAbstractSeason):
+    pass
 
 
 class PBSMMSeasonAsset(PBSMMAbstractAsset):

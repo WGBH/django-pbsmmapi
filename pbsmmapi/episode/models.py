@@ -20,7 +20,7 @@ from .ingest_episode import process_episode_record
 PBSMM_EPISODE_ENDPOINT = 'https://media.services.pbs.org/api/v1/episodes/'
 
 
-class PBSMMEpisode(PBSMMGenericEpisode):
+class PBSMMAbstractEpisode(PBSMMGenericEpisode):
     """
     These are the fields that are unique to Episode records.
     """
@@ -115,6 +115,8 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         out += "\n\t<td>%s</td></tr>" % self.show_publish_status()
         return mark_safe(out)
 
+class PBSMMEpisode(PBSMMAbstractEpisode):
+    pass
 
 class PBSMMEpisodeAsset(PBSMMAbstractAsset):
     """
@@ -132,7 +134,6 @@ class PBSMMEpisodeAsset(PBSMMAbstractAsset):
 
     def __unicode__(self):
         return "%s: %s" % (self.episode.title, self.title)
-
 
 def process_episode_assets(endpoint, this_episode):
     """
