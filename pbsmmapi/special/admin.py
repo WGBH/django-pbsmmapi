@@ -1,10 +1,11 @@
 from django.contrib import admin
+from django.conf import settings
 from .forms import PBSMMSpecialCreateForm, PBSMMSpecialEditForm
 from .models import PBSMMSpecial, PBSMMSpecialAsset
 from ..abstract.admin import PBSMMAbstractAdmin
 from ..asset.admin import PBSMMAbstractAssetAdmin
 
-class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
+class PBSMMAbstractSpecialAdmin(PBSMMAbstractAdmin):
     model = PBSMMSpecial
     form = PBSMMSpecialEditForm
     add_form = PBSMMSpecialCreateForm
@@ -90,7 +91,11 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
         defaults.update(kwargs)
         return super(PBSMMSpecialAdmin, self).get_form(request, obj, **kwargs)
         
-    
+    class Meta:
+        abstract = True
+        
+class PBSMMSpecialAdmin(PBSMMAbstractSpecialAdmin):
+    pass
         
 class PBSMMSpecialAssetAdmin(PBSMMAbstractAssetAdmin):
     model = PBSMMSpecialAsset
@@ -101,5 +106,6 @@ class PBSMMSpecialAssetAdmin(PBSMMAbstractAssetAdmin):
         return obj.special.title
     special_title.short_description = 'Special'
 
+if 
 admin.site.register(PBSMMSpecial, PBSMMSpecialAdmin)
 admin.site.register(PBSMMSpecialAsset, PBSMMSpecialAssetAdmin)
