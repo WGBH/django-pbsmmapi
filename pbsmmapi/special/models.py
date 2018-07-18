@@ -133,9 +133,9 @@ def process_special_assets(endpoint, this_special):
 #####
 
 
-@receiver(models.signals.pre_save, sender=PBSMMSpecial)
+@receiver(models.signals.pre_save)#, sender=PBSMMSpecial)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
-    if instance.__class__ is not PBSMMSpecial:
+    if not issubclass(sender, PBSMMAbstractSpecial):
         return
 
     # If this is a new record, then someone has started it in the Admin using EITHER a legacy COVE ID
@@ -173,8 +173,10 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     return
 
 
-@receiver(models.signals.post_save, sender=PBSMMSpecial)
+@receiver(models.signals.post_save) #, sender=PBSMMSpecial)
 def handle_child_objects(sender, instance, *args, **kwargs):
+    if not issubclass(sender, PBSMMAbstractSpecial):
+        return
     this_json = instance.json
 
     # ALWAYS GET CHILD ASSETS

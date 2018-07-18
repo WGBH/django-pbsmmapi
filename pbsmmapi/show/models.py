@@ -128,9 +128,9 @@ def process_show_assets(endpoint, this_show):
 #####
 
 
-@receiver(models.signals.pre_save, sender=PBSMMShow)
+@receiver(models.signals.pre_save) #, sender=PBSMMShow)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
-    if instance.__class__ is not PBSMMShow:
+    if not issubclass(sender, PBSMMAbstractShow):
         return
 
     # If this is a new record, then someone has started it in the Admin using
@@ -169,9 +169,10 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     return
 
 
-@receiver(models.signals.post_save, sender=PBSMMShow)
+@receiver(models.signals.post_save)#, sender=PBSMMShow)
 def handle_child_objects(sender, instance, *args, **kwargs):
-
+    if not issubclass(sender, PBSMMAbstractShow):
+        return
     if instance.last_api_status != 200:
         return
     this_json = instance.json

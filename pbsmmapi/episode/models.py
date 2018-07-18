@@ -185,13 +185,15 @@ def process_episode_assets(endpoint, this_episode):
 # by simply getting the record, setting ingest_on_save on the record, and calling save().
 #####
 
-@receiver(models.signals.pre_save, sender=PBSMMEpisode)
+@receiver(models.signals.pre_save,)# sender=PBSMMEpisode)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
     """
     This calls the PBS MM API for an Episode and then either saves or creates it.
     """
-    if instance.__class__ is not PBSMMEpisode:
+    if not issubclass(sender, PBSMMAbstractEpisode):
         return
+    #if instance.__class__ is not PBSMMEpisode:
+    #    return
 
     # If this is a new record, then someone has started it in the Admin using EITHER a legacy COVE ID
     # OR a PBSMM UUID.   Depending on which, the retrieval endpoint is slightly different, so this sets
@@ -233,7 +235,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     return instance
 
 
-@receiver(models.signals.post_save, sender=PBSMMEpisode)
+@receiver(models.signals.post_save) #, sender=PBSMMEpisode)
 def handle_children(sender, instance, *args, **kwargs):
     """
     This gets all the children.
@@ -241,6 +243,9 @@ def handle_children(sender, instance, *args, **kwargs):
 
     We ALWAYS get the Assets when the Episode is ingested.
     """
+    if not issubclass(sender, PBSMMAbstractEpisode):
+        return
+        
     # ALWAYS GET CHILD ASSETS
     assets_endpoint = instance.json['links'].get('assets')
     if assets_endpoint:

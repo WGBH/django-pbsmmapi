@@ -159,14 +159,13 @@ def process_season_assets(endpoint, this_season):
 # That way, one can force a reingestion from the Admin OR one can do it from a management script
 # by simply getting the record, setting ingest_on_save on the record, and calling save().
 #####
-@receiver(models.signals.pre_save, sender=PBSMMSeason)
+@receiver(models.signals.pre_save) #, sender=PBSMMAbstractSeason)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
     """
     Get a Season's data from the PBS MM API.   Either update or create a PBSMMSeason record.
     """
-    if instance.__class__ is not PBSMMSeason:
+    if not issubclass(sender, PBSMMAbstractSeason):
         return
-
     # If this is a new record, then someone has started it in the Admin using EITHER a legacy COVE ID
     # OR a PBSMM UUID.   Depending on which, the retrieval endpoint is slightly different, so this sets
     # the appropriate URL to access.
@@ -203,7 +202,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     return
 
 
-@receiver(models.signals.post_save, sender=PBSMMSeason)
+@receiver(models.signals.post_save) #, sender=PBSMMSeason)
 def handle_children(sender, instance, *args, **kwargs):
     """
     If the ingest_episodes flag is set, then also ingest every episode for this Season.
@@ -211,6 +210,9 @@ def handle_children(sender, instance, *args, **kwargs):
     Also, always ingest the Assets associated with this Season.
 
     """
+    if not issubclass(sender, PBSMMAbstractSeason):
+        return
+        
     if instance.ingest_episodes:
         # This is the FIRST endpoint - there might be more, depending on
         # pagination!
