@@ -23,7 +23,7 @@ from .ingest_children import process_episodes
 PBSMM_SEASON_ENDPOINT = 'https://media.services.pbs.org/api/v1/seasons/'
 
 
-class PBSMMAbtractSeason(PBSMMGenericSeason):
+class PBSMMAbstractSeason(PBSMMGenericSeason):
     """
     These are the fields that are unique to PBSMMSeason
     """
