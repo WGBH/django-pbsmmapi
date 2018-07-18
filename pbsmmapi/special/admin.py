@@ -106,7 +106,7 @@ class PBSMMSpecialAssetAdmin(PBSMMAbstractAssetAdmin):
         return obj.special.title
     special_title.short_description = 'Special'
 
-use_native_models = settings.get(PBSMM_USE_NATIVE_MODELS, False)
+use_native_models = getattr(settings, 'PBSMM_USE_NATIVE_MODELS', False)
 if use_native_models:
     admin.site.register(PBSMMSpecial, PBSMMSpecialAdmin)
     
