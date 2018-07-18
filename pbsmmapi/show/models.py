@@ -68,13 +68,10 @@ class PBSMMAbstractShow(PBSMMGenericShow):
     def __available_to_public(self):
         return can_object_page_be_shown(None, self)
     available_to_public = property(__available_to_public)
-    
-class PBSMMShow(PBSMMAbstractShow):
-    pass
 
 class PBSMMShowAsset(PBSMMAbstractAsset):
     show = models.ForeignKey(
-        PBSMMShow, related_name='assets',
+        PBSMMAbstractShow, related_name='assets',
         on_delete=models.CASCADE, # required for Django 2.0
     )
 

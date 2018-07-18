@@ -116,15 +116,12 @@ class PBSMMAbstractEpisode(PBSMMGenericEpisode):
         out += "\n\t<td>%s</td></tr>" % self.show_publish_status()
         return mark_safe(out)
 
-class PBSMMEpisode(PBSMMAbstractEpisode):
-    pass
-
 class PBSMMEpisodeAsset(PBSMMAbstractAsset):
     """
     These are the Assets associated with an episode.
     """
     episode = models.ForeignKey(
-        PBSMMEpisode, related_name='assets',
+        PBSMMAbstractEpisode, related_name='assets',
         on_delete=models.CASCADE, # required for Django 2.0
     )
 

@@ -97,13 +97,9 @@ class PBSMMAbstractSeason(PBSMMGenericSeason):
             return '%s Season %d' % (self.show.title, self.ordinal)
     printable_title = property(__printable_title)
     
-class PBSMMSeason(PBSMMAbstractSeason):
-    pass
-
-
 class PBSMMSeasonAsset(PBSMMAbstractAsset):
     season = models.ForeignKey(
-        PBSMMSeason, related_name='assets',
+        PBSMMAbstractSeason, related_name='assets',
         on_delete=models.CASCADE, # required for Django 2.0
     )
 

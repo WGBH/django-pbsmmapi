@@ -21,7 +21,6 @@ from .ingest_special import process_special_record
 
 PBSMM_SPECIAL_ENDPOINT = 'https://media.services.pbs.org/api/v1/specials/'
 
-
 class PBSMMAbstractSpecial(PBSMMGenericSpecial):
     show = models.ForeignKey(
         'show.PBSMMShow', related_name='specials',
@@ -68,9 +67,6 @@ class PBSMMAbstractSpecial(PBSMMGenericSpecial):
         out += "\n</tr>"
         return mark_safe(out)
 
-
-class PBSMMSpecial(PBSMMAbstractSpecial):
-    pass
     
 class PBSMMSpecialAsset(PBSMMAbstractAsset):
     special = models.ForeignKey(
@@ -83,8 +79,8 @@ class PBSMMSpecialAsset(PBSMMAbstractAsset):
         verbose_name_plural = 'PBS MM Specials - Assets'
         db_table = 'pbsmm_special_asset'
 
-    def __unicode__(self):
-        return "%s: %s" % (self.special.title, self.title)
+#    def __unicode__(self):
+#        return "%s: %s" % (self.special.title, self.title)
 
 
 def process_special_assets(endpoint, this_special):
