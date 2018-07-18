@@ -68,7 +68,7 @@ class PBSMMAbstractSpecial(PBSMMGenericSpecial):
         return mark_safe(out)
 
 
-class PBSMMSpecial(PBSAbstractSpecial):
+class PBSMMSpecial(PBSMMAbstractSpecial):
     pass
     
 class PBSMMSpecialAsset(PBSMMAbstractAsset):
