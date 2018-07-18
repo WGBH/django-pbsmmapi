@@ -51,6 +51,7 @@ class PBSMMAbstractSeason(PBSMMGenericSeason):
         verbose_name_plural = 'PBS MM Seasons'
         #app_label = 'pbsmmapi'
         db_table = 'pbsmm_season'
+        abstract = True
 
     @models.permalink
     def get_absolute_url(self):

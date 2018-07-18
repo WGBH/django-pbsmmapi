@@ -50,6 +50,7 @@ class PBSMMAbstractEpisode(PBSMMGenericEpisode):
         verbose_name_plural = 'PBS MM Episodes'
         #app_label = 'pbsmmapi'
         db_table = 'pbsmm_episode'
+        abstract = True
 
     @models.permalink
     def get_absolute_url(self):
