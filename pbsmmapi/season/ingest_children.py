@@ -1,15 +1,8 @@
-from django.conf import settings
-from importlib import import_module
 from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
-
-if settings.CUSTOM_PBSMM_EPISODE_MODEL:
-    module_model = settings.CUSTOM_PBSMM_EPISODE_MODEL.split('.')
-    module = import_module(module_model[0])
-    model = getattr(module, module_model[1])
-    PBSMMEpisode = model
-else:
-    from ..pure.models import PBSMMEpisode
+from ..custom.select_model import find_PBSMM_model
+    
+PBSMMEpisode = find_PBSMM_model('CUSTOM_PBSMM_EPISODE_MODEL')
 
 from ..episode.ingest_episode import process_episode_record
 

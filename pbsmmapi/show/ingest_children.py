@@ -1,26 +1,9 @@
-from django.conf import settings
-from importlib import import_module
-
 from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
+from ..custom.select_model import find_PBSMM_model
 
-if settings.CUSTOM_PBSMM_SEASON_MODEL:
-    module_model = settings.CUSTOM_PBSMM_SEASON_MODEL.split('.')
-    module = import_module(module_model[0])
-    model = getattr(module, module_model[1])
-    PBSMMSeason = model
-else:
-    from ..pure.models import PBSMMSeason
-    
-from ..season.ingest_season import process_season_record
-
-if settings.CUSTOM_PBSMM_SPECIAL_MODEL:
-    module_model = settings.CUSTOM_PBSMM_SPECIAL_MODEL.split('.')
-    module = import_module(module_model[0])
-    model = getattr(module, module_model[1])
-    PBSMMSpecial = model
-else:
-    from ..pure.models import PBSMMSpecial
+PBSMMSeason = find_PBSMM_model('CUSTOM_PBSMM_SEASON_MODEL')
+PBSMMSpecial = find_PBSMM_model('CUSTOM_PBSMM_SEASON_MODEL')
     
 from ..special.ingest_special import process_special_record
 

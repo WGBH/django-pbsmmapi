@@ -1,14 +1,7 @@
-from django.forms import ModelForm
-from django.conf import settings
-from importlib import import_module
+from django.forms import ModelForm    
+from ..custom.select_model import find_PBSMM_model
 
-if settings.CUSTOM_PBSMM_SEASON_MODEL:
-    module_model = settings.CUSTOM_PBSMM_SEASON_MODEL.split('.')
-    module = import_module(module_model[0])
-    model = getattr(module, module_model[1])
-    PBSMMSeason = model
-else:
-    from ..pure.models import PBSMMSeason
+PBSMMSeason = find_PBSMM_model('CUSTOM_PBSMM_SEASON_MODEL')
 
 class PBSMMSeasonCreateForm(ModelForm):
     """

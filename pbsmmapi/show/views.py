@@ -1,16 +1,9 @@
-from django.conf import settings
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import DetailView, TemplateView, ListView
-from importlib import import_module
 
-if settings.CUSTOM_PBSMM_SHOW_MODEL:
-    module_model = settings.CUSTOM_PBSMM_SHOW_MODEL.split('.')
-    module = import_module(module_model[0])
-    model = getattr(module, module_model[1])
-    PBSMMShow = model
-else:
-    from ..pure.models import PBSMMShow
+from ..custom.select_model import find_PBSMM_model
+PBSMMShow = find_PBSMM_model('CUSTOM_PBSMM_SHOW_MODEL')
 
 from pbsmmapi.abstract.mixins import PBSMMObjectDetailMixin, PBSMMObjectListMixin
 
