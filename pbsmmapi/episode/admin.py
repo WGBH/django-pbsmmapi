@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.conf import settings
 
 from ..abstract.admin import PBSMMAbstractAdmin
 from ..asset.admin import PBSMMAbstractAssetAdmin
@@ -34,7 +35,7 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
         (None, {'fields': ('object_id', 'season'),} ),
     )
 
-    fieldsets = (
+    fieldsets = [
         (None, {
             'fields': (
                 ('object_id', 'date_created', 'api_endpoint_link',),            
@@ -86,8 +87,12 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
                 'links',
             ),
         }),
-
-    )
+    ]
+    
+    if hassattr(settings, 'CUSTOM_PBSMM_EPISODE_ADMIN_FIELDSET'):
+        extra_fieldset = getattr(settings, 'CUSTOM_PBSMM_EPISODE_ADMIN_FIELDSET')
+        position = getattr(settings, 'CUSTOM_PBSMM_EPISODE_ADMIN_POSITION', 2)
+        fieldsets.insert(position, extra_fieldset)
     
     # Switch between the fieldsets depending on whether we're adding or viewing a record
     def get_fieldsets(self, request, obj=None):
