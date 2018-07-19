@@ -1,10 +1,11 @@
 from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
 
-from pbsmmapi.custom.select_model import find_PBSMM_model
+from pbsmmapi.season import get_season_model
+from pbsmmapi.special import get_special_model
 
-PBSMMSeason = find_PBSMM_model('CUSTOM_PBSMM_SEASON_MODEL')
-PBSMMSpecial = find_PBSMM_model('CUSTOM_PBSMM_SPECIAL_MODEL')
+PBSMMSeason = get_season_model()
+PBSMMSpecial = get_special_model()
     
 from ..special.ingest_special import process_special_record
 

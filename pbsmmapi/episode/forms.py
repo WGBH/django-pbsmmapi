@@ -1,7 +1,7 @@
 from django import forms 
-from ..custom.select_model import find_PBSMM_model
+from pbsmmapi.episode import get_episode_model
 
-PBSMMEpisode = find_PBSMM_model('CUSTOM_PBSMM_EPISODE_MODEL')
+PBSMMEpisode = get_episode_model()
 
 class PBSMMEpisodeCreateForm(forms.ModelForm):
     """

@@ -1,7 +1,7 @@
 from django.forms import ModelForm    
-from ..custom.select_model import find_PBSMM_model
+from pbsmmapi.season import get_season_model
 
-PBSMMSeason = find_PBSMM_model('CUSTOM_PBSMM_SEASON_MODEL')
+PBSMMSeason = get_season_model()
 
 class PBSMMSeasonCreateForm(ModelForm):
     """

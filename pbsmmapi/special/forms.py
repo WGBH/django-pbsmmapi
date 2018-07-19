@@ -1,7 +1,7 @@
 from django.forms import ModelForm
-from ..custom.select_model import find_PBSMM_model
+from pbsmmapi.special import get_special_model
 
-PBSMMSpecial = find_PBSMM_model('CUSTOM_PBSMM_EPISODE_MODEL')
+PBSMMSpecial = get_special_model()
 
 class PBSMMSpecialCreateForm(ModelForm):
 

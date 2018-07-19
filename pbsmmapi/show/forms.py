@@ -1,7 +1,7 @@
 from django.forms import ModelForm
-from ..custom.select_model import find_PBSMM_model
+from pbsmmapi.show import get_show_model
 
-PBSMMShow = find_PBSMM_model('CUSTOM_PBSMM_SHOW_MODEL')
+PBSMMShow = get_show_model()
 
 class PBSMMShowCreateForm(ModelForm):
     """

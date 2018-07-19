@@ -2,8 +2,8 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import DetailView, TemplateView, ListView
 
-from ..custom.select_model import find_PBSMM_model
-PBSMMShow = find_PBSMM_model('CUSTOM_PBSMM_SHOW_MODEL')
+from pbsmmapi.show import get_show_model
+PBSMMShow = get_show_model()
 
 from pbsmmapi.abstract.mixins import PBSMMObjectDetailMixin, PBSMMObjectListMixin
 

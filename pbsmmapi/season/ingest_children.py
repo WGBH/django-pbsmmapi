@@ -1,8 +1,8 @@
 from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
-from ..custom.select_model import find_PBSMM_model
-    
-PBSMMEpisode = find_PBSMM_model('CUSTOM_PBSMM_EPISODE_MODEL')
+from pbsmmapi.episode import get_episode_model
+
+PBSMMEpisode = get_episode_model()
 
 from ..episode.ingest_episode import process_episode_record
 

@@ -4,9 +4,9 @@ from importlib import import_module
 
 from pbsmmapi.abstract.mixins import PBSMMObjectDetailMixin, PBSMMObjectListMixin
 from pbsmmapi.abstract.mixin_helpers import filter_offline_seasons, filter_offline_parent_season
-from pbsmmapi.custom.select_model import find_PBSMM_model
+from pbsmmapi.episode import get_episode_model
 
-PBSMMEpisode = find_PBSMM_model('CUSTOM_PBSMM_EPISODE_MODEL')
+PBSMMEpisode = get_episode_model()
 
 
 class PBSMMAllEpisodeListView(ListView, PBSMMObjectListMixin):
