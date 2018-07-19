@@ -70,7 +70,7 @@ class PBSMMAbstractSpecial(PBSMMGenericSpecial):
     
 class PBSMMSpecialAsset(PBSMMAbstractAsset):
     special = models.ForeignKey(
-        PBSMMSpecial, related_name='assets',
+        PBSMMAbstractSpecial, related_name='assets',
         on_delete=models.CASCADE,  # required for Django 2.0
     )
 

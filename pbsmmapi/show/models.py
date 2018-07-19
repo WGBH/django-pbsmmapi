@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import requests
 import datetime
 
-
 from django.db import models
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
@@ -20,6 +19,7 @@ from ..asset.models import PBSMMAbstractAsset
 
 from .ingest_show import process_show_record
 from .ingest_children import process_seasons, process_specials
+
 
 PBSMM_SHOW_ENDPOINT = 'https://media.services.pbs.org/api/v1/shows/'
 
