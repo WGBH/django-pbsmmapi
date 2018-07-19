@@ -15,7 +15,7 @@ def find_PBSMM_model(this_setting):
     
     """
     if hasattr(settings, this_setting):        
-        (app_name, model_name) = this_setting
+        (app_name, model_name) = getattr(settings, this_setting)
 
     else:
         foo = settings.this_setting.split('_')[2].lower()
