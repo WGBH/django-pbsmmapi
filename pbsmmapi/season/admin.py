@@ -2,14 +2,14 @@ from django.contrib import admin
 from django.utils.safestring import mark_safe
 
 from .forms import PBSMMSeasonCreateForm, PBSMMSeasonEditForm
-from .models import PBSMMSeason, PBSMMSeasonAsset
+from .models import PBSMMSeasonAsset #, PBSMMSeason
 from ..abstract.admin import PBSMMAbstractAdmin
 from ..asset.admin import PBSMMAbstractAssetAdmin
 
-class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
+class PBSMMAbstractSeasonAdmin(PBSMMAbstractAdmin):
     form = PBSMMSeasonEditForm
     add_form = PBSMMSeasonCreateForm
-    model = PBSMMSeason
+    #model = PBSMMSeason
     list_display = ('pk', 'printable_title', 'show',  'ordinal', 'date_last_api_update',\
         'last_api_status_color','show_publish_status' )
     list_display_links = ('pk', 'printable_title')
@@ -112,6 +112,8 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
         return mark_safe(out)
     format_episode_list.short_description = 'EPISODE LIST'
     
+    class Meta:
+        abstract = True
             
 class PBSMMSeasonAssetAdmin(PBSMMAbstractAssetAdmin):
     model = PBSMMSeasonAsset
@@ -122,5 +124,5 @@ class PBSMMSeasonAssetAdmin(PBSMMAbstractAssetAdmin):
         return obj.season.title
     season_title.short_description = 'Season'
 
-admin.site.register(PBSMMSeason, PBSMMSeasonAdmin)
-admin.site.register(PBSMMSeasonAsset, PBSMMSeasonAssetAdmin)
+#admin.site.register(PBSMMSeason, PBSMMSeasonAdmin)
+#admin.site.register(PBSMMSeasonAsset, PBSMMSeasonAssetAdmin)

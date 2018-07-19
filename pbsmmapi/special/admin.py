@@ -1,12 +1,12 @@
 from django.contrib import admin
 from django.conf import settings
 from .forms import PBSMMSpecialCreateForm, PBSMMSpecialEditForm
-from .models import PBSMMSpecial, PBSMMSpecialAsset
+from .models import PBSMMSpecialAsset #, PBSMMSpecial
 from ..abstract.admin import PBSMMAbstractAdmin
 from ..asset.admin import PBSMMAbstractAssetAdmin
 
 class PBSMMAbstractSpecialAdmin(PBSMMAbstractAdmin):
-    model = PBSMMSpecial
+    #model = PBSMMSpecial
     form = PBSMMSpecialEditForm
     add_form = PBSMMSpecialCreateForm
     list_filter = ('show__slug',)
@@ -94,8 +94,6 @@ class PBSMMAbstractSpecialAdmin(PBSMMAbstractAdmin):
     class Meta:
         abstract = True
         
-class PBSMMSpecialAdmin(PBSMMAbstractSpecialAdmin):
-    pass
         
 class PBSMMSpecialAssetAdmin(PBSMMAbstractAssetAdmin):
     model = PBSMMSpecialAsset
@@ -105,9 +103,3 @@ class PBSMMSpecialAssetAdmin(PBSMMAbstractAssetAdmin):
     def special_title(self, obj):
         return obj.special.title
     special_title.short_description = 'Special'
-
-use_native_models = getattr(settings, 'PBSMM_USE_NATIVE_MODELS', False)
-if use_native_models:
-    admin.site.register(PBSMMSpecial, PBSMMSpecialAdmin)
-    
-admin.site.register(PBSMMSpecialAsset, PBSMMSpecialAssetAdmin)

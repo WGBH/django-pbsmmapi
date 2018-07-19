@@ -2,11 +2,11 @@ from django.contrib import admin
 
 from ..abstract.admin import PBSMMAbstractAdmin
 from ..asset.admin import PBSMMAbstractAssetAdmin
-from .models import PBSMMEpisode, PBSMMEpisodeAsset
+from .models import PBSMMEpisodeAsset, #PBSMMEpisode
 from .forms import PBSMMEpisodeCreateForm, PBSMMEpisodeEditForm
 
-class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
-    model = PBSMMEpisode
+class PBSMMAbstractEpisodeAdmin(PBSMMAbstractAdmin):
+    #model = PBSMMEpisode
     form = PBSMMEpisodeEditForm
     add_form = PBSMMEpisodeCreateForm
     
@@ -89,6 +89,9 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
 
     )
     
+    class Meta:
+        abstract = True
+    
     # Switch between the fieldsets depending on whether we're adding or viewing a record
     def get_fieldsets(self, request, obj=None):
         if not obj:
@@ -123,5 +126,5 @@ class PBSMMEpisodeAssetAdmin(PBSMMAbstractAssetAdmin):
     full_episode_code.short_description = 'Episode'
     
 
-admin.site.register(PBSMMEpisode, PBSMMEpisodeAdmin)
-admin.site.register(PBSMMEpisodeAsset, PBSMMEpisodeAssetAdmin)
+#admin.site.register(PBSMMEpisode, PBSMMEpisodeAdmin)
+#admin.site.register(PBSMMEpisodeAsset, PBSMMEpisodeAssetAdmin)

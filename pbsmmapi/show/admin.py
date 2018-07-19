@@ -3,7 +3,7 @@ from django.utils.safestring import mark_safe
 from ..abstract.admin import PBSMMAbstractAdmin
 from ..asset.admin import PBSMMAbstractAssetAdmin
 from .forms import PBSMMShowCreateForm, PBSMMShowEditForm
-from .models import PBSMMShow, PBSMMShowAsset
+from .models import PBSMMShowAsset #, PBSMMShow
 
 class ShowAssetInline(admin.TabularInline):
     model = PBSMMShowAsset
@@ -17,10 +17,10 @@ class ShowAssetInline(admin.TabularInline):
     readonly_fields = ['id', 'title', 'object_type', 'formatted_duration', 'asset_publicly_available']
     extra = 0
 
-class PBSMMShowAdmin(PBSMMAbstractAdmin):
+class PBSMMAbstractShowAdmin(PBSMMAbstractAdmin):
     form = PBSMMShowEditForm
     add_form = PBSMMShowCreateForm
-    model = PBSMMShow
+    #model = PBSMMShow
     #inlines = [ShowAssetInline,]
     list_display = ('pk', 'slug',  'object_id', 'title_sortable', 
         'show_publish_status', 'date_last_api_update', 'last_api_status_color')
@@ -192,6 +192,9 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
         return mark_safe(out)
     format_specials_list.short_description = 'SPECIALS LIST'
     
+    class Meta:
+        abstract = True
+    
 class PBSMMShowAssetAdmin(PBSMMAbstractAssetAdmin):
     model = PBSMMShowAsset
     list_display = ('pk',  'object_id', 'show_title', 'object_type', 'legacy_tp_media_id', 'asset_publicly_available', 
@@ -201,5 +204,5 @@ class PBSMMShowAssetAdmin(PBSMMAbstractAssetAdmin):
         return obj.show.title
     show_title.short_description = 'Show'
     
-admin.site.register(PBSMMShow, PBSMMShowAdmin)
-admin.site.register(PBSMMShowAsset, PBSMMShowAssetAdmin)
+#admin.site.register(PBSMMShow, PBSMMShowAdmin)
+#admin.site.register(PBSMMShowAsset, PBSMMShowAssetAdmin)
