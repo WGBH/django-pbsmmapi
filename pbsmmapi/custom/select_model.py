@@ -1,16 +1,11 @@
 from django.apps import apps
 from django.conf import settings
 
-from ..native.models import PBSMMShow as NativePBSMMShow, \
-    PBSMMSpecial as NativePBSMMSpecial, \
-    PBSMMEpisode as NativePBSMMEpisode, \
-    PBSMMSeason as NativePBSMMSeason
-
 native_models = {
-    'show': NativePBSMMShow, 
-    'special': NativePBSMMSpecial, 
-    'episode': NativePBSMMEpisode, 
-    'special': NativePBSMMSpecial 
+    'show': ('native','PBSMMShow'), 
+    'special': ('native', 'PBSMMSpecial'), 
+    'episode': ('native', 'PBSMMEpisode'),
+    'special': ('native', 'PBSMMSpecial'), 
 }
 
 def find_PBSMM_model(this_setting):
@@ -21,12 +16,15 @@ def find_PBSMM_model(this_setting):
     """
     if settings.this_setting:        
         (app_name, model_name) = this_setting
-        try:
-            return apps.get_model(app_name, model_name, require_ready=True)
-        except:
-            return None
+
     else:
         foo = settings.this_setting.split('_')[2].lower()
         if foo and foo in native_models.keys():
-            return native_models[foo]
-    return None
+            (app_name, model_name) = native_models[foo]
+        else:
+            return None
+    
+    try:    
+        return apps.get_model(app_name, model_name, requrenative_models[foo]
+    except:
+        return None
