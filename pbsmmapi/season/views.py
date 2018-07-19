@@ -1,9 +1,24 @@
+from django.conf import settings
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import DetailView, TemplateView, ListView
 
-from pbsmmapi.season.models import PBSMMSeason as Season
-from pbsmmapi.show.models import PBSMMShow as Show
+if settings.CUSTOM_PBSMM_SEASON_MODEL:
+    module_model = settings.CUSTOM_PBSMM_SEASON_MODEL.split('.')
+    module = importlib.import_module(model_module[0])
+    model = getattr(module, model_module[1])
+    PBSMMSeason = model
+else:
+    from ..pure.models import PBSMMSeason
+    
+if settings.CUSTOM_PBSMM_SHOW_MODEL:
+    module_model = settings.CUSTOM_PBSMM_SHOW_MODEL.split('.')
+    module = importlib.import_module(model_module[0])
+    model = getattr(module, model_module[1])
+    PBSMMShow = model
+else:
+    from ..pure.models import PBSMMShow
+    
 from pbsmmapi.abstract.mixins import PBSMMObjectDetailMixin, PBSMMObjectListMixin
 from pbsmmapi.abstract.mixin_helpers import filter_offline_shows
 
@@ -12,7 +27,7 @@ class PBSMMAllSeasonListView(ListView, PBSMMObjectListMixin):
     This is the Season Listing View - it's generic and is Show agnostic.
     Gate-keeping is handled in the PBSMMObjectListMixin class.
     """
-    model = Season
+    model = PBSMMSeason
     template_name = 'season/season_list.html'
     context_object_name = 'season_list'
     
@@ -31,7 +46,7 @@ class PBSMMShowSeasonListView(ListView, PBSMMObjectListMixin):
     This is the subset of Seasons for a given show.
     Gate-keeping is handled in the PBSMObjectListMixin class.
     """
-    model = Season
+    model = PBSMMSeason
     template_name = 'season/season_list.html'
     context_object_name = 'season_list'
     
@@ -44,7 +59,7 @@ class PBSMMShowSeasonListView(ListView, PBSMMObjectListMixin):
     def get_context_data(self, **kwargs):
         context = super(PBSMMShowSeasonListView, self).get_context_data(**kwargs)
         context['all_seasons'] = False
-        context['parent_show'] = Show.objects.get(slug=self.kwargs['show_slug'])
+        context['parent_show'] = PBSMMShow.objects.get(slug=self.kwargs['show_slug'])
         return context
         
 class PBSMMSeasonDetailView(DetailView, PBSMMObjectDetailMixin):
@@ -52,7 +67,7 @@ class PBSMMSeasonDetailView(DetailView, PBSMMObjectDetailMixin):
     This is the Season detail view.
     Gate-keeping is handled in the PBSMMObjectDetailMixin class.
     """
-    model = Season
+    model = PBSMMSeason
     template_name = 'season/season_detail.html'
     context_object_name = 'season'
     

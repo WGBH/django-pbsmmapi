@@ -1,3 +1,4 @@
+from django.conf import settings
 from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
 

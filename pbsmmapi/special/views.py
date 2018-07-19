@@ -1,13 +1,21 @@
+from django.conf import settings
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import DetailView, TemplateView, ListView
 
-from pbsmmapi.special.models import PBSMMSpecial as Special
+if settings.CUSTOM_PBSMM_SPECIAL_MODEL:
+    module_model = settings.CUSTOM_PBSMM_SPECIAL_MODEL.split('.')
+    module = importlib.import_module(model_module[0])
+    model = getattr(module, model_module[1])
+    PBSMMSpecial = model
+else:
+    from ..pure.models import PBSMMSpecial
+
 from pbsmmapi.abstract.mixins import PBSMMObjectDetailMixin, PBSMMObjectListMixin
 from pbsmmapi.abstract.mixin_helpers import filter_offline_shows, filter_offline_parent_show
 
 class PBSMMAllSpecialListView(ListView, PBSMMObjectListMixin):
-    model = Special
+    model = PBSMMSpecial
     template_name = 'special/special_list.html'
     context_object_name = 'special_list'
     
@@ -21,7 +29,7 @@ class PBSMMAllSpecialListView(ListView, PBSMMObjectListMixin):
         return context
         
 class PBSMMShowSpecialListView(ListView, PBSMMObjectListMixin):
-    model = Special
+    model = PBSMMSpecial
     template_name = 'special/special_list.html'
     context_object_name = 'special_list'
     
@@ -37,7 +45,7 @@ class PBSMMShowSpecialListView(ListView, PBSMMObjectListMixin):
         return context
         
 class PBSMMSpecialDetailView(DetailView, PBSMMObjectDetailMixin):
-    model = Special
+    model = PBSMMSpecial
     template_name = 'special/special_detail.html'
     context_object_name = 'special'
     

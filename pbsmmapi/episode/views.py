@@ -1,15 +1,24 @@
+from django.conf import settings
 from django.views.generic import DetailView, TemplateView, ListView
 
 from pbsmmapi.abstract.mixins import PBSMMObjectDetailMixin, PBSMMObjectListMixin
 from pbsmmapi.abstract.mixin_helpers import filter_offline_seasons, filter_offline_parent_season
-from pbsmmapi.episode.models import PBSMMEpisode as Episode
+
+if settings.CUSTOM_PBSMM_EPISODE_MODEL:
+    module_model = settings.CUSTOM_PBSMM_EPISODE_MODEL.split('.')
+    module = importlib.import_module(model_module[0])
+    model = getattr(module, model_module[1])
+    PBSMMEpisode = model
+else:
+    from ..pure.models import PBSMMEpisode
+
 
 class PBSMMAllEpisodeListView(ListView, PBSMMObjectListMixin):
     """
     This is the Episode Listing View - it's generic and is Show/Season agnostic.
     Gate-keeping is handled in the PBSMMObjectListMixin class.
     """
-    model = Episode
+    model = PBSMMEpisode
     template_name = 'episode/episode_list.html'
     context_object_name = 'episode_list'
     
@@ -27,7 +36,7 @@ class PBSMMSeasonEpisodeListView(ListView, PBSMMObjectListMixin):
     This is the Episode Listing View - it's generic and is Show/Season agnostic.
     Gate-keeping is handled in the PBSMMObjectListMixin class.
     """
-    model = Episode
+    model = PBSMMEpisode
     template_name = 'episode/episode_list.html'
     context_object_name = 'episode_list'
     
@@ -52,7 +61,7 @@ class PBSMMEpisodeDetailView(DetailView, PBSMMObjectDetailMixin):
     This is the Episode detail view.
     Gate-keeping is handled in the PBSMMObjectDetailMixin class.
     """
-    model = Episode
+    model = PBSMMEpisode
     template_name = 'episode/episode_detail.html'
     context_object_name = 'episode'
     
