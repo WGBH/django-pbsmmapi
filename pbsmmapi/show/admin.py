@@ -113,7 +113,7 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
         }),
     ]
     
-    if hassattr(settings, 'CUSTOM_PBSMM_SHOW_ADMIN_FIELDSET'):
+    if hasattr(settings, 'CUSTOM_PBSMM_SHOW_ADMIN_FIELDSET'):
         extra_fieldset = getattr(settings, 'CUSTOM_PBSMM_SHOW_ADMIN_FIELDSET')
         position = getattr(settings, 'CUSTOM_PBSMM_SHOW_ADMIN_POSITION', 2)
         fieldsets.insert(position, extra_fieldset)

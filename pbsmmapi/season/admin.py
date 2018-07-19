@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.conf import settings
 from django.utils.safestring import mark_safe
 
 from .forms import PBSMMSeasonCreateForm, PBSMMSeasonEditForm
@@ -75,6 +76,12 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
             )
         }),
     )
+
+    if hasattr(settings, 'CUSTOM_PBSMM_SEASON_ADMIN_FIELDSET'):
+        extra_fieldset = getattr(settings, 'CUSTOM_PBSMM_SEASON_ADMIN_FIELDSET')
+        position = getattr(settings, 'CUSTOM_PBSMM_SEASON_ADMIN_POSITION', 2)
+        fieldsets.insert(position, extra_fieldset)
+    
     
     # Switch between the fieldsets depending on whether we're adding or viewing a record
     def get_fieldsets(self, request, obj=None):

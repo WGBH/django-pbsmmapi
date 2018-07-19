@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.conf import settings
+
 from .forms import PBSMMSpecialCreateForm, PBSMMSpecialEditForm
 from .models import PBSMMSpecial, PBSMMSpecialAsset
 from ..abstract.admin import PBSMMAbstractAdmin
@@ -72,6 +74,12 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
             ),
         }),
     )
+    
+    if hasattr(settings, 'CUSTOM_PBSMM_SPECIAL_ADMIN_FIELDSET'):
+        extra_fieldset = getattr(settings, 'CUSTOM_PBSMM_SPECIAL_ADMIN_FIELDSET')
+        position = getattr(settings, 'CUSTOM_PBSMM_SPECIAL_ADMIN_POSITION', 2)
+        fieldsets.insert(position, extra_fieldset)
+    
     
     # Switch between the fieldsets depending on whether we're adding or viewing a record
     def get_fieldsets(self, request, obj=None):
