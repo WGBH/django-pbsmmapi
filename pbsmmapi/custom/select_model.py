@@ -25,7 +25,7 @@ def find_PBSMM_model(this_setting):
             return None
     
     try:    
-        return apps.get_model(app_name, model_name, requrenative_models[foo]
+        return apps.get_model(app_name, model_name, require_ready=True)
         
     except:
         return None
