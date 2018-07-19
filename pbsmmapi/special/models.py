@@ -24,7 +24,7 @@ from .ingest_special import process_special_record
 PBSMM_SPECIAL_ENDPOINT = 'https://media.services.pbs.org/api/v1/specials/'
 
 
-class PBSMMSpecial(PBSMMGenericSpecial):
+class PBSMMAbstractSpecial(PBSMMGenericSpecial):
     show = models.ForeignKey(
         'show.PBSMMShow', related_name='specials',
         on_delete=models.CASCADE,  # required for Django 2.0
