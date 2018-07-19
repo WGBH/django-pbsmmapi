@@ -1,10 +1,24 @@
 from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
 
-from ..season.models import PBSMMSeason
+if settings.CUSTOM_PBSMM_SEASON_MODEL:
+    module_model = settings.CUSTOM_PBSMM_SEASON_MODEL.split('.')
+    module = importlib.import_module(model_module[0])
+    model = getattr(module, model_module[1])
+    PBSMMSeason = model
+else:
+    from ..pure.models import PBSMMSeason
+    
 from ..season.ingest_season import process_season_record
 
-from ..special.models import PBSMMSpecial
+if settings.CUSTOM_PBSMM_SPECIAL_MODEL:
+    module_model = settings.CUSTOM_PBSMM_SPECIAL_MODEL.split('.')
+    module = importlib.import_module(model_module[0])
+    model = getattr(module, model_module[1])
+    PBSMMSpecial = model
+else:
+    from ..pure.models import PBSMMSpecial
+    
 from ..special.ingest_special import process_special_record
 
 def process_seasons(endpoint, this_show): 
