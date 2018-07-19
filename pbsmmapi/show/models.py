@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 import requests
 import datetime
 
-
 from django.db import models
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
@@ -11,12 +10,13 @@ from django.utils.translation import ugettext_lazy as _
 from ..abstract.gatekeeper import can_object_page_be_shown
 from ..abstract.helpers import time_zone_aware_now
 from ..abstract.models import PBSMMGenericShow
-
 from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
-
 from ..asset.ingest_asset import process_asset_record
 from ..asset.models import PBSMMAbstractAsset
+from ..helpers.custom import custom_abstract_fields
+
+CustomShowFields = custom_abstract_fields('CUSTOM_PBSMM_SHOW_MODEL')
 
 from .ingest_show import process_show_record
 from .ingest_children import process_seasons, process_specials
@@ -69,7 +69,7 @@ class PBSMMAbstractShow(PBSMMGenericShow):
         return can_object_page_be_shown(None, self)
     available_to_public = property(__available_to_public)
     
-class PBSMMShow(PBSMMAbstractShow):
+class PBSMMShow(PBSMMAbstractShow, CustomShowFields):
     pass
 
 class PBSMMShowAsset(PBSMMAbstractAsset):

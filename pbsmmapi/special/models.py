@@ -11,11 +11,13 @@ from django.utils.translation import ugettext_lazy as _
 
 from ..abstract.helpers import time_zone_aware_now
 from ..abstract.models import PBSMMGenericSpecial
-
 from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
 from ..asset.models import PBSMMAbstractAsset
 from ..asset.ingest_asset import process_asset_record
+from ..helpers.custom import custom_abstract_fields
+
+CustomSpecialFields = custom_abstract_fields('CUSTOM_PBSMM_SPECIAL_MODEL')
 
 from .ingest_special import process_special_record
 
@@ -33,6 +35,7 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         verbose_name_plural = 'PBS MM Specials'
         #app_label = 'pbsmmapi'
         db_table = 'pbsmm_special'
+        abstract = True
 
     @models.permalink
     def get_absolute_url(self):
@@ -66,6 +69,9 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         out += "\n\t<td>%s</td>" % self.show_publish_status()
         out += "\n</tr>"
         return mark_safe(out)
+        
+class PBSMMSpecial(PBSMMAbstractSpecial, CustomSpecialFields):
+    pass
 
 
 class PBSMMSpecialAsset(PBSMMAbstractAsset):

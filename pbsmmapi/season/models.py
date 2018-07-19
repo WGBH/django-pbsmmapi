@@ -16,6 +16,9 @@ from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
 from ..asset.models import PBSMMAbstractAsset
 from ..asset.ingest_asset import process_asset_record
+from ..helpers.custom import custom_abstract_fields
+
+CustomSeasonFields = custom_abstract_fields('CUSTOM_PBSMM_SEASON_MODEL')
 
 from .ingest_season import process_season_record
 from .ingest_children import process_episodes
@@ -23,7 +26,7 @@ from .ingest_children import process_episodes
 PBSMM_SEASON_ENDPOINT = 'https://media.services.pbs.org/api/v1/seasons/'
 
 
-class PBSMMSeason(PBSMMGenericSeason):
+class PBSMMAbstractSeason(PBSMMGenericSeason):
     """
     These are the fields that are unique to PBSMMSeason
     """
@@ -51,6 +54,7 @@ class PBSMMSeason(PBSMMGenericSeason):
         verbose_name_plural = 'PBS MM Seasons'
         #app_label = 'pbsmmapi'
         db_table = 'pbsmm_season'
+        abstract = True
 
     @models.permalink
     def get_absolute_url(self):
@@ -95,7 +99,10 @@ class PBSMMSeason(PBSMMGenericSeason):
         else:
             return '%s Season %d' % (self.show.title, self.ordinal)
     printable_title = property(__printable_title)
+    
 
+class PBSMMSeason(PBSMMAbstractSeason, CustomSeasonFields):
+    pass
 
 class PBSMMSeasonAsset(PBSMMAbstractAsset):
     season = models.ForeignKey(

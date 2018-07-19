@@ -14,13 +14,15 @@ from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
 from ..asset.models import PBSMMAbstractAsset
 from ..asset.ingest_asset import process_asset_record
-
+from ..helpers.custom import custom_abstract_fields
 from .ingest_episode import process_episode_record
+
+CustomEpisodeFields = custom_abstract_fields('CUSTOM_PBSMM_EPISODE_MODEL')
 
 PBSMM_EPISODE_ENDPOINT = 'https://media.services.pbs.org/api/v1/episodes/'
 
 
-class PBSMMEpisode(PBSMMGenericEpisode):
+class PBSMMAbstractEpisode(PBSMMGenericEpisode):
     """
     These are the fields that are unique to Episode records.
     """
@@ -50,6 +52,7 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         verbose_name_plural = 'PBS MM Episodes'
         #app_label = 'pbsmmapi'
         db_table = 'pbsmm_episode'
+        abstract = True
 
     @models.permalink
     def get_absolute_url(self):
@@ -114,6 +117,10 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
         out += "\n\t<td>%s</td></tr>" % self.show_publish_status()
         return mark_safe(out)
+        
+        
+class PBSMMEpisode(PBSMMAbstractEpisode, CustomEpisodeFields):
+    pass
 
 
 class PBSMMEpisodeAsset(PBSMMAbstractAsset):
