@@ -2,12 +2,13 @@ from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
 
 if settings.CUSTOM_PBSMM_EPISODE_MODEL:
-    module_model = settings.CUSTOM_PBSMM_EPISODE_MODEL.split('.')
-    module = importlib.import_module(model_module[0])
-    model = getattr(module, model_module[1])
+    module_model = settings.CUSTOM_PBSMM_EPISODE_MODEL.split('.')
+    module = importlib.import_module(model_module[0])
+    model = getattr(module, model_module[1])
     PBSMMEpisode = model
 else:
     from ..pure.models import PBSMMEpisode
+
 from ..episode.ingest_episode import process_episode_record
 
 def process_episodes(endpoint, this_season): 
