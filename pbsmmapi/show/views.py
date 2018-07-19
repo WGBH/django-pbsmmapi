@@ -2,10 +2,11 @@ from django.conf import settings
 from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from django.views.generic import DetailView, TemplateView, ListView
+from importlib import import_module
 
 if settings.CUSTOM_PBSMM_SHOW_MODEL:
     module_model = settings.CUSTOM_PBSMM_SHOW_MODEL.split('.')
-    module = importlib.import_module(model_module[0])
+    module = import_module(model_module[0])
     model = getattr(module, model_module[1])
     PBSMMShow = model
 else:

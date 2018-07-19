@@ -1,12 +1,13 @@
 from django.conf import settings
 from django.views.generic import DetailView, TemplateView, ListView
+from importlib import import_module
 
 from pbsmmapi.abstract.mixins import PBSMMObjectDetailMixin, PBSMMObjectListMixin
 from pbsmmapi.abstract.mixin_helpers import filter_offline_seasons, filter_offline_parent_season
 
 if settings.CUSTOM_PBSMM_EPISODE_MODEL:
     module_model = settings.CUSTOM_PBSMM_EPISODE_MODEL.split('.')
-    module = importlib.import_module(model_module[0])
+    module = import_module(model_module[0])
     model = getattr(module, model_module[1])
     PBSMMEpisode = model
 else:

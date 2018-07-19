@@ -1,10 +1,12 @@
 from django.conf import settings
+from importlib import import_module
+
 from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
 
 if settings.CUSTOM_PBSMM_SEASON_MODEL:
     module_model = settings.CUSTOM_PBSMM_SEASON_MODEL.split('.')
-    module = importlib.import_module(model_module[0])
+    module = import_module(model_module[0])
     model = getattr(module, model_module[1])
     PBSMMSeason = model
 else:
