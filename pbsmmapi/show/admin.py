@@ -1,5 +1,7 @@
 from django.contrib import admin
+from django.conf import settings
 from django.utils.safestring import mark_safe
+
 from ..abstract.admin import PBSMMAbstractAdmin
 from ..asset.admin import PBSMMAbstractAssetAdmin
 from .forms import PBSMMShowCreateForm, PBSMMShowEditForm
