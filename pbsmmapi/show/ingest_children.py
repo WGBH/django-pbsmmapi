@@ -6,8 +6,8 @@ from ..api.helpers import check_pagination
 
 if settings.CUSTOM_PBSMM_SEASON_MODEL:
     module_model = settings.CUSTOM_PBSMM_SEASON_MODEL.split('.')
-    module = import_module(model_module[0])
-    model = getattr(module, model_module[1])
+    module = import_module(module_model[0])
+    model = getattr(module, module_model[1])
     PBSMMSeason = model
 else:
     from ..pure.models import PBSMMSeason
@@ -16,8 +16,8 @@ from ..season.ingest_season import process_season_record
 
 if settings.CUSTOM_PBSMM_SPECIAL_MODEL:
     module_model = settings.CUSTOM_PBSMM_SPECIAL_MODEL.split('.')
-    module = importlib.import_module(model_module[0])
-    model = getattr(module, model_module[1])
+    module = importlib.import_module(module_model[0])
+    model = getattr(module, module_model[1])
     PBSMMSpecial = model
 else:
     from ..pure.models import PBSMMSpecial

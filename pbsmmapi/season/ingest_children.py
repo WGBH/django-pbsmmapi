@@ -5,8 +5,8 @@ from ..api.helpers import check_pagination
 
 if settings.CUSTOM_PBSMM_EPISODE_MODEL:
     module_model = settings.CUSTOM_PBSMM_EPISODE_MODEL.split('.')
-    module = import_module(model_module[0])
-    model = getattr(module, model_module[1])
+    module = import_module(module_model[0])
+    model = getattr(module, module_model[1])
     PBSMMEpisode = model
 else:
     from ..pure.models import PBSMMEpisode
