@@ -2,7 +2,7 @@ from django.contrib import admin
 
 from ..abstract.admin import PBSMMAbstractAdmin
 from ..asset.admin import PBSMMAbstractAssetAdmin
-from .models import PBSMMEpisodeAsset, #PBSMMEpisode
+from .models import PBSMMEpisodeAsset #, PBSMMEpisode
 from .forms import PBSMMEpisodeCreateForm, PBSMMEpisodeEditForm
 
 class PBSMMAbstractEpisodeAdmin(PBSMMAbstractAdmin):
