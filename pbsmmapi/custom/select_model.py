@@ -14,7 +14,7 @@ def find_PBSMM_model(this_setting):
     CUSTOM_PBSMM_EPISODE_MODEL = ('pbsmm', 'PBSMMEpisode')
     
     """
-    if settings.this_setting:        
+    if hasattr(settings, this_setting):        
         (app_name, model_name) = this_setting
 
     else:
