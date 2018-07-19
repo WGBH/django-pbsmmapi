@@ -22,7 +22,7 @@ def find_PBSMM_model(this_setting):
     if settings.this_setting:        
         (app_name, model_name) = this_setting
         try:
-            return apps.get_model(app_name, model_name)
+            return apps.get_model(app_name, model_name, require_ready=True)
         except:
             return None
     else:
