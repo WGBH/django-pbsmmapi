@@ -114,11 +114,6 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
             )
         }),
     ]
-    
-    if hasattr(settings, 'CUSTOM_PBSMM_SHOW_ADMIN_FIELDSET'):
-        extra_fieldset = getattr(settings, 'CUSTOM_PBSMM_SHOW_ADMIN_FIELDSET')
-        position = getattr(settings, 'CUSTOM_PBSMM_SHOW_ADMIN_POSITION', 2)
-        fieldsets.insert(position, extra_fieldset)
 
     def get_readonly_fields(self, request, obj=None):
         if not obj:
@@ -129,7 +124,21 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
     def get_fieldsets(self, request, obj=None):
         if not obj:
             return self.add_fieldsets
-        return super(PBSMMShowAdmin, self).get_fieldsets(request, obj)
+        else:
+            if hasattr(settings, 'CUSTOM_PBSMM_SHOW_ADMIN_FIELDSET'):
+                extra_fieldset = getattr(settings, 'CUSTOM_PBSMM_SHOW_ADMIN_FIELDSET')
+                position = getattr(settings, 'CUSTOM_PBSMM_SHOW_ADMIN_POSITION', 2)
+                #self.fieldsets.insert(position, extra_fieldset)
+                fs = []
+                n = 0
+                for this_fs in self.fieldsets:
+                    if n == position:
+                        fs.append(extra_fieldset)
+                    fs.append(this_fs)
+                    n += 1
+                return fs
+            else:
+                return super(PBSMMShowAdmin, self).get_fieldsets(request, obj)
         
     # Apply the chosen fieldsets tuple to the viewed form
     def get_form(self, request, obj=None, **kwargs):

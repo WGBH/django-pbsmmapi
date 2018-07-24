@@ -76,18 +76,26 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
             )
         }),
     )
-
-    if hasattr(settings, 'CUSTOM_PBSMM_SEASON_ADMIN_FIELDSET'):
-        extra_fieldset = getattr(settings, 'CUSTOM_PBSMM_SEASON_ADMIN_FIELDSET')
-        position = getattr(settings, 'CUSTOM_PBSMM_SEASON_ADMIN_POSITION', 2)
-        fieldsets.insert(position, extra_fieldset)
     
     
     # Switch between the fieldsets depending on whether we're adding or viewing a record
     def get_fieldsets(self, request, obj=None):
         if not obj:
             return self.add_fieldsets
-        return super(PBSMMSeasonAdmin, self).get_fieldsets(request, obj)
+        else:
+            if hasattr(settings, 'CUSTOM_PBSMM_SEASON_ADMIN_FIELDSET'):
+                extra_fieldset = getattr(settings, 'CUSTOM_PBSMM_SEASON_ADMIN_FIELDSET')
+                position = getattr(settings, 'CUSTOM_PBSMM_SEASON_ADMIN_POSITION', 2)
+                fs = []
+                n = 0
+                for this_fs in self.fieldsets:
+                    if n == position:
+                        fs.append(extra_fieldset)
+                    fs.append(this_fs)
+                    n += 1
+                return fs
+            else:
+                return super(PBSMMSeasonAdmin, self).get_fieldsets(request, obj)
         
     # Apply the chosen fieldsets tuple to the viewed form
     def get_form(self, request, obj=None, **kwargs):

@@ -1,6 +1,6 @@
-from django.apps import apps
 from django.conf import settings
 from django.db import models
+from importlib import import_module
 
 class EmptyAbstractModel(models.Model):
     pass
@@ -11,15 +11,15 @@ class EmptyAbstractModel(models.Model):
 def custom_abstract_fields(this_setting):
     """
     Return the native or custom model depending on whether there's a tuple set for a PBSMM Model setting, e.g.:
-    CUSTOM_PBSMM_EPISODE_MODEL = ('pbsmm', 'PBSMMEpisode')
+    CUSTOM_PBSMM_EPISODE_MODEL 
     """
     if hasattr(settings, this_setting):        
-        (app_name, model_name) = getattr(settings, this_setting)
-        
-        try:    
-           return apps.get_model(app_name, model_name, require_ready=True)
-        except:
-            pass
+        pieces = getattr(settings, this_setting).split('.')
+        model_str = pieces.pop()
+        module_str = '.'.join(pieces)
+        module = import_module(module_str)
+        model = getattr(module, model_str)
+        return model
             
-    return EmptyAbstractModel
-        
+    else:
+        return EmptyAbstractModel
