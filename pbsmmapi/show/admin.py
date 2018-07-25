@@ -55,6 +55,7 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
     fieldsets = (
         (None, {
             'fields': (
+                ('title', 'title_sortable',), 
                 ('object_id', 'date_created', 'api_endpoint_link',),            
                 ('date_last_api_update','updated_at', 'last_api_status_color'),
             ),
