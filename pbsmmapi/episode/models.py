@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import requests
-import json
 
 from django.db import models
 from django.dispatch import receiver
@@ -41,14 +39,14 @@ class PBSMMEpisode(PBSMMGenericEpisode):
     # THIS IS THE (required) PARENTAL SEASON
     season = models.ForeignKey(
         'season.PBSMMSeason', related_name='episodes',
-        on_delete=models.CASCADE, # required for Django 2.0
+        on_delete=models.CASCADE,  # required for Django 2.0
 
     )
 
     class Meta:
         verbose_name = 'PBS MM Episode'
         verbose_name_plural = 'PBS MM Episodes'
-        #app_label = 'pbsmmapi'
+        # app_label = 'pbsmmapi'
         db_table = 'pbsmm_episode'
 
     @models.permalink
@@ -122,7 +120,7 @@ class PBSMMEpisodeAsset(PBSMMAbstractAsset):
     """
     episode = models.ForeignKey(
         PBSMMEpisode, related_name='assets',
-        on_delete=models.CASCADE, # required for Django 2.0
+        on_delete=models.CASCADE,  # required for Django 2.0
     )
 
     class Meta:
@@ -150,8 +148,6 @@ def process_episode_assets(endpoint, this_episode):
             return
 
         for item in asset_list:
-            attrs = item.get('attributes')
-            links = item.get('links')
             object_id = item.get('id')
 
             try:
@@ -229,7 +225,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         # continue saving, but turn off the ingest_on_save flag
         instance.ingest_on_save = False  # otherwise we could end up in an infinite loop!
 
-    #instance.ingest_related_assets = False
+    # instance.ingest_related_assets = False
     # We're done here - continue with the save() operation
     return instance
 

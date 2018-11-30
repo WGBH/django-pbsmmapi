@@ -58,3 +58,5 @@ static/*
 # whoosh
 whoosh_index/
 
+Pipfile
+Pipfile.lock

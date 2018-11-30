@@ -3,9 +3,9 @@ import pytz
 
 """
  THIS IS THE MAIN GATEKEEPER
- 
+
  This controls WHICH records show up on a website, based upon a set of rules.
- 
+
  It returns True or False given:
     1. the requests.user object (which can be None)
     2. one of the PBSMM objects (Episode, Season, Site, Special)
@@ -39,27 +39,30 @@ import pytz
 
 def can_object_page_be_shown(user, this_object):
     try:
-        if user.is_staff: # admin users can always see pages
+        if user.is_staff:  # admin users can always see pages
             if this_object.publish_status >= 0:
-                return True # I can see everything except specifically turned-off objects because I'm an admin
+                return True  # I can see everything except specifically turned-off objects because I'm an admin
             else:
-                return False # This object is turned off.
-    except:
-        pass # I am not logged in - continue
+                return False  # This object is turned off.
+    except BaseException:
+        pass  # I am not logged in - continue
 
-    if not this_object: # this object isn't live or doesn't exist
+    if not this_object:  # this object isn't live or doesn't exist
         return False
     if this_object.publish_status < 0:  # this object isn't live
         return False
-    if this_object.publish_status == 1: # this object is live
+    if this_object.publish_status == 1:  # this object is live
         return True
-    if this_object.publish_status == 0: # this object MIGHT be live
-    
+    if this_object.publish_status == 0:  # this object MIGHT be live
+
         if this_object.live_as_of is not None:
             now = datetime.now(pytz.utc)
-            return this_object.live_as_of <= now # if I'm past my publish date it's LIVE, otherwise it's not live yet
+            # if I'm past my publish date it's LIVE, otherwise it's not live
+            # yet
+            return this_object.live_as_of <= now
         else:
-            return False # this object is still being working on - no publish date set yet.
+            # this object is still being working on - no publish date set yet.
+            return False
     return True
 
 # TEST CODE FROM SHELL
@@ -74,14 +77,14 @@ def can_object_page_be_shown(user, this_object):
 #past = datetime(2018, 5, 1, 0, 0, 0, 0, pytz.utc)
 #now = datetime.now(pytz.utc)
 
-#for s in ss:
+# for s in ss:
 #    s.live_as_of = past
-    
+
 #ss[10].live_as_of = None
 #ss[11].live_as_of = future
 #ss[7].publish_status = 1
 #ss[6].publish_status = -1
 
-#for s in ss:
+# for s in ss:
 #   can_object_page_be_shown(None, s)
 #   can_object_page_be_shown(user, s)

@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import requests
-import datetime
-import json
 
 from django.db import models
 from django.dispatch import receiver
@@ -35,7 +32,7 @@ class PBSMMSeason(PBSMMGenericSeason):
     # This is the parental Show
     show = models.ForeignKey(
         'show.PBSMMShow', related_name='seasons',
-        on_delete=models.CASCADE, # required for Django 2.0
+        on_delete=models.CASCADE,  # required for Django 2.0
     )
 
     # This triggers cascading ingestion of child Episodes - set from the admin
@@ -49,7 +46,7 @@ class PBSMMSeason(PBSMMGenericSeason):
     class Meta:
         verbose_name = 'PBS MM Season'
         verbose_name_plural = 'PBS MM Seasons'
-        #app_label = 'pbsmmapi'
+        # app_label = 'pbsmmapi'
         db_table = 'pbsmm_season'
 
     @models.permalink
@@ -100,7 +97,7 @@ class PBSMMSeason(PBSMMGenericSeason):
 class PBSMMSeasonAsset(PBSMMAbstractAsset):
     season = models.ForeignKey(
         PBSMMSeason, related_name='assets',
-        on_delete=models.CASCADE, # required for Django 2.0
+        on_delete=models.CASCADE,  # required for Django 2.0
     )
 
     class Meta:
@@ -122,8 +119,6 @@ def process_season_assets(endpoint, this_season):
         asset_list = json['data']
 
         for item in asset_list:
-            attrs = item.get('attributes')
-            links = item.get('links')
             object_id = item.get('id')
 
             try:

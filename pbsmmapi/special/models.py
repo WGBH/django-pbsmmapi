@@ -1,13 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import requests
-import datetime
-import json
 
 from django.db import models
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
 
 from ..abstract.helpers import time_zone_aware_now
 from ..abstract.models import PBSMMGenericSpecial
@@ -31,7 +27,7 @@ class PBSMMSpecial(PBSMMGenericSpecial):
     class Meta:
         verbose_name = 'PBS MM Special'
         verbose_name_plural = 'PBS MM Specials'
-        #app_label = 'pbsmmapi'
+        # app_label = 'pbsmmapi'
         db_table = 'pbsmm_special'
 
     @models.permalink
@@ -95,8 +91,6 @@ def process_special_assets(endpoint, this_special):
             return
 
         for item in asset_list:
-            attrs = item.get('attributes')
-            links = item.get('links')
             object_id = item.get('id')
 
             try:

@@ -3,6 +3,10 @@ from .views import PBSMMAllSpecialListView, PBSMMShowSpecialListView, PBSMMSpeci
 
 urlpatterns = (
     url(r'^$', PBSMMAllSpecialListView.as_view(), name='all-special-list'),
-    url(r'^show/(?P<show_slug>[^/]+/)', PBSMMShowSpecialListView.as_view(), name='show-special-list'),
-    url(r'^(?P<slug>[^/]+)/$', PBSMMSpecialDetailView.as_view(), name='special-detail'),
+    url(r'^show/(?P<show_slug>[^/]+/)',
+        PBSMMShowSpecialListView.as_view(),
+        name='show-special-list'),
+    url(r'^(?P<slug>[^/]+)/$',
+        PBSMMSpecialDetailView.as_view(),
+        name='special-detail'),
 )

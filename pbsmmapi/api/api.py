@@ -10,10 +10,15 @@ It takes an endpoint URL and returns the status_code at that endpoint and the JS
 
 No other checking/analysis is done.
 """
+
+
 def get_PBSMM_record(url):
-    r = requests.get(url, auth=(settings.PBSMM_API_ID, settings.PBSMM_API_SECRET))
+    r = requests.get(
+        url,
+        auth=(
+            settings.PBSMM_API_ID,
+            settings.PBSMM_API_SECRET))
     if r.status_code == 200:
         return (r.status_code, r.json())
     else:
         return (r.status_code, None)
-        

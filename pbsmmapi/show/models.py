@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import requests
-import datetime
-
 
 from django.db import models
 from django.dispatch import receiver
@@ -45,7 +42,7 @@ class PBSMMAbstractShow(PBSMMGenericShow):
     class Meta:
         verbose_name = 'PBS MM Show'
         verbose_name_plural = 'PBS MM Shows'
-        #app_label = 'pbsmmapi'
+        # app_label = 'pbsmmapi'
         db_table = 'pbsmm_show'
         abstract = True
 
@@ -68,14 +65,16 @@ class PBSMMAbstractShow(PBSMMGenericShow):
     def __available_to_public(self):
         return can_object_page_be_shown(None, self)
     available_to_public = property(__available_to_public)
-    
+
+
 class PBSMMShow(PBSMMAbstractShow):
     pass
+
 
 class PBSMMShowAsset(PBSMMAbstractAsset):
     show = models.ForeignKey(
         PBSMMShow, related_name='assets',
-        on_delete=models.CASCADE, # required for Django 2.0
+        on_delete=models.CASCADE,  # required for Django 2.0
     )
 
     class Meta:
@@ -94,8 +93,6 @@ def process_show_assets(endpoint, this_show):
         data = json['data']
 
         for item in data:
-            attrs = item.get('attributes')
-            links = item.get('links')
             object_id = item.get('id')
 
             try:

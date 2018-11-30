@@ -1,17 +1,11 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-import requests
-import datetime
 import json
 
 from django.db import models
-from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
 from ..abstract.models import PBSMMGenericAsset
 
-from ..api.api import get_PBSMM_record
-
-from .ingest_asset import process_asset_record
 from .helpers import check_asset_availability
 
 AVAILABILITY_GROUPS = (
@@ -70,7 +64,7 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         default=False
     )
 
-    ##### TAGS, Topics
+    # TAGS, Topics
     tags = models.TextField(
         _('Tags'),
         null=True, blank=True,

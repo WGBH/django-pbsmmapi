@@ -2,6 +2,7 @@ from django.forms import ModelForm
 
 from .models import PBSMMSpecial
 
+
 class PBSMMSpecialCreateForm(ModelForm):
 
     class Meta:
@@ -9,6 +10,7 @@ class PBSMMSpecialCreateForm(ModelForm):
         fields = (
             'slug', 'show'
         )
+
 
 class PBSMMSpecialEditForm(ModelForm):
 

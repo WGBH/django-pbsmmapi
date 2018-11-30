@@ -6,12 +6,21 @@ from django.contrib.admin import site
 from django.utils.safestring import mark_safe
 
 # This removed the delete function from the Admin action dropdown.
-# You can 're-add' it, if necessary, by explicitly adding it to the actions parameter for a given ModelAdmin instance.
+# You can 're-add' it, if necessary, by explicitly adding it to the
+# actions parameter for a given ModelAdmin instance.
 site.disable_action('delete_selected')
 
+
 class PBSMMAbstractAdmin(admin.ModelAdmin):
-    actions = ['force_reingest', 'permanently_online','take_online_now', 'conditionally_online', 'take_offline', ]
-    search_fields = ['title',]
+    actions = [
+        'force_reingest',
+        'permanently_online',
+        'take_online_now',
+        'conditionally_online',
+        'take_offline',
+    ]
+    search_fields = ['title', ]
+
     def force_reingest(self, request, queryset):
         # queryset is the list of Asset items that were selected.
         for item in queryset:
@@ -19,41 +28,43 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
             # HOW DO I FIND OUT IF THE save() was successful?
             item.save()
     force_reingest.short_description = 'Reingest selected items.'
-    
+
     def permanently_online(self, request, queryset):
         for item in queryset:
             item.publish_status = 1
             item.save()
     permanently_online.short_description = 'Take item PERMANTENTLY LIVE'
-    
+
     def conditionally_online(self, request, queryset):
         for item in queryset:
             item.publish_status = 0
-            item.save() 
+            item.save()
     conditionally_online.short_description = 'CONDITIONALLY Online using live_as_of Date'
-           
+
     def take_online_now(self, request, queryset):
         for item in queryset:
             item.publish_status = 0
             item.live_as_of = datetime.now(pytz.utc)
             item.save()
     take_online_now.short_description = 'Take Live as of Right Now'
-    
+
     def take_offline(self, request, queryset):
         for item in queryset:
             item.publish_status = -1
-            item.save() 
+            item.save()
     take_offline.short_description = 'Take item COMPLETELY OFFLINE'
-    
+
     def assemble_asset_table(self, obj):
         asset_list = obj.assets.all()
-        out = get_abstract_asset_table(asset_list, obj.default_asset, obj.object_model_type)
+        out = get_abstract_asset_table(
+            asset_list, obj.default_asset, obj.object_model_type)
         return mark_safe(out)
     assemble_asset_table.short_description = 'Assets'
-    
+
     class Meta:
         abstract = True
-    
+
+
 def get_abstract_asset_table(object_list, default_asset, parent_type):
     url = '/admin/%s/pbsmm%sasset' % (parent_type, parent_type)
     if len(object_list) < 1:
@@ -67,11 +78,12 @@ def get_abstract_asset_table(object_list, default_asset, parent_type):
             row_color = '#ffff66;'
 
         out += "\n<tr style=\"background-color:%s\">" % row_color
-        out += "\n\t<td><a href=\"%s/%d/change/\" target=\"_new\">%s</a></td>" % (url, item.id, item.title)
+        out += "\n\t<td><a href=\"%s/%d/change/\" target=\"_new\">%s</a></td>" % (
+            url, item.id, item.title)
         out += "\n\t<td>%s</td>" % item.object_type
         out += '\n\t<td>%s</td>' % item.formatted_duration
         out += "\n\t<td>%s</td>" % item.asset_publicly_available()
-        #out += "\n\t<td>%s%s</td>" % (item.asset_publicly_available(), default_mark)
+        # out += "\n\t<td>%s%s</td>" % (item.asset_publicly_available(), default_mark)
         out += "\n\t<td><a href=\"%s\" target=\"_new\">API</a></td>" % item.api_endpoint
         out += "\n\t<td>%s</td>" % item.is_default
         out += "\n</tr>"

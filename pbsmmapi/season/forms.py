@@ -2,6 +2,7 @@ from django.forms import ModelForm
 
 from .models import PBSMMSeason
 
+
 class PBSMMSeasonCreateForm(ModelForm):
     """
     Override the Model form so that only these two fields show up.
@@ -13,6 +14,7 @@ class PBSMMSeasonCreateForm(ModelForm):
         fields = (
             'object_id', 'show'
         )
+
 
 class PBSMMSeasonEditForm(ModelForm):
 
