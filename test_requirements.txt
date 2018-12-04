@@ -1,0 +1,6 @@
+flake8
+coverage
+mock
+requests
+jsonfield
+python-dateutil
