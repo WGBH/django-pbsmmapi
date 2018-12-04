@@ -1,6 +1,6 @@
 from datetime import datetime
 import pytz
-import dateutil.parser
+from dateutil import parser
 
 
 def check_asset_availability(start=None, end=None):
@@ -21,9 +21,9 @@ def check_asset_availability(start=None, end=None):
     now = datetime.now(pytz.utc)
 
     if start:
-        start_date = dateutil.parser.parse(start)
+        start_date = parser.parse(start)
     if end:
-        end_date = dateutil.parser.parse(end)
+        end_date = parser.parse(end)
 
     if start and now < start_date:
         return (False, 0, 'not-yet-available')
