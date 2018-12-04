@@ -18,6 +18,7 @@ setup(
     url='http://github.com/wgbh/django-pbsmmapi/',
     author='Bob Donahue',
     author_email='bob_donahue@wgbh.org',
+    install_requires=['jsonfield', 'requests', 'python-dateutil'],
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Environment :: Web Environment',
