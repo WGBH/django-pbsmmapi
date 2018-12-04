@@ -5,6 +5,7 @@ from django.db import models
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
+from django.urls import reverse
 
 from ..abstract.helpers import time_zone_aware_now
 from ..abstract.models import PBSMMGenericSeason
@@ -49,12 +50,11 @@ class PBSMMSeason(PBSMMGenericSeason):
         # app_label = 'pbsmmapi'
         db_table = 'pbsmm_season'
 
-    @models.permalink
     def get_absolute_url(self):
         """
         This enables the "Show on Site" link on the Admin page
         """
-        return ('season-detail', (), {'pk': self.pk})
+        return reverse('season-detail', (), {'pk': self.pk})
 
     def create_table_line(self):
         this_title = "Season %d: %s" % (self.ordinal, self.title)

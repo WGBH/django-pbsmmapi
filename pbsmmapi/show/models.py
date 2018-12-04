@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
+from django.urls import reverse
 
 from ..abstract.gatekeeper import can_object_page_be_shown
 from ..abstract.helpers import time_zone_aware_now
@@ -46,9 +47,8 @@ class PBSMMAbstractShow(PBSMMGenericShow):
         db_table = 'pbsmm_show'
         abstract = True
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('show-detail', (), {'slug': self.slug})
+        return reverse('show-detail', (), {'slug': self.slug})
 
     def __unicode__(self):
         if self.title:

@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from django.db import models
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
+from django.urls import reverse
 
 from ..abstract.helpers import time_zone_aware_now
 from ..abstract.models import PBSMMGenericSpecial
@@ -30,9 +31,8 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         # app_label = 'pbsmmapi'
         db_table = 'pbsmm_special'
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('special-detail', (), {'slug': self.slug})
+        return reverse('special-detail', (), {'slug': self.slug})
 
     def __unicode__(self):
         return "%s | %s | %s " % (self.object_id, self.show, self.title)

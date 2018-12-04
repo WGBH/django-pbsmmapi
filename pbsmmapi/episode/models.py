@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
 
@@ -49,12 +50,11 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         # app_label = 'pbsmmapi'
         db_table = 'pbsmm_episode'
 
-    @models.permalink
     def get_absolute_url(self):
         """
         This is so the Admin can have a "view on site" button
         """
-        return ('episode-detail', (), {'slug': self.slug})
+        return reverse('episode-detail', (), {'slug': self.slug})
 
     def __unicode__(self):
         # return "%s | %s (%s) " % (self.object_id, self.title,
