@@ -1,0 +1,1438 @@
+{
+    "jsonapi": {
+        "version": "1.0"
+    },
+    "links": {
+        "first": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/",
+        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?page=3",
+        "last": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?page=3",
+        "prev": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?page=2",
+        "next": null
+    },
+    "meta": {
+        "sort": {
+            "title_sortable": {
+                "desc": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?sort=-title_sortable&page=3",
+                "asc": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?sort=title_sortable&page=3"
+            },
+            "premiered_on": {
+                "desc": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?sort=-premiered_on&page=3",
+                "asc": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?sort=premiered_on&page=3"
+            },
+            "encored_on": {
+                "desc": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?sort=-encored_on&page=3",
+                "asc": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?sort=encored_on&page=3"
+            }
+        },
+        "type": "collection",
+        "pagination": {
+            "count": 63,
+            "per_page": 25
+        },
+        "filter": {
+            "id": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?id=",
+            "platform-slug": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?platform-slug=",
+            "type": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?type=",
+            "platform-id": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?platform-id=",
+            "slug": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?slug="
+        }
+    },
+    "data": [
+        {
+            "id": "ebdf360a-358c-42f2-b63b-15bdefee8a6a",
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/ebdf360a-358c-42f2-b63b-15bdefee8a6a/"
+            },
+            "attributes": {
+                "slug": "nova-launching-half-ship",
+                "title": "Launching Half a Ship",
+                "title_sortable": "Launching Half a Ship",
+                "description_short": "Want to make a luxury cruise liner fast? Use two shipyards, then join the pieces together.",
+                "description_long": "Want to make a luxury cruise liner fast? Use two shipyards, then join the pieces together.",
+                "object_type": "clip",
+                "premiered_on": "2016-01-12",
+                "encored_on": "2016-01-12",
+                "is_excluded_from_dfp": false,
+                "duration": 162,
+                "content_rating": "NR",
+                "content_rating_descriptor": [],
+                "legacy_tp_media_id": 2365642938,
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "",
+                "images": [
+                    {
+                        "updated_at": "2017-04-11T07:33:27.324015Z",
+                        "profile": "asset-mezzanine-16x9",
+                        "image": "https://image.pbs.org/video-assets/pbs/nova/201786/images/mezzanine_506.jpg"
+                    }
+                ],
+                "updated_at": "2018-05-02T08:50:35.748668Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [
+                    {
+                        "id": "6de89df0-d863-4b21-9922-811b8d4fec5b",
+                        "updated_at": "2017-04-04T09:00:06.485328Z",
+                        "name": "Technology",
+                        "parent": null
+                    },
+                    {
+                        "id": "5865905b-52d0-4d86-b1a1-7436fa1983d7",
+                        "updated_at": "2017-04-04T09:00:06.490514Z",
+                        "name": "Science & Nature",
+                        "parent": null
+                    },
+                    {
+                        "id": "c6bd9523-da14-45d8-8cdf-480cdc4cfd7f",
+                        "updated_at": "2017-04-04T09:00:06.927037Z",
+                        "name": "Physics & Mathematics",
+                        "parent": {
+                            "id": "5865905b-52d0-4d86-b1a1-7436fa1983d7",
+                            "updated_at": "2017-04-04T09:00:06.490514Z",
+                            "name": "Science & Nature"
+                        }
+                    },
+                    {
+                        "id": "6239f46c-be71-494d-93c5-eb172256c67b",
+                        "updated_at": "2017-04-04T09:00:06.973697Z",
+                        "name": "Energy & Environment",
+                        "parent": {
+                            "id": "6de89df0-d863-4b21-9922-811b8d4fec5b",
+                            "updated_at": "2017-04-04T09:00:06.485328Z",
+                            "name": "Technology"
+                        }
+                    },
+                    {
+                        "id": "4341d225-ebd6-4304-b754-61bd1d135fb8",
+                        "updated_at": "2017-04-04T09:00:06.978871Z",
+                        "name": "Transportation & Infrastructure",
+                        "parent": {
+                            "id": "6de89df0-d863-4b21-9922-811b8d4fec5b",
+                            "updated_at": "2017-04-04T09:00:06.485328Z",
+                            "name": "Technology"
+                        }
+                    },
+                    {
+                        "id": "c2d4a609-80d2-4d1a-8be4-7e7b08a31a3c",
+                        "updated_at": "2017-04-04T09:00:06.999641Z",
+                        "name": "Society",
+                        "parent": {
+                            "id": "6de89df0-d863-4b21-9922-811b8d4fec5b",
+                            "updated_at": "2017-04-04T09:00:06.485328Z",
+                            "name": "Technology"
+                        }
+                    }
+                ],
+                "platforms": [
+                    {
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "name": "All Platforms",
+                        "slug": "allplatforms"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/8xym-TgdfdwQJl-BNwc5wA==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-01-12T23:01:29Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-01-12T23:01:29Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-01-12T23:01:29Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb",
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                    },
+                    "attributes": {
+                        "title": "NOVA",
+                        "slug": "nova",
+                        "seasons_count": 21,
+                        "audience": [
+                            {
+                                "scope": "national",
+                                "station": null
+                            }
+                        ],
+                        "tracking_ga_event": "UA-3988832-2",
+                        "franchise": null,
+                        "display_episode_number": true,
+                        "tracking_ga_page": "UA-3988832-1"
+                    },
+                    "type": "show"
+                },
+                "has_captions": false
+            },
+            "type": "asset"
+        },
+        {
+            "id": "84e87875-1f88-4fdd-8b03-c13f8cda0ab6",
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/84e87875-1f88-4fdd-8b03-c13f8cda0ab6/"
+            },
+            "attributes": {
+                "slug": "nova-lake-vs-olive-oil",
+                "title": "Lake vs. Olive Oil",
+                "title_sortable": "Lake vs. Olive Oil",
+                "description_short": "A tablespoon of olive oil is put into a lake. After 10 min, a half-acre of waves are gone.",
+                "description_long": "1 tablespoon of olive oil is dropped into a lake, and after 10 minutes, a half-acre of waves are gone.",
+                "object_type": "clip",
+                "premiered_on": "2016-01-20",
+                "encored_on": "2016-01-20",
+                "is_excluded_from_dfp": false,
+                "duration": 234,
+                "content_rating": "NR",
+                "content_rating_descriptor": [],
+                "legacy_tp_media_id": 2365647326,
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "",
+                "images": [
+                    {
+                        "updated_at": "2017-04-11T07:33:27.324015Z",
+                        "profile": "asset-mezzanine-16x9",
+                        "image": "https://image.pbs.org/video-assets/pbs/nova/202615/images/mezzanine_206.jpg"
+                    }
+                ],
+                "updated_at": "2018-05-02T09:14:08.266588Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [
+                    {
+                        "id": "5865905b-52d0-4d86-b1a1-7436fa1983d7",
+                        "updated_at": "2017-04-04T09:00:06.490514Z",
+                        "name": "Science & Nature",
+                        "parent": null
+                    },
+                    {
+                        "id": "03b1c30c-e112-4917-8f41-900ca367116b",
+                        "updated_at": "2017-04-04T09:00:06.500559Z",
+                        "name": "News & Public Affairs",
+                        "parent": null
+                    },
+                    {
+                        "id": "d7870f56-d79d-4a17-bd9b-3f25f9998605",
+                        "updated_at": "2017-04-04T09:00:06.811509Z",
+                        "name": "Science & Technology",
+                        "parent": {
+                            "id": "03b1c30c-e112-4917-8f41-900ca367116b",
+                            "updated_at": "2017-04-04T09:00:06.500559Z",
+                            "name": "News & Public Affairs"
+                        }
+                    },
+                    {
+                        "id": "29ad5956-148e-4a4d-a6cd-9613208df097",
+                        "updated_at": "2017-04-04T09:00:06.921770Z",
+                        "name": "Biology & Chemistry",
+                        "parent": {
+                            "id": "5865905b-52d0-4d86-b1a1-7436fa1983d7",
+                            "updated_at": "2017-04-04T09:00:06.490514Z",
+                            "name": "Science & Nature"
+                        }
+                    },
+                    {
+                        "id": "f29cc0b0-0121-432f-b1ee-39dbdc620fef",
+                        "updated_at": "2017-04-04T09:00:06.932287Z",
+                        "name": "Animals",
+                        "parent": {
+                            "id": "5865905b-52d0-4d86-b1a1-7436fa1983d7",
+                            "updated_at": "2017-04-04T09:00:06.490514Z",
+                            "name": "Science & Nature"
+                        }
+                    },
+                    {
+                        "id": "a97328dd-13af-4367-9e16-32340ac4a074",
+                        "updated_at": "2017-04-04T09:00:06.958033Z",
+                        "name": "Environment",
+                        "parent": {
+                            "id": "5865905b-52d0-4d86-b1a1-7436fa1983d7",
+                            "updated_at": "2017-04-04T09:00:06.490514Z",
+                            "name": "Science & Nature"
+                        }
+                    },
+                    {
+                        "id": "4a49f8bf-e648-4073-bcaa-6269436e8047",
+                        "updated_at": "2017-04-04T09:00:06.963166Z",
+                        "name": "Earth",
+                        "parent": {
+                            "id": "5865905b-52d0-4d86-b1a1-7436fa1983d7",
+                            "updated_at": "2017-04-04T09:00:06.490514Z",
+                            "name": "Science & Nature"
+                        }
+                    }
+                ],
+                "platforms": [
+                    {
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "name": "All Platforms",
+                        "slug": "allplatforms"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/cLv8BGHSTwHeu_v4VKT7bQ==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-01-20T19:02:09Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-01-20T19:02:09Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-01-20T19:02:09Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb",
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                    },
+                    "attributes": {
+                        "title": "NOVA",
+                        "slug": "nova",
+                        "seasons_count": 21,
+                        "audience": [
+                            {
+                                "scope": "national",
+                                "station": null
+                            }
+                        ],
+                        "tracking_ga_event": "UA-3988832-2",
+                        "franchise": null,
+                        "display_episode_number": true,
+                        "tracking_ga_page": "UA-3988832-1"
+                    },
+                    "type": "show"
+                },
+                "has_captions": false
+            },
+            "type": "asset"
+        },
+        {
+            "id": "21886c0e-626b-432a-83a4-8bdf177b031f",
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/21886c0e-626b-432a-83a4-8bdf177b031f/"
+            },
+            "attributes": {
+                "slug": "nova-how-find-galaxy",
+                "title": "How to Find a Galaxy",
+                "title_sortable": "How to Find a Galaxy",
+                "description_short": "Knowing the addresses of a thousand galaxies yielded a remarkable picture of our universe.",
+                "description_long": "Knowing the addresses of a thousand galaxies yielded a remarkable picture of our universe.",
+                "object_type": "clip",
+                "premiered_on": "2016-01-28",
+                "encored_on": "2016-01-28",
+                "is_excluded_from_dfp": false,
+                "duration": 264,
+                "content_rating": "NR",
+                "content_rating_descriptor": [],
+                "legacy_tp_media_id": 2365651509,
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "",
+                "images": [
+                    {
+                        "updated_at": "2017-04-11T07:33:27.324015Z",
+                        "profile": "asset-mezzanine-16x9",
+                        "image": "https://image.pbs.org/video-assets/pbs/nova/203372/images/mezzanine_304.jpg"
+                    }
+                ],
+                "updated_at": "2018-05-02T09:08:15.161388Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [
+                    {
+                        "id": "6de89df0-d863-4b21-9922-811b8d4fec5b",
+                        "updated_at": "2017-04-04T09:00:06.485328Z",
+                        "name": "Technology",
+                        "parent": null
+                    },
+                    {
+                        "id": "5865905b-52d0-4d86-b1a1-7436fa1983d7",
+                        "updated_at": "2017-04-04T09:00:06.490514Z",
+                        "name": "Science & Nature",
+                        "parent": null
+                    },
+                    {
+                        "id": "c6bd9523-da14-45d8-8cdf-480cdc4cfd7f",
+                        "updated_at": "2017-04-04T09:00:06.927037Z",
+                        "name": "Physics & Mathematics",
+                        "parent": {
+                            "id": "5865905b-52d0-4d86-b1a1-7436fa1983d7",
+                            "updated_at": "2017-04-04T09:00:06.490514Z",
+                            "name": "Science & Nature"
+                        }
+                    },
+                    {
+                        "id": "1dcd37d1-615a-4508-8c3e-6d5aaa2205ef",
+                        "updated_at": "2017-04-04T09:00:06.968538Z",
+                        "name": "Astronomy",
+                        "parent": {
+                            "id": "5865905b-52d0-4d86-b1a1-7436fa1983d7",
+                            "updated_at": "2017-04-04T09:00:06.490514Z",
+                            "name": "Science & Nature"
+                        }
+                    },
+                    {
+                        "id": "72245fef-b02e-4a5f-88c4-fa74b326bb61",
+                        "updated_at": "2017-04-04T09:00:06.994450Z",
+                        "name": "Space",
+                        "parent": {
+                            "id": "6de89df0-d863-4b21-9922-811b8d4fec5b",
+                            "updated_at": "2017-04-04T09:00:06.485328Z",
+                            "name": "Technology"
+                        }
+                    }
+                ],
+                "platforms": [
+                    {
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "name": "All Platforms",
+                        "slug": "allplatforms"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/fhS8rL38KI9BosHZ16Z1ig==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-01-26T23:01:41Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-01-26T23:01:41Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-01-26T23:01:41Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb",
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                    },
+                    "attributes": {
+                        "title": "NOVA",
+                        "slug": "nova",
+                        "seasons_count": 21,
+                        "audience": [
+                            {
+                                "scope": "national",
+                                "station": null
+                            }
+                        ],
+                        "tracking_ga_event": "UA-3988832-2",
+                        "franchise": null,
+                        "display_episode_number": true,
+                        "tracking_ga_page": "UA-3988832-1"
+                    },
+                    "type": "show"
+                },
+                "has_captions": false
+            },
+            "type": "asset"
+        },
+        {
+            "id": "33060dcb-2582-4a4d-b4de-c587bf6a926a",
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/33060dcb-2582-4a4d-b4de-c587bf6a926a/"
+            },
+            "attributes": {
+                "slug": "nova-amazing-calendar-trick",
+                "title": "Amazing Calendar Trick",
+                "title_sortable": "Amazing Calendar Trick",
+                "description_short": "With a dash of math, know the day of the week for any date on the calendar.",
+                "description_long": "With a dash of math, know the day of the week for any date on the calendar.",
+                "object_type": "clip",
+                "premiered_on": "2016-02-04",
+                "encored_on": "2016-02-04",
+                "is_excluded_from_dfp": false,
+                "duration": 257,
+                "content_rating": "NR",
+                "content_rating_descriptor": [],
+                "legacy_tp_media_id": 2365657883,
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "",
+                "images": [
+                    {
+                        "updated_at": "2017-04-11T07:33:27.324015Z",
+                        "profile": "asset-mezzanine-16x9",
+                        "image": "https://image.pbs.org/video-assets/pbs/nova/204529/images/mezzanine_946.jpg"
+                    }
+                ],
+                "updated_at": "2018-05-02T09:08:58.625474Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [
+                    {
+                        "id": "5865905b-52d0-4d86-b1a1-7436fa1983d7",
+                        "updated_at": "2017-04-04T09:00:06.490514Z",
+                        "name": "Science & Nature",
+                        "parent": null
+                    },
+                    {
+                        "id": "c6bd9523-da14-45d8-8cdf-480cdc4cfd7f",
+                        "updated_at": "2017-04-04T09:00:06.927037Z",
+                        "name": "Physics & Mathematics",
+                        "parent": {
+                            "id": "5865905b-52d0-4d86-b1a1-7436fa1983d7",
+                            "updated_at": "2017-04-04T09:00:06.490514Z",
+                            "name": "Science & Nature"
+                        }
+                    }
+                ],
+                "platforms": [
+                    {
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "name": "All Platforms",
+                        "slug": "allplatforms"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/SObYB4-lH2O_jtPpG4L-zQ==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-02-02T22:32:34Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-02-02T22:32:34Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-02-02T22:32:34Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb",
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                    },
+                    "attributes": {
+                        "title": "NOVA",
+                        "slug": "nova",
+                        "seasons_count": 21,
+                        "audience": [
+                            {
+                                "scope": "national",
+                                "station": null
+                            }
+                        ],
+                        "tracking_ga_event": "UA-3988832-2",
+                        "franchise": null,
+                        "display_episode_number": true,
+                        "tracking_ga_page": "UA-3988832-1"
+                    },
+                    "type": "show"
+                },
+                "has_captions": false
+            },
+            "type": "asset"
+        },
+        {
+            "id": "336c8718-3174-4907-a671-d5eabbb62dbf",
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/336c8718-3174-4907-a671-d5eabbb62dbf/"
+            },
+            "attributes": {
+                "slug": "nova-gravity-changes-colors",
+                "title": "Gravity Changes Colors",
+                "title_sortable": "Gravity Changes Colors",
+                "description_short": "This ingenious experiment proves that gravity changes the color of light all around us.",
+                "description_long": "This ingenious experiment proves that gravity changes the color of light all around us.",
+                "object_type": "clip",
+                "premiered_on": "2016-04-12",
+                "encored_on": "2016-04-12",
+                "is_excluded_from_dfp": false,
+                "duration": 162,
+                "content_rating": "NR",
+                "content_rating_descriptor": [],
+                "legacy_tp_media_id": 2365716591,
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "",
+                "images": [
+                    {
+                        "updated_at": "2017-04-11T07:33:27.324015Z",
+                        "profile": "asset-mezzanine-16x9",
+                        "image": "https://image.pbs.org/video-assets/pbs/nova/215283/images/mezzanine_134.jpg"
+                    }
+                ],
+                "updated_at": "2018-05-02T09:14:08.575691Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [
+                    {
+                        "id": "5865905b-52d0-4d86-b1a1-7436fa1983d7",
+                        "updated_at": "2017-04-04T09:00:06.490514Z",
+                        "name": "Science & Nature",
+                        "parent": null
+                    },
+                    {
+                        "id": "c6bd9523-da14-45d8-8cdf-480cdc4cfd7f",
+                        "updated_at": "2017-04-04T09:00:06.927037Z",
+                        "name": "Physics & Mathematics",
+                        "parent": {
+                            "id": "5865905b-52d0-4d86-b1a1-7436fa1983d7",
+                            "updated_at": "2017-04-04T09:00:06.490514Z",
+                            "name": "Science & Nature"
+                        }
+                    }
+                ],
+                "platforms": [
+                    {
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "name": "All Platforms",
+                        "slug": "allplatforms"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/P7vIpXxuEaLEvJXFq4Dixw==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-04-13T15:44:46Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-04-13T15:44:46Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-04-13T15:44:46Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb",
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                    },
+                    "attributes": {
+                        "title": "NOVA",
+                        "slug": "nova",
+                        "seasons_count": 21,
+                        "audience": [
+                            {
+                                "scope": "national",
+                                "station": null
+                            }
+                        ],
+                        "tracking_ga_event": "UA-3988832-2",
+                        "franchise": null,
+                        "display_episode_number": true,
+                        "tracking_ga_page": "UA-3988832-1"
+                    },
+                    "type": "show"
+                },
+                "has_captions": false
+            },
+            "type": "asset"
+        },
+        {
+            "id": "d9e1371d-49f6-4ef5-91ff-8c8fc853046f",
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/d9e1371d-49f6-4ef5-91ff-8c8fc853046f/"
+            },
+            "attributes": {
+                "slug": "nova-3-things-faster-light",
+                "title": "3 Things \"Faster Than Light\"",
+                "title_sortable": "3 Things \"Faster Than Light\"",
+                "description_short": "These three things have been said to go faster than light, but do they?",
+                "description_long": "These three things have been said to go faster than light, but do they?",
+                "object_type": "clip",
+                "premiered_on": "2016-05-10",
+                "encored_on": "2016-05-10",
+                "is_excluded_from_dfp": false,
+                "duration": 229,
+                "content_rating": "NR",
+                "content_rating_descriptor": [],
+                "legacy_tp_media_id": 2365751320,
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "",
+                "images": [
+                    {
+                        "updated_at": "2017-04-11T07:33:27.324015Z",
+                        "profile": "asset-mezzanine-16x9",
+                        "image": "https://image.pbs.org/video-assets/pbs/nova/221676/images/mezzanine_343.jpg"
+                    }
+                ],
+                "updated_at": "2018-05-02T09:17:03.172364Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [],
+                "platforms": [
+                    {
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "name": "All Platforms",
+                        "slug": "allplatforms"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/OEn6hA4Qhl8zM418JvfpaQ==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-05-11T14:29:03Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-05-11T14:29:03Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-05-11T14:29:03Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb",
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                    },
+                    "attributes": {
+                        "title": "NOVA",
+                        "slug": "nova",
+                        "seasons_count": 21,
+                        "audience": [
+                            {
+                                "scope": "national",
+                                "station": null
+                            }
+                        ],
+                        "tracking_ga_event": "UA-3988832-2",
+                        "franchise": null,
+                        "display_episode_number": true,
+                        "tracking_ga_page": "UA-3988832-1"
+                    },
+                    "type": "show"
+                },
+                "has_captions": false
+            },
+            "type": "asset"
+        },
+        {
+            "id": "b7a7a8e2-4c49-4947-9002-4d3af8b43e59",
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/b7a7a8e2-4c49-4947-9002-4d3af8b43e59/"
+            },
+            "attributes": {
+                "slug": "nova-make-your-own-hydrothermal-vent",
+                "title": "Make Your Own Hydrothermal Vent",
+                "title_sortable": "Make Your Own Hydrothermal Vent",
+                "description_short": "A step-by-step guide to create your very own hydrothermal vent",
+                "description_long": "A step-by-step guide to create your very own hydrothermal vent",
+                "object_type": "clip",
+                "premiered_on": "2016-06-07",
+                "encored_on": "2016-06-07",
+                "is_excluded_from_dfp": false,
+                "duration": 104,
+                "content_rating": "NR",
+                "content_rating_descriptor": [],
+                "legacy_tp_media_id": 2365779545,
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "",
+                "images": [
+                    {
+                        "updated_at": "2017-04-11T07:33:27.324015Z",
+                        "profile": "asset-mezzanine-16x9",
+                        "image": "https://image.pbs.org/video-assets/pbs/nova/226853/images/mezzanine_373.jpg"
+                    }
+                ],
+                "updated_at": "2018-05-02T09:20:15.496466Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [],
+                "platforms": [
+                    {
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "name": "All Platforms",
+                        "slug": "allplatforms"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/Z2tHnYvSKQAFHSeLS8RZHw==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-06-08T20:26:10Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-06-08T20:26:10Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-06-08T20:26:10Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb",
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                    },
+                    "attributes": {
+                        "title": "NOVA",
+                        "slug": "nova",
+                        "seasons_count": 21,
+                        "audience": [
+                            {
+                                "scope": "national",
+                                "station": null
+                            }
+                        ],
+                        "tracking_ga_event": "UA-3988832-2",
+                        "franchise": null,
+                        "display_episode_number": true,
+                        "tracking_ga_page": "UA-3988832-1"
+                    },
+                    "type": "show"
+                },
+                "has_captions": false
+            },
+            "type": "asset"
+        },
+        {
+            "id": "f01decc1-42ec-46e9-af04-26ee5f0baa1b",
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/f01decc1-42ec-46e9-af04-26ee5f0baa1b/"
+            },
+            "attributes": {
+                "slug": "nova-nova-black-holes-app",
+                "title": "NOVA Black Holes App",
+                "title_sortable": "NOVA Black Holes App",
+                "description_short": "In this iPad app, navigate fields of cosmic objects in your quest to become a black hole.",
+                "description_long": "In this iPad app, navigate fields of cosmic objects in your quest to become a black hole.",
+                "object_type": "clip",
+                "premiered_on": "2016-06-19",
+                "encored_on": "2016-06-19",
+                "is_excluded_from_dfp": false,
+                "duration": 60,
+                "content_rating": "NR",
+                "content_rating_descriptor": [],
+                "legacy_tp_media_id": 2365786967,
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "",
+                "images": [
+                    {
+                        "updated_at": "2017-04-11T07:33:27.324015Z",
+                        "profile": "asset-mezzanine-16x9",
+                        "image": "https://image.pbs.org/video-assets/pbs/nova/228193/images/mezzanine_140.jpg"
+                    }
+                ],
+                "updated_at": "2018-05-02T09:20:57.298347Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [],
+                "platforms": [
+                    {
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "name": "All Platforms",
+                        "slug": "allplatforms"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/ky931pQmT71sT_VZw2mwUw==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-06-20T15:20:17Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-06-20T15:20:17Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-06-20T15:20:17Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb",
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                    },
+                    "attributes": {
+                        "title": "NOVA",
+                        "slug": "nova",
+                        "seasons_count": 21,
+                        "audience": [
+                            {
+                                "scope": "national",
+                                "station": null
+                            }
+                        ],
+                        "tracking_ga_event": "UA-3988832-2",
+                        "franchise": null,
+                        "display_episode_number": true,
+                        "tracking_ga_page": "UA-3988832-1"
+                    },
+                    "type": "show"
+                },
+                "has_captions": false
+            },
+            "type": "asset"
+        },
+        {
+            "id": "328a0eec-94e2-4bd3-a68d-edcb953770ce",
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/328a0eec-94e2-4bd3-a68d-edcb953770ce/"
+            },
+            "attributes": {
+                "slug": "nova-drilling-dinosaurs-end",
+                "title": "Drilling For the Dinosaurs' End",
+                "title_sortable": "Drilling For the Dinosaurs' End",
+                "description_short": "A team drills into the crater made by the asteroid that may have wiped out the dinosaurs.",
+                "description_long": "A team drills into the crater made by the asteroid that may have wiped out the dinosaurs.",
+                "object_type": "clip",
+                "premiered_on": "2016-06-20",
+                "encored_on": "2016-06-20",
+                "is_excluded_from_dfp": false,
+                "duration": 195,
+                "content_rating": "NR",
+                "content_rating_descriptor": [],
+                "legacy_tp_media_id": 2365788501,
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "",
+                "images": [
+                    {
+                        "updated_at": "2017-04-11T07:33:27.324015Z",
+                        "profile": "asset-mezzanine-16x9",
+                        "image": "https://image.pbs.org/video-assets/pbs/nova/228483/images/mezzanine_974.jpg"
+                    }
+                ],
+                "updated_at": "2018-05-02T09:25:46.726531Z",
+                "countries": [
+                    {
+                        "id": "f719efba-fd1e-4aa4-9330-538ad182eea6",
+                        "updated_at": "2017-04-04T09:00:31.469329Z",
+                        "name": "Canada",
+                        "code": "CA"
+                    },
+                    {
+                        "id": "5127f584-7be5-4d5f-85a9-8e9fb35e171e",
+                        "updated_at": "2017-04-04T09:00:31.847694Z",
+                        "name": "Mexico",
+                        "code": "MX"
+                    },
+                    {
+                        "id": "6a9df090-8ede-44c0-8781-5ddbb942966b",
+                        "updated_at": "2017-04-04T09:00:32.190936Z",
+                        "name": "United States",
+                        "code": "US"
+                    },
+                    {
+                        "id": "9a9c8e4e-a700-4713-85f4-b3ee31a27879",
+                        "updated_at": "2017-04-04T09:00:32.372517Z",
+                        "name": "Northern Mariana Islands",
+                        "code": "MP"
+                    },
+                    {
+                        "id": "f3c41bf8-f17c-4b55-a540-0e74c80c2cce",
+                        "updated_at": "2017-04-04T09:00:32.377009Z",
+                        "name": "Puerto Rico",
+                        "code": "PR"
+                    },
+                    {
+                        "id": "c54cfde7-42cb-49df-bb72-d355332d50c9",
+                        "updated_at": "2017-04-04T09:00:32.381542Z",
+                        "name": "American Samoa",
+                        "code": "AS"
+                    },
+                    {
+                        "id": "4f9b354c-7ada-4d83-9085-fcb6c887a5b5",
+                        "updated_at": "2017-04-04T09:00:32.386117Z",
+                        "name": "Guam",
+                        "code": "GU"
+                    },
+                    {
+                        "id": "eefe903e-3af4-4b31-a796-3a4b6dd19214",
+                        "updated_at": "2017-04-04T09:00:32.390727Z",
+                        "name": "U.S. Virgin Islands",
+                        "code": "VI"
+                    },
+                    {
+                        "id": "cf58f575-b194-48e3-8700-1086909ed0e1",
+                        "updated_at": "2017-04-04T09:00:32.395225Z",
+                        "name": "U.S. Minor Outlying Islands",
+                        "code": "UM"
+                    }
+                ],
+                "geo_profile": {
+                    "id": "023ec9e6-2b09-461d-9de4-af5b9334367f",
+                    "updated_at": "2017-04-04T09:00:32.629888Z",
+                    "name": "US, US Territories, Canada, Mexico"
+                },
+                "topics": [],
+                "platforms": [
+                    {
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "name": "All Platforms",
+                        "slug": "allplatforms"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/aicFpz1tFmBQ8SgJSyG-IA==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-06-21T21:05:17Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-06-21T21:05:17Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-06-21T21:05:17Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb",
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                    },
+                    "attributes": {
+                        "title": "NOVA",
+                        "slug": "nova",
+                        "seasons_count": 21,
+                        "audience": [
+                            {
+                                "scope": "national",
+                                "station": null
+                            }
+                        ],
+                        "tracking_ga_event": "UA-3988832-2",
+                        "franchise": null,
+                        "display_episode_number": true,
+                        "tracking_ga_page": "UA-3988832-1"
+                    },
+                    "type": "show"
+                },
+                "has_captions": false
+            },
+            "type": "asset"
+        },
+        {
+            "id": "ce186709-9118-49d5-973b-b1619600440e",
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/ce186709-9118-49d5-973b-b1619600440e/"
+            },
+            "attributes": {
+                "slug": "nova-serengeti-lion-project",
+                "title": "The Serengeti Lion Project",
+                "title_sortable": "The Serengeti Lion Project",
+                "description_short": "After 50 years, Craig Packer & his team have records of the nearly 5,000 Serengeti lions.",
+                "description_long": "After 50 years, Craig Packer and his team have records of the nearly 5,000 Serengeti lions' physical and social traits.",
+                "object_type": "clip",
+                "premiered_on": "2016-06-22",
+                "encored_on": "2016-06-22",
+                "is_excluded_from_dfp": false,
+                "duration": 97,
+                "content_rating": "NR",
+                "content_rating_descriptor": [],
+                "legacy_tp_media_id": 2365790126,
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "",
+                "images": [
+                    {
+                        "updated_at": "2017-04-11T07:33:27.324015Z",
+                        "profile": "asset-mezzanine-16x9",
+                        "image": "https://image.pbs.org/video-assets/pbs/nova/228771/images/mezzanine_387.jpg"
+                    }
+                ],
+                "updated_at": "2018-05-02T09:21:28.974343Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [],
+                "platforms": [
+                    {
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "name": "All Platforms",
+                        "slug": "allplatforms"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/EHRloh9eEEIxUWESoheGFQ==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-06-23T21:25:56Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-06-23T21:25:56Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-06-23T21:25:56Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb",
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                    },
+                    "attributes": {
+                        "title": "NOVA",
+                        "slug": "nova",
+                        "seasons_count": 21,
+                        "audience": [
+                            {
+                                "scope": "national",
+                                "station": null
+                            }
+                        ],
+                        "tracking_ga_event": "UA-3988832-2",
+                        "franchise": null,
+                        "display_episode_number": true,
+                        "tracking_ga_page": "UA-3988832-1"
+                    },
+                    "type": "show"
+                },
+                "has_captions": false
+            },
+            "type": "asset"
+        },
+        {
+            "id": "561ee09e-c8c8-4c79-b243-d37c946a5fb5",
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/561ee09e-c8c8-4c79-b243-d37c946a5fb5/"
+            },
+            "attributes": {
+                "slug": "nova-hole-sky",
+                "title": "The Hole in the Sky",
+                "title_sortable": "The Hole in the Sky",
+                "description_short": "That time when NOVA reported on the first sign of the ozone hole's depletion...in 1986",
+                "description_long": "That time when NOVA reported on the first sign of the ozone hole's depletion...in 1986",
+                "object_type": "clip",
+                "premiered_on": "2016-07-27",
+                "encored_on": "2016-07-27",
+                "is_excluded_from_dfp": false,
+                "duration": 141,
+                "content_rating": "NR",
+                "content_rating_descriptor": [],
+                "legacy_tp_media_id": 2365811132,
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "",
+                "images": [
+                    {
+                        "updated_at": "2017-04-11T07:33:27.324015Z",
+                        "profile": "asset-mezzanine-16x9",
+                        "image": "https://image.pbs.org/video-assets/pbs/nova/232615/images/mezzanine_808.jpg"
+                    }
+                ],
+                "updated_at": "2018-05-02T09:23:35.987451Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [],
+                "platforms": [
+                    {
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "name": "All Platforms",
+                        "slug": "allplatforms"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/WXmDAjYRSozvSk4AeNSYAg==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-07-26T21:12:08Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-07-26T21:12:08Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-07-26T21:12:08Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb",
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                    },
+                    "attributes": {
+                        "title": "NOVA",
+                        "slug": "nova",
+                        "seasons_count": 21,
+                        "audience": [
+                            {
+                                "scope": "national",
+                                "station": null
+                            }
+                        ],
+                        "tracking_ga_event": "UA-3988832-2",
+                        "franchise": null,
+                        "display_episode_number": true,
+                        "tracking_ga_page": "UA-3988832-1"
+                    },
+                    "type": "show"
+                },
+                "has_captions": false
+            },
+            "type": "asset"
+        },
+        {
+            "id": "637e6e3a-d945-429d-9439-a46c19a22531",
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/637e6e3a-d945-429d-9439-a46c19a22531/"
+            },
+            "attributes": {
+                "slug": "nova-where-your-face-comes",
+                "title": "Where Your Face Comes From",
+                "title_sortable": "Where Your Face Comes From",
+                "description_short": "When you were an embryo, a parade of molecules sculpted the cells that became your face.",
+                "description_long": "When you were an embryo, a parade of molecules sculpted the cells that became your face.",
+                "object_type": "clip",
+                "premiered_on": "2016-08-09",
+                "encored_on": "2016-08-09",
+                "is_excluded_from_dfp": false,
+                "duration": 238,
+                "content_rating": "NR",
+                "content_rating_descriptor": [],
+                "legacy_tp_media_id": 2365821027,
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "",
+                "images": [
+                    {
+                        "updated_at": "2017-04-11T07:33:27.324015Z",
+                        "profile": "asset-mezzanine-16x9",
+                        "image": "https://image.pbs.org/video-assets/pbs/nova/234445/images/mezzanine_320.jpg"
+                    }
+                ],
+                "updated_at": "2018-05-02T09:24:01.031404Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [],
+                "platforms": [
+                    {
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "name": "All Platforms",
+                        "slug": "allplatforms"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/EcNzhHqFinu6w1VvVjYh5g==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-08-10T15:27:13Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-08-10T15:27:13Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-08-10T15:27:13Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb",
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                    },
+                    "attributes": {
+                        "title": "NOVA",
+                        "slug": "nova",
+                        "seasons_count": 21,
+                        "audience": [
+                            {
+                                "scope": "national",
+                                "station": null
+                            }
+                        ],
+                        "tracking_ga_event": "UA-3988832-2",
+                        "franchise": null,
+                        "display_episode_number": true,
+                        "tracking_ga_page": "UA-3988832-1"
+                    },
+                    "type": "show"
+                },
+                "has_captions": false
+            },
+            "type": "asset"
+        },
+        {
+            "id": "ae3d0608-caac-4799-8097-fdd8b8583515",
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/ae3d0608-caac-4799-8097-fdd8b8583515/"
+            },
+            "attributes": {
+                "slug": "nova-making-samurai-sword",
+                "title": "Making a Samurai Sword",
+                "title_sortable": "Making a Samurai Sword",
+                "description_short": "Japanese master craftsmen turned a pile of crude iron into the deadly Samurai sword.",
+                "description_long": "Japanese master craftsmen turned a pile of crude iron into the deadly Samurai sword.",
+                "object_type": "clip",
+                "premiered_on": "2016-12-08",
+                "encored_on": "2016-12-08",
+                "is_excluded_from_dfp": false,
+                "duration": 152,
+                "content_rating": "NR",
+                "content_rating_descriptor": [],
+                "legacy_tp_media_id": 2365911132,
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "",
+                "images": [
+                    {
+                        "updated_at": "2017-04-11T07:33:27.324015Z",
+                        "profile": "asset-mezzanine-16x9",
+                        "image": "https://image.pbs.org/video-assets/pbs/nova/250816/images/mezzanine_864.jpg"
+                    }
+                ],
+                "updated_at": "2018-05-02T09:32:39.982254Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [],
+                "platforms": [
+                    {
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "name": "All Platforms",
+                        "slug": "allplatforms"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/ADQwM-zMNG_RGQvPBWlpYw==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-12-08T19:48:19Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-12-08T19:48:19Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2017-04-11T07:23:58.427692Z",
+                        "start": "2016-12-08T19:48:19Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb",
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                    },
+                    "attributes": {
+                        "title": "NOVA",
+                        "slug": "nova",
+                        "seasons_count": 21,
+                        "audience": [
+                            {
+                                "scope": "national",
+                                "station": null
+                            }
+                        ],
+                        "tracking_ga_event": "UA-3988832-2",
+                        "franchise": null,
+                        "display_episode_number": true,
+                        "tracking_ga_page": "UA-3988832-1"
+                    },
+                    "type": "show"
+                },
+                "has_captions": false
+            },
+            "type": "asset"
+        }
+    ]
+}
