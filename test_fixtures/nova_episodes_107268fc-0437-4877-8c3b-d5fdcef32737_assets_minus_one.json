@@ -1,0 +1,757 @@
+{
+    "links": {
+        "prev": null,
+        "last": null,
+        "self": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/assets/",
+        "next": null,
+        "first": null
+    },
+    "data": [
+        {
+            "attributes": {
+                "slug": "nova-wonders-can-we-make-life-dzcxg8",
+                "title": "NOVA Wonders Can We Make Life?",
+                "title_sortable": "NOVA Wonders Can We Make Life?",
+                "description_short": "A revolution in gene editing technology enables scientists to create and edit DNA.",
+                "description_long": "\"It's alive!\" Since Dr. Frankenstein spoke those famous words, we've been alternately enthralled and terrified by the idea of creating life in the lab. Now, a revolution in genetic engineering and thrilling innovations in synthetic biology are bringing that dream\u2014or nightmare, as the case may be\u2014closer to reality. New tools allow researchers to use cells to create their own DNA.",
+                "object_type": "full_length",
+                "premiered_on": "2018-04-04",
+                "encored_on": "2018-04-04",
+                "is_excluded_from_dfp": false,
+                "duration": 3226,
+                "content_rating": "TV-PG",
+                "content_rating_descriptor": [],
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "National corporate funding for NOVA Wonders is provided by Draper. Major funding for NOVA Wonders is provided by National Science Foundation, the Gordon and Betty Moore Foundation, the Alfred P. Sloan Foundation and public television viewers, with additional funding for \u201cAre We Alone?\u201d and \u201cWhat\u2019s the Universe Made Of?\u201d provided by the John Templeton Foundation.\r\nThis material is based upon work supported by the National Science Foundation under Grant No. DRL-1420749. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the National Science Foundation.",
+                "images": [
+                    {
+                        "image": "http://image.pbs.org/video-assets/d1CsWBF-asset-mezzanine-16x9-rxEUIem.jpg",
+                        "updated_at": "2018-05-22T20:25:28.027488Z",
+                        "profile": "asset-mezzanine-16x9"
+                    }
+                ],
+                "updated_at": "2018-11-01T01:24:19.561659Z",
+                "countries": [
+                    {
+                        "name": "United States",
+                        "code": "US",
+                        "updated_at": "2017-04-04T09:00:32.190936Z",
+                        "id": "6a9df090-8ede-44c0-8781-5ddbb942966b"
+                    },
+                    {
+                        "name": "Northern Mariana Islands",
+                        "code": "MP",
+                        "updated_at": "2017-04-04T09:00:32.372517Z",
+                        "id": "9a9c8e4e-a700-4713-85f4-b3ee31a27879"
+                    },
+                    {
+                        "name": "Puerto Rico",
+                        "code": "PR",
+                        "updated_at": "2017-04-04T09:00:32.377009Z",
+                        "id": "f3c41bf8-f17c-4b55-a540-0e74c80c2cce"
+                    },
+                    {
+                        "name": "American Samoa",
+                        "code": "AS",
+                        "updated_at": "2017-04-04T09:00:32.381542Z",
+                        "id": "c54cfde7-42cb-49df-bb72-d355332d50c9"
+                    },
+                    {
+                        "name": "Guam",
+                        "code": "GU",
+                        "updated_at": "2017-04-04T09:00:32.386117Z",
+                        "id": "4f9b354c-7ada-4d83-9085-fcb6c887a5b5"
+                    },
+                    {
+                        "name": "U.S. Virgin Islands",
+                        "code": "VI",
+                        "updated_at": "2017-04-04T09:00:32.390727Z",
+                        "id": "eefe903e-3af4-4b31-a796-3a4b6dd19214"
+                    },
+                    {
+                        "name": "U.S. Minor Outlying Islands",
+                        "code": "UM",
+                        "updated_at": "2017-04-04T09:00:32.395225Z",
+                        "id": "cf58f575-b194-48e3-8700-1086909ed0e1"
+                    }
+                ],
+                "geo_profile": {
+                    "name": "US & Territories",
+                    "updated_at": "2017-04-04T09:00:32.641361Z",
+                    "id": "c94e2e6d-0052-493a-a67d-266d51cc6445"
+                },
+                "topics": [],
+                "platforms": [
+                    {
+                        "name": "All Platforms",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "slug": "allplatforms",
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/rYIl583jgSYkfInGyvisNA==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": "2021-05-23T03:59:59Z",
+                        "updated_at": "2018-05-22T20:26:23.461587Z",
+                        "start": "2018-05-24T00:40:00Z"
+                    },
+                    "public": {
+                        "end": "2021-05-23T03:59:59Z",
+                        "updated_at": "2018-05-22T20:26:23.436642Z",
+                        "start": "2018-05-24T00:40:00Z"
+                    },
+                    "all_members": {
+                        "end": "2021-05-23T03:59:59Z",
+                        "updated_at": "2018-05-22T20:26:23.451019Z",
+                        "start": "2018-05-24T00:40:00Z"
+                    }
+                },
+                "related_links": [
+                    {
+                        "attributes": {
+                            "title": "NOVA Wonder's \"Can We Make Life?\" Homepage",
+                            "description_short": "",
+                            "url": "http://www.pbs.org/wgbh/nova/wonders/#can-we-make-life",
+                            "image": null,
+                            "updated_at": "2018-05-22T20:29:06.244360Z",
+                            "tags": null
+                        },
+                        "links": {
+                            "self": "https://media.services.pbs.org/api/v1/remote-assets/bd9f14d0-0f95-47d6-b762-d42f6db6d914/"
+                        },
+                        "type": "remoteasset",
+                        "id": "bd9f14d0-0f95-47d6-b762-d42f6db6d914"
+                    },
+                    {
+                        "attributes": {
+                            "title": "Email Newsletter",
+                            "description_short": "",
+                            "url": "http://www.pbs.org/wgbh/nova/newsletters.html",
+                            "image": null,
+                            "updated_at": "2018-05-22T20:29:25.006358Z",
+                            "tags": null
+                        },
+                        "links": {
+                            "self": "https://media.services.pbs.org/api/v1/remote-assets/7aef11b9-f33d-4559-b494-96666018cd86/"
+                        },
+                        "type": "remoteasset",
+                        "id": "7aef11b9-f33d-4559-b494-96666018cd86"
+                    },
+                    {
+                        "attributes": {
+                            "title": "Shop NOVA",
+                            "description_short": "",
+                            "url": "https://shop.pbs.org/nova?N=1700918914&Nrpp=28&No=0&Nr=product.active:1",
+                            "image": null,
+                            "updated_at": "2018-05-22T20:30:12.798269Z",
+                            "tags": null
+                        },
+                        "links": {
+                            "self": "https://media.services.pbs.org/api/v1/remote-assets/70cc054a-638f-4979-83ab-1c730ecd20ad/"
+                        },
+                        "type": "remoteasset",
+                        "id": "70cc054a-638f-4979-83ab-1c730ecd20ad"
+                    }
+                ],
+                "related_promos": [
+                    {
+                        "attributes": {
+                            "title": "Gene Editing Human Embryos",
+                            "description_short": "Chinese scientists altered the genome of a \u201cnonviable\" human embryo.",
+                            "url": "http://www.pbs.org/wgbh/nova/next/body/scientists-genetically-modify-human-embryos-for-the-first-time/",
+                            "image": "http://image.pbs.org/webobjects/gm-embryos.jpg",
+                            "updated_at": "2018-05-22T20:37:30.066468Z",
+                            "tags": null
+                        },
+                        "links": {
+                            "self": "https://media.services.pbs.org/api/v1/remote-assets/eef2e838-e84f-49d6-96e3-ac58a44027da/"
+                        },
+                        "type": "remoteasset",
+                        "id": "eef2e838-e84f-49d6-96e3-ac58a44027da"
+                    },
+                    {
+                        "attributes": {
+                            "title": "No More Mosquitos",
+                            "description_short": "A new technology, could make mosquito-borne illnesses a thing of the past.",
+                            "url": "http://www.pbs.org/wgbh/nova/body/no-more-mosquitoes.html",
+                            "image": "http://image.pbs.org/webobjects/no-more-mosquitoes.jpg",
+                            "updated_at": "2018-05-22T20:34:54.280540Z",
+                            "tags": null
+                        },
+                        "links": {
+                            "self": "https://media.services.pbs.org/api/v1/remote-assets/e8775579-14f6-40e5-abb3-9207a848bd66/"
+                        },
+                        "type": "remoteasset",
+                        "id": "e8775579-14f6-40e5-abb3-9207a848bd66"
+                    },
+                    {
+                        "attributes": {
+                            "title": "Catching Genetic Diseases Early",
+                            "description_short": "Genetic sequencing can help doctors make life-saving diagnoses.",
+                            "url": "http://www.pbs.org/wgbh/nova/next/body/newborn-gene-sequencing/",
+                            "image": "http://image.pbs.org/webobjects/catching-genetic-diseases-early.jpg",
+                            "updated_at": "2018-05-22T20:33:15.673586Z",
+                            "tags": null
+                        },
+                        "links": {
+                            "self": "https://media.services.pbs.org/api/v1/remote-assets/9142c070-fb2b-468d-a71b-4e344c18948c/"
+                        },
+                        "type": "remoteasset",
+                        "id": "9142c070-fb2b-468d-a71b-4e344c18948c"
+                    },
+                    {
+                        "attributes": {
+                            "slug": "what-crispr-gene-editing-cyfb4n",
+                            "title": "What is CRISPR gene editing?",
+                            "title_sortable": "What is CRISPR gene editing?",
+                            "description_short": "Scientists have a new tool to edit genes in human cells to repair mutations. What is it?",
+                            "object_type": "clip",
+                            "premiered_on": "2018-03-05",
+                            "encored_on": "2018-03-05",
+                            "duration": 84,
+                            "tags": null,
+                            "updated_at": "2018-05-02T11:00:46.322912Z",
+                            "images": [
+                                {
+                                    "image": "http://image.pbs.org/video-assets/XReisWB-asset-mezzanine-16x9-jNW98rs.jpg",
+                                    "updated_at": "2018-03-05T19:52:20.316190Z",
+                                    "profile": "asset-mezzanine-16x9"
+                                }
+                            ]
+                        },
+                        "links": {
+                            "self": "https://media.services.pbs.org/api/v1/assets/2c172d48-782b-4a21-a21c-48e4b3bdaa98/"
+                        },
+                        "type": "asset",
+                        "id": "2c172d48-782b-4a21-a21c-48e4b3bdaa98"
+                    }
+                ],
+                "parent_tree": {
+                    "attributes": {
+                        "title": "NOVA Wonders Can We Make Life?",
+                        "ordinal": 105,
+                        "slug": "nova-wonders-can-we-make-life-oy2zh9",
+                        "season": {
+                            "attributes": {
+                                "title": "",
+                                "ordinal": 45,
+                                "show": {
+                                    "attributes": {
+                                        "audience": [
+                                            {
+                                                "station": null,
+                                                "scope": "national"
+                                            }
+                                        ],
+                                        "display_episode_number": true,
+                                        "tracking_ga_event": "UA-3988832-2",
+                                        "seasons_count": 21,
+                                        "franchise": null,
+                                        "slug": "nova",
+                                        "title": "NOVA",
+                                        "tracking_ga_page": "UA-3988832-1"
+                                    },
+                                    "links": {
+                                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                                    },
+                                    "type": "show",
+                                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb"
+                                }
+                            },
+                            "links": {
+                                "self": "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/"
+                            },
+                            "type": "season",
+                            "id": "7f613b59-588b-4ec5-bcb1-a3d595b2579c"
+                        }
+                    },
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/"
+                    },
+                    "type": "episode",
+                    "id": "107268fc-0437-4877-8c3b-d5fdcef32737"
+                },
+                "has_captions": true
+            },
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/912569d1-caf6-4ccb-83c5-cf49323f08b1/"
+            },
+            "type": "asset",
+            "id": "912569d1-caf6-4ccb-83c5-cf49323f08b1"
+        },
+        {
+            "attributes": {
+                "slug": "how-does-crispr-work-cqg7kq",
+                "title": "How does CRISPR work?",
+                "title_sortable": "How does CRISPR work?",
+                "description_short": "CRISPR makes gene editing faster, cheaper, and easier than ever before. Here's how.",
+                "description_long": "CRISPR makes gene editing faster, cheaper, and easier than ever before. Here's how.",
+                "object_type": "clip",
+                "premiered_on": "2018-04-04",
+                "encored_on": "2018-04-04",
+                "is_excluded_from_dfp": false,
+                "duration": 96,
+                "content_rating": "",
+                "content_rating_descriptor": [],
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "National corporate funding for NOVA Wonders is provided by Draper. Major funding for NOVA Wonders is provided by National Science Foundation, the Gordon and Betty Moore Foundation, the Alfred P. Sloan Foundation and public television viewers, with additional funding for \u201cAre We Alone?\u201d and \u201cWhat\u2019s the Universe Made Of?\u201d provided by the John Templeton Foundation.\r\nThis material is based upon work supported by the National Science Foundation under Grant No. DRL-1420749. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the National Science Foundation.",
+                "images": [
+                    {
+                        "image": "http://image.pbs.org/video-assets/nTQ9BZO-asset-mezzanine-16x9-Yt5TOcQ.jpg",
+                        "updated_at": "2018-05-23T16:09:07.127408Z",
+                        "profile": "asset-mezzanine-16x9"
+                    }
+                ],
+                "updated_at": "2018-05-29T15:01:44.774233Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [],
+                "platforms": [
+                    {
+                        "name": "All Platforms",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "slug": "allplatforms",
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/8DGi05fK2Kwl_frBBDpLJw==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2018-05-23T16:07:17.617797Z",
+                        "start": "2018-05-23T16:07:17.592176Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2018-05-23T16:07:17.617686Z",
+                        "start": "2018-05-23T16:07:17.592176Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2018-05-23T16:07:17.617746Z",
+                        "start": "2018-05-23T16:07:17.592176Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "attributes": {
+                        "title": "NOVA Wonders Can We Make Life?",
+                        "ordinal": 105,
+                        "slug": "nova-wonders-can-we-make-life-oy2zh9",
+                        "season": {
+                            "attributes": {
+                                "title": "",
+                                "ordinal": 45,
+                                "show": {
+                                    "attributes": {
+                                        "audience": [
+                                            {
+                                                "station": null,
+                                                "scope": "national"
+                                            }
+                                        ],
+                                        "display_episode_number": true,
+                                        "tracking_ga_event": "UA-3988832-2",
+                                        "seasons_count": 21,
+                                        "franchise": null,
+                                        "slug": "nova",
+                                        "title": "NOVA",
+                                        "tracking_ga_page": "UA-3988832-1"
+                                    },
+                                    "links": {
+                                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                                    },
+                                    "type": "show",
+                                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb"
+                                }
+                            },
+                            "links": {
+                                "self": "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/"
+                            },
+                            "type": "season",
+                            "id": "7f613b59-588b-4ec5-bcb1-a3d595b2579c"
+                        }
+                    },
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/"
+                    },
+                    "type": "episode",
+                    "id": "107268fc-0437-4877-8c3b-d5fdcef32737"
+                },
+                "has_captions": false
+            },
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/b36f541a-bb03-4fc7-b6d9-47d35e2197f1/"
+            },
+            "type": "asset",
+            "id": "b36f541a-bb03-4fc7-b6d9-47d35e2197f1"
+        },
+        {
+            "attributes": {
+                "slug": "bringing-back-woolly-mammoths-5jjtrb",
+                "title": "Bringing Back Woolly Mammoths",
+                "title_sortable": "Bringing Back Woolly Mammoths",
+                "description_short": "Mixing mammoth and elephant genes could be the key to saving the Arctic.",
+                "description_long": "Mixing mammoth and elephant genes could be the key to saving the Arctic.",
+                "object_type": "clip",
+                "premiered_on": "2018-04-04",
+                "encored_on": "2018-04-04",
+                "is_excluded_from_dfp": false,
+                "duration": 200,
+                "content_rating": "",
+                "content_rating_descriptor": [],
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "National corporate funding for NOVA Wonders is provided by Draper. Major funding for NOVA Wonders is provided by National Science Foundation, the Gordon and Betty Moore Foundation, the Alfred P. Sloan Foundation and public television viewers, with additional funding for \u201cAre We Alone?\u201d and \u201cWhat\u2019s the Universe Made Of?\u201d provided by the John Templeton Foundation.\r\nThis material is based upon work supported by the National Science Foundation under Grant No. DRL-1420749. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the National Science Foundation.",
+                "images": [
+                    {
+                        "image": "http://image.pbs.org/video-assets/S8pP3cd-asset-mezzanine-16x9-7MQ1OIE.jpg",
+                        "updated_at": "2018-05-30T14:09:03.514206Z",
+                        "profile": "asset-mezzanine-16x9"
+                    }
+                ],
+                "updated_at": "2018-05-30T14:14:11.424778Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [],
+                "platforms": [
+                    {
+                        "name": "All Platforms",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "slug": "allplatforms",
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/JrVQ4tpMyIbWbirMg09zIw==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2018-05-30T14:08:20.088044Z",
+                        "start": "2018-05-30T14:08:20.080630Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2018-05-30T14:08:20.087932Z",
+                        "start": "2018-05-30T14:08:20.080630Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2018-05-30T14:08:20.087993Z",
+                        "start": "2018-05-30T14:08:20.080630Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "attributes": {
+                        "title": "NOVA Wonders Can We Make Life?",
+                        "ordinal": 105,
+                        "slug": "nova-wonders-can-we-make-life-oy2zh9",
+                        "season": {
+                            "attributes": {
+                                "title": "",
+                                "ordinal": 45,
+                                "show": {
+                                    "attributes": {
+                                        "audience": [
+                                            {
+                                                "station": null,
+                                                "scope": "national"
+                                            }
+                                        ],
+                                        "display_episode_number": true,
+                                        "tracking_ga_event": "UA-3988832-2",
+                                        "seasons_count": 21,
+                                        "franchise": null,
+                                        "slug": "nova",
+                                        "title": "NOVA",
+                                        "tracking_ga_page": "UA-3988832-1"
+                                    },
+                                    "links": {
+                                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                                    },
+                                    "type": "show",
+                                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb"
+                                }
+                            },
+                            "links": {
+                                "self": "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/"
+                            },
+                            "type": "season",
+                            "id": "7f613b59-588b-4ec5-bcb1-a3d595b2579c"
+                        }
+                    },
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/"
+                    },
+                    "type": "episode",
+                    "id": "107268fc-0437-4877-8c3b-d5fdcef32737"
+                },
+                "has_captions": false
+            },
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/00805c68-77e9-4d80-8d37-0909db5c0cf7/"
+            },
+            "type": "asset",
+            "id": "00805c68-77e9-4d80-8d37-0909db5c0cf7"
+        },
+        {
+            "attributes": {
+                "slug": "can-gene-therapy-cure-cancer-6fah2r",
+                "title": "Can Gene Therapy Cure Cancer?",
+                "title_sortable": "Can Gene Therapy Cure Cancer?",
+                "description_short": "CAR-T Gene Therapy is a new treatment for some forms of Leukemia and Non-Hodgkin Lymphoma.",
+                "description_long": "CAR-T Gene Therapy is a new treatment for some forms of Leukemia and Non-Hodgkin Lymphoma.",
+                "object_type": "clip",
+                "premiered_on": "2018-04-04",
+                "encored_on": "2018-04-04",
+                "is_excluded_from_dfp": false,
+                "duration": 203,
+                "content_rating": "",
+                "content_rating_descriptor": [],
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "National corporate funding for NOVA Wonders is provided by Draper. Major funding for NOVA Wonders is provided by National Science Foundation, the Gordon and Betty Moore Foundation, the Alfred P. Sloan Foundation and public television viewers, with additional funding for \u201cAre We Alone?\u201d and \u201cWhat\u2019s the Universe Made Of?\u201d provided by the John Templeton Foundation.\r\nThis material is based upon work supported by the National Science Foundation under Grant No. DRL-1420749. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the National Science Foundation.",
+                "images": [
+                    {
+                        "image": "http://image.pbs.org/video-assets/aJg6qOm-asset-mezzanine-16x9-sW7zYj0.jpg",
+                        "updated_at": "2018-07-25T15:03:22.172628Z",
+                        "profile": "asset-mezzanine-16x9"
+                    }
+                ],
+                "updated_at": "2018-07-25T15:19:55.702816Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [],
+                "platforms": [
+                    {
+                        "name": "All Platforms",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "slug": "allplatforms",
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/w7Eocr-m46DaHoxgKMhGoQ==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2018-07-25T14:49:36.313943Z",
+                        "start": "2018-07-25T14:49:36.301263Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2018-07-25T14:49:36.313831Z",
+                        "start": "2018-07-25T14:49:36.301263Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2018-07-25T14:49:36.313892Z",
+                        "start": "2018-07-25T14:49:36.301263Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "attributes": {
+                        "title": "NOVA Wonders Can We Make Life?",
+                        "ordinal": 105,
+                        "slug": "nova-wonders-can-we-make-life-oy2zh9",
+                        "season": {
+                            "attributes": {
+                                "title": "",
+                                "ordinal": 45,
+                                "show": {
+                                    "attributes": {
+                                        "audience": [
+                                            {
+                                                "station": null,
+                                                "scope": "national"
+                                            }
+                                        ],
+                                        "display_episode_number": true,
+                                        "tracking_ga_event": "UA-3988832-2",
+                                        "seasons_count": 21,
+                                        "franchise": null,
+                                        "slug": "nova",
+                                        "title": "NOVA",
+                                        "tracking_ga_page": "UA-3988832-1"
+                                    },
+                                    "links": {
+                                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                                    },
+                                    "type": "show",
+                                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb"
+                                }
+                            },
+                            "links": {
+                                "self": "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/"
+                            },
+                            "type": "season",
+                            "id": "7f613b59-588b-4ec5-bcb1-a3d595b2579c"
+                        }
+                    },
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/"
+                    },
+                    "type": "episode",
+                    "id": "107268fc-0437-4877-8c3b-d5fdcef32737"
+                },
+                "has_captions": false
+            },
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/de7358fc-7737-42f8-8902-2b43588ab735/"
+            },
+            "type": "asset",
+            "id": "de7358fc-7737-42f8-8902-2b43588ab735"
+        },
+        {
+            "attributes": {
+                "slug": "profile-kevin-esvelt-jjnjjp",
+                "title": "Profile: Kevin Esvelt",
+                "title_sortable": "Profile: Kevin Esvelt",
+                "description_short": "Kevin Esvelt's on a mission to eradicate Lyme disease on Nantucket and Martha\u2019s Vineyard.",
+                "description_long": "Kevin Esvelt is on a mission to eradicate Lyme disease on Nantucket and Martha\u2019s Vineyard.",
+                "object_type": "clip",
+                "premiered_on": "2018-04-04",
+                "encored_on": "2018-04-04",
+                "is_excluded_from_dfp": false,
+                "duration": 502,
+                "content_rating": "",
+                "content_rating_descriptor": [],
+                "can_embed_player": true,
+                "tags": null,
+                "language": "en",
+                "funder_message": "National corporate funding for NOVA Wonders is provided by Draper. Major funding for NOVA Wonders is provided by National Science Foundation, the Gordon and Betty Moore Foundation, the Alfred P. Sloan Foundation and public television viewers, with additional funding for \u201cAre We Alone?\u201d and \u201cWhat\u2019s the Universe Made Of?\u201d provided by the John Templeton Foundation.\r\nThis material is based upon work supported by the National Science Foundation under Grant No. DRL-1420749. Any opinions, findings, and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of the National Science Foundation.",
+                "images": [
+                    {
+                        "image": "https://image.pbs.org/video-assets/oMJpt93-asset-mezzanine-16x9-hOvXUpU.jpg",
+                        "updated_at": "2018-09-26T15:26:14.892436Z",
+                        "profile": "asset-mezzanine-16x9"
+                    }
+                ],
+                "updated_at": "2018-09-26T17:22:34.594504Z",
+                "countries": [],
+                "geo_profile": null,
+                "topics": [],
+                "platforms": [
+                    {
+                        "name": "All Platforms",
+                        "updated_at": "2017-04-03T15:57:09.459445Z",
+                        "slug": "allplatforms",
+                        "id": "e5a289b8-01b3-41ce-92c1-3eb5a4e14bc0"
+                    }
+                ],
+                "player_code": "<iframe  id='partnerPlayer' frameborder='0' marginwidth='0' marginheight='0' scrolling='no' width='100%' height='100%' src='//player.pbs.org/partnerplayer/VUK9EVz0-BK8PD0lcarj6w==/?topbar=false&end=0&endscreen=true&start=0&autoplay=false' allowfullscreen></iframe>",
+                "availabilities": {
+                    "station_members": {
+                        "end": null,
+                        "updated_at": "2018-09-26T15:25:47.441840Z",
+                        "start": "2018-09-26T15:25:47.435329Z"
+                    },
+                    "public": {
+                        "end": null,
+                        "updated_at": "2018-09-26T15:25:47.441729Z",
+                        "start": "2018-09-26T15:25:47.435329Z"
+                    },
+                    "all_members": {
+                        "end": null,
+                        "updated_at": "2018-09-26T15:25:47.441789Z",
+                        "start": "2018-09-26T15:25:47.435329Z"
+                    }
+                },
+                "related_links": [],
+                "related_promos": [],
+                "parent_tree": {
+                    "attributes": {
+                        "title": "NOVA Wonders Can We Make Life?",
+                        "ordinal": 105,
+                        "slug": "nova-wonders-can-we-make-life-oy2zh9",
+                        "season": {
+                            "attributes": {
+                                "title": "",
+                                "ordinal": 45,
+                                "show": {
+                                    "attributes": {
+                                        "audience": [
+                                            {
+                                                "station": null,
+                                                "scope": "national"
+                                            }
+                                        ],
+                                        "display_episode_number": true,
+                                        "tracking_ga_event": "UA-3988832-2",
+                                        "seasons_count": 21,
+                                        "franchise": null,
+                                        "slug": "nova",
+                                        "title": "NOVA",
+                                        "tracking_ga_page": "UA-3988832-1"
+                                    },
+                                    "links": {
+                                        "self": "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/"
+                                    },
+                                    "type": "show",
+                                    "id": "adfb2f9d-f61e-4613-ac58-ab3bde582afb"
+                                }
+                            },
+                            "links": {
+                                "self": "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/"
+                            },
+                            "type": "season",
+                            "id": "7f613b59-588b-4ec5-bcb1-a3d595b2579c"
+                        }
+                    },
+                    "links": {
+                        "self": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/"
+                    },
+                    "type": "episode",
+                    "id": "107268fc-0437-4877-8c3b-d5fdcef32737"
+                },
+                "has_captions": false
+            },
+            "links": {
+                "self": "https://media.services.pbs.org/api/v1/assets/e7ca122e-29ae-4c6e-a895-1c457e6abaed/"
+            },
+            "type": "asset",
+            "id": "e7ca122e-29ae-4c6e-a895-1c457e6abaed"
+        }
+    ],
+    "jsonapi": {
+        "version": "1.0"
+    },
+    "meta": {
+        "filter": {
+            "type": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/assets/?type=",
+            "platform-slug": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/assets/?platform-slug=",
+            "platform-id": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/assets/?platform-id=",
+            "slug": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/assets/?slug=",
+            "id": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/assets/?id="
+        },
+        "type": "collection",
+        "sort": {
+            "premiered_on": {
+                "desc": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/assets/?sort=-premiered_on",
+                "asc": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/assets/?sort=premiered_on"
+            },
+            "title_sortable": {
+                "desc": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/assets/?sort=-title_sortable",
+                "asc": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/assets/?sort=title_sortable"
+            },
+            "encored_on": {
+                "desc": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/assets/?sort=-encored_on",
+                "asc": "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/assets/?sort=encored_on"
+            }
+        },
+        "pagination": {
+            "per_page": 25,
+            "count": 6
+        }
+    }
+}
