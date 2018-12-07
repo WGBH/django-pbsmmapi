@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
@@ -82,6 +83,7 @@ class PBSMMSpecialAsset(PBSMMAbstractAsset):
 def process_special_assets(endpoint, this_special):
     # Handle pagination
     keep_going = True
+    scraped_object_ids = []
     while keep_going:
         (status, json) = get_PBSMM_record(endpoint)
 
@@ -92,6 +94,7 @@ def process_special_assets(endpoint, this_special):
 
         for item in asset_list:
             object_id = item.get('id')
+            scraped_object_ids.append(UUID(object_id))
 
             try:
                 instance = PBSMMSpecialAsset.objects.get(object_id=object_id)
@@ -111,6 +114,10 @@ def process_special_assets(endpoint, this_special):
             instance.save()
 
         (keep_going, endpoint) = check_pagination(json)
+
+    for asset in PBSMMSpecialAsset.objects.filter(special=this_special):
+        if asset.object_id not in scraped_object_ids:
+            asset.delete()
 
     return
 
@@ -144,7 +151,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         if not instance.slug:
             return  # do nothing - can't get an ID to look up!
 
-    url = "%s/%s/" % (PBSMM_SPECIAL_ENDPOINT, instance.slug)
+    url = "{}{}/".format(PBSMM_SPECIAL_ENDPOINT, instance.slug)
 
     # OK - get the record from the API
     (status, json) = get_PBSMM_record(url)

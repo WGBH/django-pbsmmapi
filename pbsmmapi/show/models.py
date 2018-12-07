@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
+from uuid import UUID
+
 from django.db import models
 from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
@@ -48,7 +50,7 @@ class PBSMMAbstractShow(PBSMMGenericShow):
         abstract = True
 
     def get_absolute_url(self):
-        return reverse('show-detail', (), {'slug': self.slug})
+        return reverse('show-detail', args=[self.slug])
 
     def __unicode__(self):
         if self.title:
@@ -88,12 +90,14 @@ class PBSMMShowAsset(PBSMMAbstractAsset):
 
 def process_show_assets(endpoint, this_show):
     keep_going = True
+    scraped_object_ids = []
     while keep_going:
         (status, json) = get_PBSMM_record(endpoint)
         data = json['data']
 
         for item in data:
             object_id = item.get('id')
+            scraped_object_ids.append(UUID(object_id))
 
             try:
                 instance = PBSMMShowAsset.objects.get(object_id=object_id)
@@ -113,6 +117,10 @@ def process_show_assets(endpoint, this_show):
             instance.save()
 
         (keep_going, endpoint) = check_pagination(json)
+
+    for asset in PBSMMShowAsset.objects.filter(show=this_show):
+        if asset.object_id not in scraped_object_ids:
+            asset.delete()
 
     return
 ##########################################################################
@@ -145,7 +153,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         if not instance.slug:
             return  # do nothing - can't get an ID to look up!
 
-    url = "%s/%s/" % (PBSMM_SHOW_ENDPOINT, instance.slug)
+    url = "{}{}/".format(PBSMM_SHOW_ENDPOINT, instance.slug)
 
     # OK - get the record from the API
     (status, json) = get_PBSMM_record(url)

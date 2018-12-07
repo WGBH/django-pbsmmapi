@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
@@ -114,12 +115,14 @@ def process_season_assets(endpoint, this_season):
     For each Asset associated with this Season, ingest them page by page.
     """
     keep_going = True
+    scraped_object_ids = []
     while keep_going:
         (status, json) = get_PBSMM_record(endpoint)
         asset_list = json['data']
 
         for item in asset_list:
             object_id = item.get('id')
+            scraped_object_ids.append(UUID(object_id))
 
             try:
                 instance = PBSMMSeasonAsset.objects.get(object_id=object_id)
@@ -139,6 +142,10 @@ def process_season_assets(endpoint, this_season):
             instance.save()
 
         (keep_going, endpoint) = check_pagination(json)
+
+    for asset in PBSMMSeasonAsset.objects.filter(season=this_season):
+        if asset.object_id not in scraped_object_ids:
+            asset.delete()
 
     return
 
@@ -174,7 +181,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         if not instance.object_id:
             return  # do nothing - can't get an ID to look up!
 
-    url = "%s/%s/" % (PBSMM_SEASON_ENDPOINT, instance.object_id)
+    url = "{}{}/".format(PBSMM_SEASON_ENDPOINT, instance.object_id)
 
     # OK - get the record from the API
     (status, json) = get_PBSMM_record(url)
