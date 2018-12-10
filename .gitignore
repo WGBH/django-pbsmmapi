@@ -60,3 +60,9 @@ whoosh_index/
 
 Pipfile
 Pipfile.lock
+
+*.egg-info/
+
+.coverage
+.python-version
+.tox/
