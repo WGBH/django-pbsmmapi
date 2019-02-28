@@ -54,15 +54,6 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
                 ('publish_status', 'live_as_of', ),
             ),
         }),
-        ('API Metadata', {
-            'classes': ('collapse in',),
-            'fields': (
-                'object_id',
-                ('date_last_api_update', 'updated_at', 'last_api_status_color'),
-                'api_endpoint_link',
-
-            ),
-        }),
         ('Title, Slug, Link', {  # 'classes': ('collapse in',),
             'fields': (
                 'title', 'title_sortable', 'slug', 'api_endpoint_link'

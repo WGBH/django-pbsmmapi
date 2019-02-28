@@ -48,7 +48,6 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
                 ('date_created', 'date_last_api_update', 'updated_at',
                  'last_api_status', 'last_api_status_color'),
                 'api_endpoint_link',
-                'object_id',
 
             ),
         }),

@@ -79,15 +79,6 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
                 ('publish_status', 'live_as_of', )
             ),
         }),
-        ('API Metadata', {
-            'classes': ('collapse in',),
-            'fields': (
-                'object_id',
-                ('date_last_api_update', 'updated_at', 'last_api_status_color'),
-                'api_endpoint_link',
-
-            ),
-        }),
         ('Seasons and Specials', {
             # 'classes': ('collapse in',),
             'fields': ('format_seasons_list', 'format_specials_list'),
