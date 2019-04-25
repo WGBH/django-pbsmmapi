@@ -71,7 +71,10 @@ class PBSMMSeason(PBSMMGenericSeason):
 
     def __unicode__(self):
         return "%s | %d | %s " % (self.object_id, self.ordinal, self.title)
-
+        
+    def __str__(self):
+        return "%s | %d | %s " % (self.object_id, self.ordinal, self.title)
+        
     def __object_model_type(self):
         """
         This return the object type.
