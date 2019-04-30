@@ -24,6 +24,7 @@ class PBSMMSpecial(PBSMMGenericSpecial):
     show = models.ForeignKey(
         'show.PBSMMShow', related_name='specials',
         on_delete=models.CASCADE,  # required for Django 2.0
+        null = True, blank = True  # added for AR5 support
     )
 
     class Meta:

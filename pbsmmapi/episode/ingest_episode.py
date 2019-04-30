@@ -44,6 +44,11 @@ def process_episode_record(obj, instance):
 
     # Unprocessed - store as JSON fragments
     instance.links = set_json_serialized_field(attrs, 'links', default=None)
+    
+    # References: Season
+    this_season = attrs.get('season', None)
+    season_attrs = this_season.attrs.get('attributes', None)
+    instance.season_api_id = season_attrs.get('id', None)
 
     instance.json = obj
     return instance

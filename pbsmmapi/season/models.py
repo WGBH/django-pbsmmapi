@@ -35,6 +35,7 @@ class PBSMMSeason(PBSMMGenericSeason):
     show = models.ForeignKey(
         'show.PBSMMShow', related_name='seasons',
         on_delete=models.CASCADE,  # required for Django 2.0
+        null = True, blank = True  # added for AR5 support
     )
 
     # This triggers cascading ingestion of child Episodes - set from the admin

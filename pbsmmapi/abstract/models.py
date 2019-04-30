@@ -6,6 +6,7 @@ from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
+#from django.contrib.postgres.fields import JSONField
 from jsonfield import JSONField
 
 from .helpers import get_canonical_image, get_default_asset

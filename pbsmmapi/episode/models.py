@@ -37,12 +37,18 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         max_length=200,
         blank=True, null=True
     )
+    
+    season_api_id = models.UUIDField (
+        _('Season, Object ID'),
+        unique=True,
+        null=True, blank=True  # does this work?
+    )
 
     # THIS IS THE (required) PARENTAL SEASON
     season = models.ForeignKey(
         'season.PBSMMSeason', related_name='episodes',
         on_delete=models.CASCADE,  # required for Django 2.0
-
+        null = True, blank = True  # ADDED FOR AR5 support
     )
 
     class Meta:
