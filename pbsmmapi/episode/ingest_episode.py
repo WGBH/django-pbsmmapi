@@ -1,6 +1,5 @@
 from ..abstract.helpers import set_json_serialized_field, fix_non_aware_datetime
 
-
 def process_episode_record(obj, instance):
     """
     This is the code that takes a PBSMM API-returned Episode and aligns it with a PBSMMEpisode database record.

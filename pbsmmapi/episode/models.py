@@ -37,18 +37,16 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         max_length=200,
         blank=True, null=True
     )
-    
-    season_api_id = models.UUIDField (
-        _('Season, Object ID'),
-        unique=True,
-        null=True, blank=True  # does this work?
-    )
 
-    # THIS IS THE (required) PARENTAL SEASON
+    # THIS IS THE PARENTAL SEASON
     season = models.ForeignKey(
         'season.PBSMMSeason', related_name='episodes',
         on_delete=models.CASCADE,  # required for Django 2.0
         null = True, blank = True  # ADDED FOR AR5 support
+    )
+    season_api_id = models.UUIDField (
+        _('Season Object ID'),
+        null=True, blank=True  # does this work?
     )
 
     class Meta:
@@ -83,8 +81,9 @@ class PBSMMEpisode(PBSMMGenericEpisode):
 
             Useful in lists of episodes that cross Seasons/Shows.
         """
-        return "%s-%02d%02d" % (self.season.show.slug,
-                                self.season.ordinal, self.ordinal)
+        if self.season and self.season.show and self.season.ordinal:
+            return "%s-%02d%02d" % (self.season.show.slug, self.season.ordinal, self.ordinal)
+        return "{}: (episode {})".format(self.pk, self.ordinal)
     # full_episode_code.short_description = 'Ep #'
     full_episode_code = property(__full_episode_code)
 
@@ -251,6 +250,12 @@ def handle_children(sender, instance, *args, **kwargs):
 
     We ALWAYS get the Assets when the Episode is ingested.
     """
+    if not instance:
+        return 
+        
+    if instance.__class__ is not PBSMMEpisode:
+        return
+        
     # ALWAYS GET CHILD ASSETS
     assets_endpoint = instance.json['links'].get('assets')
     if assets_endpoint:

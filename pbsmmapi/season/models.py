@@ -32,6 +32,10 @@ class PBSMMSeason(PBSMMGenericSeason):
     )
 
     # This is the parental Show
+    show_api_id = models.UUIDField (
+        _('Show Object ID'),
+        null=True, blank=True  # does this work?
+    )
     show = models.ForeignKey(
         'show.PBSMMShow', related_name='seasons',
         on_delete=models.CASCADE,  # required for Django 2.0
@@ -51,6 +55,7 @@ class PBSMMSeason(PBSMMGenericSeason):
         verbose_name_plural = 'PBS MM Seasons'
         # app_label = 'pbsmmapi'
         db_table = 'pbsmm_season'
+        ordering = ['-ordinal']
 
     def get_absolute_url(self):
         """
@@ -90,12 +95,9 @@ class PBSMMSeason(PBSMMGenericSeason):
         This creates a human friendly title out of the Season metadata
         if an explicit title is not set from the Show title and Episode ordinal.
         """
-        if self.title_sortable:
-            return self.title_sortable
-        elif self.title:
-            return self.title
-        else:
+        if self.show:
             return '%s Season %d' % (self.show.title, self.ordinal)
+        return 'Season %d' % self.ordinal
     printable_title = property(__printable_title)
 
 

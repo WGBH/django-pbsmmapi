@@ -61,6 +61,10 @@ def process_season_record(obj, instance, origin='season'):
         attrs, 'platforms', default=None)
     instance.audience = set_json_serialized_field(
         attrs, 'audience', default=None)
+        
+    # References to parents
+    show = attrs.get('show', None)
+    instance.show_api_id = show.get('id', None)
 
     instance.json = obj
     return instance
