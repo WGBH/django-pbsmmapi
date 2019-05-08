@@ -5,6 +5,7 @@ from uuid import UUID
 from django.db import models
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
 
 from ..abstract.helpers import time_zone_aware_now
@@ -21,9 +22,15 @@ PBSMM_SPECIAL_ENDPOINT = 'https://media.services.pbs.org/api/v1/specials/'
 
 
 class PBSMMSpecial(PBSMMGenericSpecial):
+    
+    show_api_id = models.UUIDField (
+        _('Show Object ID'),
+        null=True, blank=True  # does this work?
+    )
     show = models.ForeignKey(
         'show.PBSMMShow', related_name='specials',
         on_delete=models.CASCADE,  # required for Django 2.0
+        null = True, blank = True  # added for AR5 support
     )
 
     class Meta:

@@ -1,6 +1,5 @@
 from ..abstract.helpers import set_json_serialized_field, fix_non_aware_datetime
 
-
 def process_episode_record(obj, instance):
     """
     This is the code that takes a PBSMM API-returned Episode and aligns it with a PBSMMEpisode database record.
@@ -44,6 +43,17 @@ def process_episode_record(obj, instance):
 
     # Unprocessed - store as JSON fragments
     instance.links = set_json_serialized_field(attrs, 'links', default=None)
+    
+    # References: Season
+    this_season = attrs.get('season', None)
+    #try:
+    #    season_attrs = this_season.attrs.get('attributes', None)
+    #   instance.season_api_id = season_attrs.get('id', None)
+    #except:
+    try:
+        instance.season_api_id = this_season.get('id', None)
+    except:
+        pass
 
     instance.json = obj
     return instance

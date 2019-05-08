@@ -34,7 +34,8 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
 
         'format_episode_list',
         'assemble_asset_table',
-        'show_publish_status'
+        'show_publish_status',
+        'show_api_id',
     ]
 
     add_fieldsets = (
@@ -56,8 +57,8 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
         }),
         ('Season Metadata', {  # 'classes': ('collapse in',),
             'fields': (
-                'title', 'title_sortable',
-                'ordinal'
+                'ordinal',
+                'show_api_id',
             ),
         }),
         ('Assets', {'fields': ('assemble_asset_table',), }),
