@@ -46,8 +46,14 @@ def process_episode_record(obj, instance):
     
     # References: Season
     this_season = attrs.get('season', None)
-    season_attrs = this_season.attrs.get('attributes', None)
-    instance.season_api_id = season_attrs.get('id', None)
+    #try:
+    #    season_attrs = this_season.attrs.get('attributes', None)
+    #   instance.season_api_id = season_attrs.get('id', None)
+    #except:
+    try:
+        instance.season_api_id = this_season.get('id', None)
+    except:
+        pass
 
     instance.json = obj
     return instance
