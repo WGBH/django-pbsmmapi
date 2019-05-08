@@ -35,6 +35,7 @@ pbsmmapi/episode/views.py
 pbsmmapi/episode/migrations/0001_initial.py
 pbsmmapi/episode/migrations/0002_auto_20190430_1853.py
 pbsmmapi/episode/migrations/0003_auto_20190430_1926.py
+pbsmmapi/episode/migrations/0004_auto_20190430_1949.py
 pbsmmapi/episode/migrations/__init__.py
 pbsmmapi/season/__init__.py
 pbsmmapi/season/admin.py
@@ -48,6 +49,8 @@ pbsmmapi/season/views.py
 pbsmmapi/season/migrations/0001_initial.py
 pbsmmapi/season/migrations/0002_auto_20190430_1853.py
 pbsmmapi/season/migrations/0003_pbsmmseason_show_api_id.py
+pbsmmapi/season/migrations/0004_auto_20190430_1949.py
+pbsmmapi/season/migrations/0005_auto_20190502_1629.py
 pbsmmapi/season/migrations/__init__.py
 pbsmmapi/show/__init__.py
 pbsmmapi/show/admin.py
@@ -71,6 +74,7 @@ pbsmmapi/special/views.py
 pbsmmapi/special/migrations/0001_initial.py
 pbsmmapi/special/migrations/0002_auto_20190430_1853.py
 pbsmmapi/special/migrations/0003_pbsmmspecial_show_api_id.py
+pbsmmapi/special/migrations/0004_auto_20190430_1949.py
 pbsmmapi/special/migrations/__init__.py
 pbsmmapi/templatetags/__init__.py
 pbsmmapi/templatetags/pbsmm_tags.py

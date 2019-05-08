@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: django-pbsmmapi
-Version: 0.2.1
+Version: 0.2.3
 Summary: Django models that import content from the PBS MediaManager API
 Home-page: http://github.com/wgbh/django-pbsmmapi/
 Author: Bob Donahue
