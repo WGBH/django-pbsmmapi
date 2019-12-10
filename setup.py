@@ -9,7 +9,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-pbsmmapi',
-    version='0.2.3',
+    version='0.2.4',
     packages=find_packages(exclude=['tests']),
     include_package_data=True,
     license='MIT License, see LICENSE',
@@ -20,7 +20,7 @@ setup(
     author_email='bob_donahue@wgbh.org',
     install_requires=['jsonfield', 'requests', 'python-dateutil'],
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
+        'Development Status :: 5 - Production/Stable',
         'Environment :: Web Environment',
         'Framework :: Django',
         'Framework :: Django :: 1.11',
@@ -36,6 +36,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
