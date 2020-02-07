@@ -16,69 +16,79 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
         'last_api_status_color', 'show_publish_status'
     )
     list_display_links = ('pk', 'printable_title')
-    list_filter = ('show__title_sortable',)
+    list_filter = ('show__title_sortable', )
     # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
     # want to be able to view it in the context of the Django system.
     #
     # Most things here are fields, some are method output and some are
     # properties.
     readonly_fields = [
-        'date_created', 'date_last_api_update', 'updated_at', 'last_api_status_color',
-        'api_endpoint', 'api_endpoint_link',
-        'title', 'title_sortable', 'ordinal',
-        'description_long', 'description_short',
-        'updated_at', 'last_api_status',
-        'images', 'pretty_image_list',
-        'canonical_image', 'canonical_image_tag',
-        'links',
-
-        'format_episode_list',
-        'assemble_asset_table',
-        'show_publish_status',
-        'show_api_id',
+        'api_endpoint', 'api_endpoint_link', 'assemble_asset_table', 'canonical_image',
+        'canonical_image_tag', 'date_created', 'date_last_api_update', 'description_long',
+        'description_short', 'format_episode_list', 'images', 'last_api_status',
+        'last_api_status_color', 'links', 'ordinal', 'pretty_image_list', 'show_api_id',
+        'show_publish_status', 'title', 'title_sortable', 'updated_at'
     ]
 
-    add_fieldsets = (
-        (None, {'fields': ('object_id', 'show', 'ingest_episodes'), }),
-    )
+    add_fieldsets = ((None, {
+        'fields': ('object_id', 'show', 'ingest_episodes'),
+    }), )
 
     fieldsets = (
-        (None, {
-            'fields': (
-                ('ingest_on_save', 'ingest_episodes'),
-                ('date_created', 'date_last_api_update', 'updated_at',
-                 'last_api_status', 'last_api_status_color'),
-                'api_endpoint_link',
-
-            ),
-        }),
-        ('Episodes', {
-            'fields': ('format_episode_list', )
-        }),
-        ('Season Metadata', {  # 'classes': ('collapse in',),
-            'fields': (
-                'ordinal',
-                'show_api_id',
-            ),
-        }),
-        ('Assets', {'fields': ('assemble_asset_table',), }),
-        ('Description and Texts', {'classes': ('collapse',),
-                                   'fields': (
-            'description_long', 'description_short',
+        (
+            None,
+            {
+                'fields': (
+                    ('ingest_on_save', 'ingest_episodes'),
+                    (
+                        'date_created',
+                        'date_last_api_update',
+                        'updated_at',
+                        'last_api_status',
+                        'last_api_status_color',
+                    ),
+                    'api_endpoint_link',
+                ),
+            },
         ),
-        }),
-        ('Images', {'classes': ('collapse',),
-                    'fields': (
-            'images', 'pretty_image_list',
-            'canonical_image_type_override',
-            'canonical_image_tag',
+        (
+            'Episodes',
+            {'fields': ('format_episode_list', )},
         ),
-        }),
-        ('Other', {'classes': ('collapse',),
-                   'fields': (
-            'links',
-        )
-        }),
+        (
+            'Season Metadata',
+            {'fields': ('ordinal', 'show_api_id')},
+        ),
+        (
+            'Assets',
+            {'fields': ('assemble_asset_table', )},
+        ),
+        (
+            'Description and Texts',
+            {
+                'classes': ('collapse', ),
+                'fields': (
+                    'description_long',
+                    'description_short',
+                ),
+            },
+        ),
+        (
+            'Images',
+            {
+                'classes': ('collapse', ),
+                'fields': (
+                    'images',
+                    'pretty_image_list',
+                    'canonical_image_type_override',
+                    'canonical_image_tag',
+                ),
+            },
+        ),
+        (
+            'Other',
+            {'classes': ('collapse', ), 'fields': ('links', )},
+        ),
     )
 
     # Switch between the fieldsets depending on whether we're adding or
@@ -92,10 +102,12 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
     def get_form(self, request, obj=None, **kwargs):
         defaults = {}
         if obj is None:
-            kwargs.update({
-                'form': self.add_form,
-                'fields': admin.utils.flatten_fieldsets(self.add_fieldsets),
-            })
+            kwargs.update(
+                {
+                    'form': self.add_form,
+                    'fields': admin.utils.flatten_fieldsets(self.add_fieldsets),
+                }
+            )
         defaults.update(kwargs)
         return super(PBSMMSeasonAdmin, self).get_form(request, obj, **kwargs)
 
@@ -116,6 +128,7 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
             out += episode.create_table_line()
         out += '</table>'
         return mark_safe(out)
+
     format_episode_list.short_description = 'EPISODE LIST'
 
 
@@ -128,6 +141,7 @@ class PBSMMSeasonAssetAdmin(PBSMMAbstractAssetAdmin):
 
     def season_title(self, obj):
         return obj.season.title
+
     season_title.short_description = 'Season'
 
 

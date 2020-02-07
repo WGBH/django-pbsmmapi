@@ -9,73 +9,100 @@ class PBSMMAbstractAssetAdmin(admin.ModelAdmin):
     # Most things here are fields, some are method output and some are
     # properties.
     readonly_fields = [
-        'date_created', 'date_last_api_update', 'updated_at', 'last_api_status_color',
-        'api_endpoint_link',
-        'title', 'title_sortable', 'slug', 'object_type',
-        'description_long', 'description_short',
-        'is_excluded_from_dfp', 'can_embed_player',
-        'player_code', 'language',
-        'duration', 'tags', 'availability', 'asset_publicly_available',
-        'links', 'chapters', 'images', 'canonical_image', 'canonical_image_tag',
-        'content_rating', 'content_rating_description', 'topics', 'geo_profile',
-        'platforms', 'windows',
-
-        'player_code_preview'
+        'api_endpoint_link', 'asset_publicly_available', 'availability',
+        'can_embed_player', 'canonical_image', 'canonical_image_tag', 'chapters',
+        'content_rating', 'content_rating_description', 'date_created',
+        'date_last_api_update', 'description_long', 'description_short', 'duration',
+        'geo_profile', 'images', 'is_excluded_from_dfp', 'language',
+        'last_api_status_color', 'links', 'object_type', 'platforms', 'player_code',
+        'player_code_preview', 'slug', 'tags', 'title', 'title_sortable', 'topics',
+        'updated_at', 'windows'
     ]
     search_fields = ('title', )
 
     # If we're viewing a record, make it pretty.
     fieldsets = [
-        (None, {
-            'fields': (
-                'ingest_on_save',
-                'override_default_asset',
-                ('date_created', 'date_last_api_update',
-                 'updated_at', 'last_api_status_color'),
-                'api_endpoint_link',
-                ('object_id', 'legacy_tp_media_id'),
-            ),
-        }),
-        ('Title and Availability', {  # 'classes': ('collapse in',),
-            'fields': (
-                'title', 'title_sortable',
-                'asset_publicly_available',
-            ),
-        }),
-        ('Images', {'classes': ('collapse',),
-                    'fields': (
-            'images',
-            'canonical_image_type_override',
-            'canonical_image_tag',
+        (
+            None,
+            {
+                'fields': (
+                    'ingest_on_save',
+                    'override_default_asset',
+                    (
+                        'date_created', 'date_last_api_update', 'updated_at',
+                        'last_api_status_color'
+                    ),
+                    'api_endpoint_link',
+                    ('object_id', 'legacy_tp_media_id'),
+                ),
+            },
         ),
-        }),
-        ('Description', {'classes': ('collapse',),
-                         'fields': (
-            'slug', 'description_long', 'description_short',
+        (
+            'Title and Availability',
+            {
+                'fields': (
+                    'title',
+                    'title_sortable',
+                    'asset_publicly_available',
+                ),
+            },
         ),
-        }),
-        ('Asset Metadata', {'classes': ('collapse',),
-                            'fields': (
-            ('object_type', 'duration'),
-            ('can_embed_player', 'is_excluded_from_dfp'),
-            'availability',
-            'content_rating',
-            'content_rating_description',
-            'language',
-            'topics', 'tags', 'chapters',
+        (
+            'Images',
+            {
+                'classes': ('collapse', ),
+                'fields': (
+                    'images',
+                    'canonical_image_type_override',
+                    'canonical_image_tag',
+                ),
+            },
         ),
-        }),
-        ('Asset Preview', {'classes': ('collapse', ),
-                           'fields': (
-            'player_code',
-            'player_code_preview',
+        (
+            'Description',
+            {
+                'classes': ('collapse', ),
+                'fields': (
+                    'slug',
+                    'description_long',
+                    'description_short',
+                ),
+            },
         ),
-        }),
-        ('Additional Metadata', {'classes': ('collapse',),
-                                 'fields': (
-            'links', 'geo_profile', 'platforms', 'windows'
+        (
+            'Asset Metadata',
+            {
+                'classes': ('collapse', ),
+                'fields': (
+                    ('object_type', 'duration'),
+                    ('can_embed_player', 'is_excluded_from_dfp'),
+                    'availability',
+                    'content_rating',
+                    'content_rating_description',
+                    'language',
+                    'topics',
+                    'tags',
+                    'chapters',
+                ),
+            },
         ),
-        }),
+        (
+            'Asset Preview',
+            {
+                'classes': ('collapse', ),
+                'fields': (
+                    'player_code',
+                    'player_code_preview',
+                ),
+            },
+        ),
+        (
+            'Additional Metadata',
+            {
+                'classes': ('collapse', ),
+                'fields': ('links', 'geo_profile', 'platforms', 'windows'),
+            },
+        ),
     ]
 
     def player_code_preview(self, obj):
