@@ -9,7 +9,7 @@ os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name='django-pbsmmapi',
-    version='0.2.4',
+    version='0.2.5',
     packages=find_packages(exclude=['tests']),
     include_package_data=True,
     license='MIT License, see LICENSE',
@@ -27,6 +27,7 @@ setup(
         'Framework :: Django :: 1.11',
         'Framework :: Django :: 2.0',
         'Framework :: Django :: 2.1',
+        'Framework :: Django :: 2.2',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
