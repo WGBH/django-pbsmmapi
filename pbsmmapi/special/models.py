@@ -22,21 +22,23 @@ PBSMM_SPECIAL_ENDPOINT = 'https://media.services.pbs.org/api/v1/specials/'
 
 
 class PBSMMSpecial(PBSMMGenericSpecial):
-    
-    show_api_id = models.UUIDField (
+
+    show_api_id = models.UUIDField(
         _('Show Object ID'),
-        null=True, blank=True  # does this work?
+        null=True,
+        blank=True  # does this work?
     )
     show = models.ForeignKey(
-        'show.PBSMMShow', related_name='specials',
+        'show.PBSMMShow',
+        related_name='specials',
         on_delete=models.CASCADE,  # required for Django 2.0
-        null = True, blank = True  # added for AR5 support
+        null=True,
+        blank=True  # added for AR5 support
     )
 
     class Meta:
         verbose_name = 'PBS MM Special'
         verbose_name_plural = 'PBS MM Specials'
-        # app_label = 'pbsmmapi'
         db_table = 'pbsmm_special'
 
     def get_absolute_url(self):
@@ -49,6 +51,7 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         # This handles the correspondence to the "type" field in the PBSMM JSON
         # object
         return 'special'
+
     object_model_type = property(__object_model_type)
 
     def __get_nola_code(self):
@@ -57,12 +60,14 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         if self.show.nola is None or self.show.nola == '':
             return None
         return "%s-%s" % (self.show.nola, self.nola)
+
     nola_code = property(__get_nola_code)
 
     def create_table_line(self):
         out = "<tr>"
         out += "\n\t<td><a href=\"/admin/special/pbsmmspecial/%d/change/\"><B>%s</b></a></td>" % (
-            self.id, self.title)
+            self.id, self.title
+        )
         out += "\n\t<td><a href=\"%s\" target=\"_new\">API</a></td>" % self.api_endpoint
         out += "\n\t<td>%d</td>" % self.assets.count()
         out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
@@ -74,7 +79,8 @@ class PBSMMSpecial(PBSMMGenericSpecial):
 
 class PBSMMSpecialAsset(PBSMMAbstractAsset):
     special = models.ForeignKey(
-        PBSMMSpecial, related_name='assets',
+        PBSMMSpecial,
+        related_name='assets',
         on_delete=models.CASCADE,  # required for Django 2.0
     )
 
@@ -128,17 +134,15 @@ def process_special_assets(endpoint, this_special):
 
     return
 
-##########################################################################
-###################
+
+################################
 # PBS MediaManager API interface
-###################
-##########################################################################
+################################
 
 # The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
-#####
+
 # That way, one can force a reingestion from the Admin OR one can do it from a management script
 # by simply getting the record, setting ingest_on_save on the record, and calling save().
-#####
 
 
 @receiver(models.signals.pre_save, sender=PBSMMSpecial)
@@ -189,5 +193,3 @@ def handle_child_objects(sender, instance, *args, **kwargs):
     assets_endpoint = this_json['links'].get('assets')
     if assets_endpoint:
         process_special_assets(assets_endpoint, instance)
-
-    return

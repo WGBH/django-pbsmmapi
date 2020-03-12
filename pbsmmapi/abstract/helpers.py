@@ -1,6 +1,7 @@
 import json
-import pytz
 from datetime import datetime
+
+import pytz
 
 ####
 # These are helper functions used throughout the package.
@@ -16,8 +17,7 @@ def set_json_serialized_field(attrs, field, default=None):
     val = attrs.get(field, default)
     if val:
         return json.dumps(val)
-    else:
-        return default
+    return default
 
 
 def get_default_asset(obj):
@@ -92,10 +92,10 @@ def get_canonical_image(image_list, image_type_override=None):
         # If I got here then it didn't find the image_type that was requested
         # return the first image in the list
         return image_list[0]['image']
-    else:
-        # This is my last chance!  Return the SITE_CANONICAL_IMAGE URL from the settings file.
-        # I STILL NEED TO CODE THIS
-        pass
+
+    # This is my last chance!  Return the SITE_CANONICAL_IMAGE URL from the settings file.
+    # I STILL NEED TO CODE THIS
+    # return SITE_CANONICAL_IMAGE URL
 
     return None
 

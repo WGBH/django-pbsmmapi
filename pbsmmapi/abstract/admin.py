@@ -1,6 +1,6 @@
-import pytz
 from datetime import datetime
 
+import pytz
 from django.contrib import admin
 from django.contrib.admin import site
 from django.utils.safestring import mark_safe
@@ -19,7 +19,9 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
         'conditionally_online',
         'take_offline',
     ]
-    search_fields = ['title', ]
+    search_fields = [
+        'title',
+    ]
 
     def force_reingest(self, request, queryset):
         # queryset is the list of Asset items that were selected.
@@ -27,18 +29,21 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
             item.ingest_on_save = True
             # HOW DO I FIND OUT IF THE save() was successful?
             item.save()
+
     force_reingest.short_description = 'Reingest selected items.'
 
     def permanently_online(self, request, queryset):
         for item in queryset:
             item.publish_status = 1
             item.save()
+
     permanently_online.short_description = 'Take item PERMANTENTLY LIVE'
 
     def conditionally_online(self, request, queryset):
         for item in queryset:
             item.publish_status = 0
             item.save()
+
     conditionally_online.short_description = 'CONDITIONALLY Online using live_as_of Date'
 
     def take_online_now(self, request, queryset):
@@ -46,19 +51,23 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
             item.publish_status = 0
             item.live_as_of = datetime.now(pytz.utc)
             item.save()
+
     take_online_now.short_description = 'Take Live as of Right Now'
 
     def take_offline(self, request, queryset):
         for item in queryset:
             item.publish_status = -1
             item.save()
+
     take_offline.short_description = 'Take item COMPLETELY OFFLINE'
 
     def assemble_asset_table(self, obj):
         asset_list = obj.assets.all()
         out = get_abstract_asset_table(
-            asset_list, obj.default_asset, obj.object_model_type)
+            asset_list, obj.default_asset, obj.object_model_type
+        )
         return mark_safe(out)
+
     assemble_asset_table.short_description = 'Assets'
 
     class Meta:
@@ -79,11 +88,11 @@ def get_abstract_asset_table(object_list, default_asset, parent_type):
 
         out += "\n<tr style=\"background-color:%s\">" % row_color
         out += "\n\t<td><a href=\"%s/%d/change/\" target=\"_new\">%s</a></td>" % (
-            url, item.id, item.title)
+            url, item.id, item.title
+        )
         out += "\n\t<td>%s</td>" % item.object_type
         out += '\n\t<td>%s</td>' % item.formatted_duration
         out += "\n\t<td>%s</td>" % item.asset_publicly_available()
-        # out += "\n\t<td>%s%s</td>" % (item.asset_publicly_available(), default_mark)
         out += "\n\t<td><a href=\"%s\" target=\"_new\">API</a></td>" % item.api_endpoint
         out += "\n\t<td>%s</td>" % item.is_default
         out += "\n</tr>"

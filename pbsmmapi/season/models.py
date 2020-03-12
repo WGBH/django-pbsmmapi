@@ -26,20 +26,20 @@ class PBSMMSeason(PBSMMGenericSeason):
     """
     These are the fields that are unique to PBSMMSeason
     """
-    ordinal = models.PositiveIntegerField(
-        _('Ordinal'),
-        null=True, blank=True
-    )
+    ordinal = models.PositiveIntegerField(_('Ordinal'), null=True, blank=True)
 
     # This is the parental Show
-    show_api_id = models.UUIDField (
+    show_api_id = models.UUIDField(
         _('Show Object ID'),
-        null=True, blank=True  # does this work?
+        null=True,
+        blank=True  # does this work?
     )
     show = models.ForeignKey(
-        'show.PBSMMShow', related_name='seasons',
+        'show.PBSMMShow',
+        related_name='seasons',
         on_delete=models.CASCADE,  # required for Django 2.0
-        null = True, blank = True  # added for AR5 support
+        null=True,
+        blank=True  # added for AR5 support
     )
 
     # This triggers cascading ingestion of child Episodes - set from the admin
@@ -67,7 +67,8 @@ class PBSMMSeason(PBSMMGenericSeason):
         this_title = "Season %d: %s" % (self.ordinal, self.title)
         out = "<tr style=\"background-color: #ddd;\">"
         out += "<td colspan=\"3\"><a href=\"/admin/season/pbsmmseason/%d/change/\"><b>%s</b></a></td>" % (
-            self.id, this_title)
+            self.id, this_title
+        )
         out += "<td><a href=\"%s\" target=\"_new\">API</a></td>" % self.api_endpoint
         out += "\n\t<td>%d</td>" % self.assets.count()
         out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
@@ -77,17 +78,18 @@ class PBSMMSeason(PBSMMGenericSeason):
 
     def __unicode__(self):
         return "%s | %d | %s " % (self.object_id, self.ordinal, self.title)
-        
+
     def __str__(self):
         return "%s | %d | %s " % (self.object_id, self.ordinal, self.title)
-        
+
     def __object_model_type(self):
         """
         This return the object type.
         """
-    # This handles the correspondence to the "type" field in the PBSMM JSON
-    # object
+        # This handles the correspondence to the "type" field in the PBSMM JSON
+        # object
         return 'season'
+
     object_model_type = property(__object_model_type)
 
     def __printable_title(self):
@@ -98,12 +100,14 @@ class PBSMMSeason(PBSMMGenericSeason):
         if self.show:
             return '%s Season %d' % (self.show.title, self.ordinal)
         return 'Season %d' % self.ordinal
+
     printable_title = property(__printable_title)
 
 
 class PBSMMSeasonAsset(PBSMMAbstractAsset):
     season = models.ForeignKey(
-        PBSMMSeason, related_name='assets',
+        PBSMMSeason,
+        related_name='assets',
         on_delete=models.CASCADE,  # required for Django 2.0
     )
 
@@ -153,20 +157,17 @@ def process_season_assets(endpoint, this_season):
         if asset.object_id not in scraped_object_ids:
             asset.delete()
 
-    return
 
-
-##########################################################################
-###################
+################################
 # PBS MediaManager API interface
-###################
-##########################################################################
+################################
 
 # The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
-#####
+
 # That way, one can force a reingestion from the Admin OR one can do it from a management script
 # by simply getting the record, setting ingest_on_save on the record, and calling save().
-#####
+
+
 @receiver(models.signals.pre_save, sender=PBSMMSeason)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
     """
@@ -235,5 +236,3 @@ def handle_children(sender, instance, *args, **kwargs):
     # This is a tricky way to unset ingest_seasons without calling save()
     rec = PBSMMSeason.objects.filter(pk=instance.id)
     rec.update(ingest_episodes=False)
-
-    return

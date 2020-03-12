@@ -1,5 +1,4 @@
 from ..abstract.helpers import set_json_serialized_field, fix_non_aware_datetime
-
 """
 This is the code that parses the JSON for an Asset returned by the PBSMM API, and
 puts it into the schema for an *-Asset object (e.g., EpisodeAsset, ShowAsset, etc.;
@@ -52,7 +51,8 @@ def process_asset_record(obj, instance, origin=None):
     instance.object_id = obj.get('id', None)
 
     instance.updated_at = fix_non_aware_datetime(
-        attrs.get('updated_at', None))  # timestamp of the record in the API
+        attrs.get('updated_at', None)
+    )  # timestamp of the record in the API
     instance.api_endpoint = links.get('self', None)  # the URL of the request
 
     # Title, Sortable Title, and Slug
@@ -67,8 +67,8 @@ def process_asset_record(obj, instance, origin=None):
 
     # Asset metadata - things related to the asset itself
     instance.is_excluded_from_dfp = attrs.get(
-        'is_excluded_from_dfp',
-        False)  # see the bottom of the file for notes
+        'is_excluded_from_dfp', False
+    )  # see the bottom of the file for notes
     # this is the <iframe> to show the asset
     instance.player_code = attrs.get('player_code', None)
     instance.can_embed_player = attrs.get('can_embed_player', None)
@@ -76,8 +76,7 @@ def process_asset_record(obj, instance, origin=None):
     # 'clip', 'full-length', or 'preview'
     instance.object_type = attrs.get('object_type', None)
     instance.content_rating = attrs.get('content_rating', None)  # e.g., 'TV-G'
-    instance.content_rating_description = attrs.get(
-        'content_rating_description', None)
+    instance.content_rating_description = attrs.get('content_rating_description', None)
     instance.language = attrs.get('language', None)
 
     # Unprocessed
@@ -88,17 +87,16 @@ def process_asset_record(obj, instance, origin=None):
     # Availabilty is in three parts: public, station_members, local_members -
     # there might be different dates for each
     instance.availability = set_json_serialized_field(
-        attrs, 'availabilities', default=None)
+        attrs, 'availabilities', default=None
+    )
     # The canonical image used for this is the one that has 'mezzanine' in it
     instance.images = set_json_serialized_field(attrs, 'images', default=None)
     # This can have things like "where to buy the DVD" for shows - not too
     # useful (so far) for Asset records
     instance.links = set_json_serialized_field(attrs, 'links', default=None)
     # Basically, this is the set of places one is allowed to access the asset
-    instance.geo_profile = set_json_serialized_field(
-        attrs, 'geo_profile', default=None)
+    instance.geo_profile = set_json_serialized_field(attrs, 'geo_profile', default=None)
     # For compatibility (so far)
-    instance.platforms = set_json_serialized_field(
-        attrs, 'platforms', default=None)
+    instance.platforms = set_json_serialized_field(attrs, 'platforms', default=None)
 
     return instance

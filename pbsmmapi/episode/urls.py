@@ -7,11 +7,19 @@ from .views import PBSMMAllEpisodeListView, PBSMMSeasonEpisodeListView, PBSMMEpi
 # Episodes with common Show + Season.
 
 urlpatterns = (
-    url(r'^$', PBSMMAllEpisodeListView.as_view(), name='all-episode-list'),
-    url(r'^(?P<show_slug>[^/]+)/(?P<season_ordinal>[^/]+)/',
+    url(
+        r'^$',
+        PBSMMAllEpisodeListView.as_view(),
+        name='all-episode-list',
+    ),
+    url(
+        r'^(?P<show_slug>[^/]+)/(?P<season_ordinal>[^/]+)/',
         PBSMMSeasonEpisodeListView.as_view(),
-        name='season-episode-list'),
-    url(r'^(?P<slug>[^/]+)/$',
+        name='season-episode-list'
+    ),
+    url(
+        r'^(?P<slug>[^/]+)/$',
         PBSMMEpisodeDetailView.as_view(),
-        name='episode-detail'),
+        name='episode-detail',
+    ),
 )

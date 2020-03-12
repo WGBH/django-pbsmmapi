@@ -16,10 +16,7 @@ class PBSMMAllSpecialListView(ListView, PBSMMObjectListMixin):
         return qs
 
     def get_context_data(self, **kwargs):
-        context = super(
-            PBSMMAllSpecialListView,
-            self).get_context_data(
-            **kwargs)
+        context = super(PBSMMAllSpecialListView, self).get_context_data(**kwargs)
         return context
 
 
@@ -36,10 +33,7 @@ class PBSMMShowSpecialListView(ListView, PBSMMObjectListMixin):
         return qs
 
     def get_context_data(self, **kwargs):
-        context = super(
-            PBSMMShowSpecialListView,
-            self).get_context_data(
-            **kwargs)
+        context = super(PBSMMShowSpecialListView, self).get_context_data(**kwargs)
         return context
 
 
@@ -49,8 +43,5 @@ class PBSMMSpecialDetailView(DetailView, PBSMMObjectDetailMixin):
     context_object_name = 'special'
 
     def get_context_data(self, **kwargs):
-        context = super(
-            PBSMMSpecialDetailView,
-            self).get_context_data(
-            **kwargs)
+        context = super(PBSMMSpecialDetailView, self).get_context_data(**kwargs)
         return context

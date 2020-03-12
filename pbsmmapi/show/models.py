@@ -29,23 +29,22 @@ class PBSMMAbstractShow(PBSMMGenericShow):
     ingest_seasons = models.BooleanField(
         _('Ingest Seasons'),
         default=False,
-        help_text='Also ingest all Seasons'
+        help_text='Also ingest all Seasons',
     )
     ingest_specials = models.BooleanField(
         _('Ingest Specials'),
         default=False,
-        help_text='Also ingest all Specials'
+        help_text='Also ingest all Specials',
     )
     ingest_episodes = models.BooleanField(
         _('Ingest Episodes'),
         default=False,
-        help_text='Also ingest all Episodes (for each Season)'
+        help_text='Also ingest all Episodes (for each Season)',
     )
 
     class Meta:
         verbose_name = 'PBS MM Show'
         verbose_name_plural = 'PBS MM Shows'
-        # app_label = 'pbsmmapi'
         db_table = 'pbsmm_show'
         abstract = True
 
@@ -55,17 +54,18 @@ class PBSMMAbstractShow(PBSMMGenericShow):
     def __unicode__(self):
         if self.title:
             return self.title
-        else:
-            return "ID %d: unknown" % self.id
+        return "ID %d: unknown" % self.id
 
     def __object_model_type(self):
         # This handles the correspondence to the "type" field in the PBSMM JSON
         # object
         return 'show'
+
     object_model_type = property(__object_model_type)
 
     def __available_to_public(self):
         return can_object_page_be_shown(None, self)
+
     available_to_public = property(__available_to_public)
 
 
@@ -75,7 +75,8 @@ class PBSMMShow(PBSMMAbstractShow):
 
 class PBSMMShowAsset(PBSMMAbstractAsset):
     show = models.ForeignKey(
-        PBSMMShow, related_name='assets',
+        PBSMMShow,
+        related_name='assets',
         on_delete=models.CASCADE,  # required for Django 2.0
     )
 
@@ -122,18 +123,15 @@ def process_show_assets(endpoint, this_show):
         if asset.object_id not in scraped_object_ids:
             asset.delete()
 
-    return
-##########################################################################
-###################
+
+################################
 # PBS MediaManager API interface
-###################
-##########################################################################
+################################
 
 # The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
-#####
+
 # That way, one can force a reingestion from the Admin OR one can do it from a management script
 # by simply getting the record, setting ingest_on_save on the record, and calling save().
-#####
 
 
 @receiver(models.signals.pre_save, sender=PBSMMShow)
@@ -201,8 +199,5 @@ def handle_child_objects(sender, instance, *args, **kwargs):
 
     # This is a tricky way to unset ingest_seasons without calling save()
     rec = PBSMMShow.objects.filter(pk=instance.id)
-    rec.update(
-        ingest_seasons=False,
-        ingest_specials=False,
-        ingest_episodes=False)
+    rec.update(ingest_seasons=False, ingest_specials=False, ingest_episodes=False)
     return

@@ -20,14 +20,14 @@ def process_season_record(obj, instance, origin='season'):
 
     # UUID and updated_on
     if 'id' in obj.keys():
-        instance.object_id = obj.get('id', None)    # This should always be set.
+        instance.object_id = obj.get('id', None)  # This should always be set.
     else:
         instance.object_id = obj['data'].get('id')
 
     instance.updated_at = fix_non_aware_datetime(
         attrs.get('updated_at', None)
-    )    # timestamp of the record in the API
-    instance.api_endpoint = links.get('self', None)    # URL of the request
+    )  # timestamp of the record in the API
+    instance.api_endpoint = links.get('self', None)  # URL of the request
 
     # Title, Sortable Ttile, and Slug
     instance.title = attrs.get('title', None)
@@ -57,7 +57,7 @@ def process_season_record(obj, instance, origin='season'):
 
     # The canonical image used for this is the one that has 'mezzanine' in it
     instance.images = set_json_serialized_field(attrs, 'images', default=None)
-    if instance.images is None:    # try latest_asset_images
+    if instance.images is None:  # try latest_asset_images
         instance.images = set_json_serialized_field(
             attrs, 'latest_asset_images', default=None
         )

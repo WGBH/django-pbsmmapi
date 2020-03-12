@@ -5,17 +5,16 @@ def process_special_record(obj, instance, origin='native'):
     # These are the top-level fields - almost everything else is under attrs
     if 'attributes' not in obj.keys():
         return instance
-    else:
-        attrs = obj['attributes']
+    attrs = obj['attributes']
     if 'links' not in obj.keys():
         return instance
-    else:
-        links = obj['links']
+    links = obj['links']
 
     # UUID and updated_on
     instance.object_id = obj.get('id', None)  # This should always be set.
     instance.updated_at = fix_non_aware_datetime(
-        attrs.get('updated_at', None))  # timestamp of the record in the API
+        attrs.get('updated_at', None)
+    )  # timestamp of the record in the API
     instance.api_endpoint = links.get('self', None)  # URL of the request
 
     # Title, Sortable Ttile, and Slug
@@ -28,8 +27,7 @@ def process_special_record(obj, instance, origin='native'):
     instance.description_short = attrs.get('description_short', None)
 
     # Special metadata - things related to the special itself
-    instance.premiered_on = fix_non_aware_datetime(
-        attrs.get('premiered_on', None))
+    instance.premiered_on = fix_non_aware_datetime(attrs.get('premiered_on', None))
     instance.encored_on = fix_non_aware_datetime(attrs.get('encored_on', None))
     instance.nola = attrs.get('nola', None)
     instance.language = attrs.get('language', None)

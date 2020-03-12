@@ -23,8 +23,8 @@ class PBSMMAllSeasonListView(ListView, PBSMMObjectListMixin):
     def get_context_data(self, **kwargs):
         context = super(
             PBSMMAllSeasonListView,
-            self).get_context_data(
-            **kwargs)
+            self,
+        ).get_context_data(**kwargs)
         context['all_seasons'] = True
         return context
 
@@ -45,13 +45,9 @@ class PBSMMShowSeasonListView(ListView, PBSMMObjectListMixin):
         return qs
 
     def get_context_data(self, **kwargs):
-        context = super(
-            PBSMMShowSeasonListView,
-            self).get_context_data(
-            **kwargs)
+        context = super(PBSMMShowSeasonListView, self).get_context_data(**kwargs)
         context['all_seasons'] = False
-        context['parent_show'] = Show.objects.get(
-            slug=self.kwargs['show_slug'])
+        context['parent_show'] = Show.objects.get(slug=self.kwargs['show_slug'])
         return context
 
 

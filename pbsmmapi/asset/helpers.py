@@ -27,10 +27,9 @@ def check_asset_availability(start=None, end=None):
 
     if start and now < start_date:
         return (False, 0, 'not-yet-available')
-    else:
-        if end is None or now <= end_date:
-            return (True, 1, 'available')
-        if end and now > end_date:
-            return (False, 2, 'expired')
+    if end is None or now <= end_date:
+        return (True, 1, 'available')
+    if end and now > end_date:
+        return (False, 2, 'expired')
 
     return (False, -1, 'unknown')

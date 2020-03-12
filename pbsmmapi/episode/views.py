@@ -66,8 +66,5 @@ class PBSMMEpisodeDetailView(DetailView, PBSMMObjectDetailMixin):
         return obj
 
     def get_context_data(self, **kwargs):
-        context = super(
-            PBSMMEpisodeDetailView,
-            self).get_context_data(
-            **kwargs)
+        context = super(PBSMMEpisodeDetailView, self).get_context_data(**kwargs)
         return context

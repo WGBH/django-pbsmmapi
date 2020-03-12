@@ -1,6 +1,5 @@
 from datetime import datetime
 import pytz
-
 """
  THIS IS THE MAIN GATEKEEPER
 
@@ -40,10 +39,7 @@ import pytz
 def can_object_page_be_shown(user, this_object):
     try:
         if user.is_staff:  # admin users can always see pages
-            if this_object.publish_status >= 0:
-                return True  # I can see everything except specifically turned-off objects because I'm an admin
-            else:
-                return False  # This object is turned off.
+            return bool(this_object.publish_status >= 0)
     except BaseException:
         pass  # I am not logged in - continue
 
@@ -57,34 +53,8 @@ def can_object_page_be_shown(user, this_object):
 
         if this_object.live_as_of is not None:
             now = datetime.now(pytz.utc)
-            # if I'm past my publish date it's LIVE, otherwise it's not live
-            # yet
+            # if I'm past my publish date it's LIVE, otherwise it's not live yet
             return this_object.live_as_of <= now
-        else:
-            # this object is still being working on - no publish date set yet.
-            return False
+        # this object is still being working on - no publish date set yet.
+        return False
     return True
-
-# TEST CODE FROM SHELL
-#from pbsmmapi.abstract.gatekeeper import can_object_page_be_shown
-#from pbsmmapi.show.models import PBSMMShow
-#ss = PBSMMShow.objects.all()
-#from django.contrib.auth.models import User
-#user = User.objects.first()
-#import pytz
-#from datetime import datetime
-#future = datetime(2018, 9, 1, 0, 0, 0, 0, pytz.utc)
-#past = datetime(2018, 5, 1, 0, 0, 0, 0, pytz.utc)
-#now = datetime.now(pytz.utc)
-
-# for s in ss:
-#    s.live_as_of = past
-
-#ss[10].live_as_of = None
-#ss[11].live_as_of = future
-#ss[7].publish_status = 1
-#ss[6].publish_status = -1
-
-# for s in ss:
-#   can_object_page_be_shown(None, s)
-#   can_object_page_be_shown(user, s)

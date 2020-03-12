@@ -4,13 +4,14 @@ from .models import PBSMMShow
 
 
 class PBSMMShowCreateForm(ModelForm):
-    """
-    """
     class Meta:
         model = PBSMMShow
         fields = (
-            'slug', 'title',
-            'ingest_seasons', 'ingest_specials', 'ingest_episodes',
+            'slug',
+            'title',
+            'ingest_seasons',
+            'ingest_specials',
+            'ingest_episodes',
         )
 
 
