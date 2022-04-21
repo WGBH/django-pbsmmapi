@@ -8,4 +8,6 @@ class PBSMMSpecialApp(CMSApp):
     name = _("Special App")
 
     def get_urls(self, page=None, language=None, **kwargs):
-        return ['pbsmmapi.special.urls', ]
+        return [
+            'pbsmmapi.special.urls',
+        ]

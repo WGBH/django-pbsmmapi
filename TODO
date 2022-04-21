@@ -1,13 +1,11 @@
-
 Things TO DO:
 
-	1. Assets have related_links - some are other Assets, some are RemoteAssets
-	2. Assets have related_promos which I THINK are other assets.
+    1. Assets have related_links - some are other Assets, some are RemoteAssets
+    2. Assets have related_promos which I THINK are other assets.
     3. Assets have parent_tree which points to another object...
 
 Relationships
-	
-	I need to follow each object to see how far the rabbit hole goes.
 
-	Ideally each object should have a checkbox that will "follow" related objects and ingest them if necessary.
+    I need to follow each object to see how far the rabbit hole goes.
 
+    Ideally each object should have a checkbox that will "follow" related objects and ingest them if necessary.

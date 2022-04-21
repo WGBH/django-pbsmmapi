@@ -1,9 +1,11 @@
 from django.contrib import admin
 
-from ..abstract.admin import PBSMMAbstractAdmin
-from ..asset.admin import PBSMMAbstractAssetAdmin
-from .models import PBSMMEpisode, PBSMMEpisodeAsset
-from .forms import PBSMMEpisodeCreateForm, PBSMMEpisodeEditForm
+from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
+from pbsmmapi.asset.admin import PBSMMAbstractAssetAdmin
+from pbsmmapi.episode.forms import PBSMMEpisodeCreateForm
+from pbsmmapi.episode.forms import PBSMMEpisodeEditForm
+from pbsmmapi.episode.models import PBSMMEpisode
+from pbsmmapi.episode.models import PBSMMEpisodeAsset
 
 
 class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
@@ -17,11 +19,11 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
     )
     list_display_links = ('pk', 'title_sortable')
     list_filter = ('season__show__title_sortable', )
-    # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
-    # want to be able to view it in the context of the Django system.
+    # Why so many readonly_fields?  Because we don't want to override what's
+    # coming from the API, but we do want to be able to view it in the context
+    # of the Django system.
     #
-    # Most things here are fields, some are method output and some are
-    # properties.
+    # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
         'api_endpoint_link', 'assemble_asset_table', 'canonical_image_tag',
         'date_created', 'date_last_api_update', 'description_long', 'description_short',
@@ -30,8 +32,8 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
         'slug', 'title', 'title_sortable', 'updated_at'
     ]
 
-    # If we're adding a record - no sense in seeing all the things that aren't there yet, since only these TWO
-    # fields are editable anyway...
+    # If we're adding a record - no sense in seeing all the things that aren't
+    # there yet, since only these TWO fields are editable anyway...
     add_fieldsets = ((
         None,
         {
@@ -115,7 +117,7 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
     def get_fieldsets(self, request, obj=None):
         if not obj:
             return self.add_fieldsets
-        return super(PBSMMEpisodeAdmin, self).get_fieldsets(request, obj)
+        return super().get_fieldsets(request, obj)
 
     # Apply the chosen fieldsets tuple to the viewed form
     def get_form(self, request, obj=None, **kwargs):
@@ -128,10 +130,10 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
                 }
             )
         defaults.update(kwargs)
-        return super(PBSMMEpisodeAdmin, self).get_form(request, obj, **kwargs)
+        return super().get_form(request, obj, **kwargs)
 
     def get_readonly_fields(self, request, obj=None):
-        readonly_fields = super(PBSMMEpisodeAdmin, self).get_readonly_fields(request, obj)
+        readonly_fields = super().get_readonly_fields(request, obj)
         if obj:
             return readonly_fields + ['object_id', 'legacy_tp_media_id']
         return self.readonly_fields

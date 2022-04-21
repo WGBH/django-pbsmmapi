@@ -8,4 +8,6 @@ class PBSMMSeasonApp(CMSApp):
     name = _("Season App")
 
     def get_urls(self, page=None, language=None, **kwargs):
-        return ['pbsmmapi.season.urls', ]
+        return [
+            'pbsmmapi.season.urls',
+        ]

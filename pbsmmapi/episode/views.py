@@ -1,7 +1,10 @@
-from django.views.generic import DetailView, ListView
+from django.views.generic import DetailView
+from django.views.generic import ListView
 
-from pbsmmapi.abstract.mixins import PBSMMObjectDetailMixin, PBSMMObjectListMixin
-from pbsmmapi.abstract.mixin_helpers import filter_offline_seasons, filter_offline_parent_season
+from pbsmmapi.abstract.mixin_helpers import filter_offline_parent_season
+from pbsmmapi.abstract.mixin_helpers import filter_offline_seasons
+from pbsmmapi.abstract.mixins import PBSMMObjectDetailMixin
+from pbsmmapi.abstract.mixins import PBSMMObjectListMixin
 from pbsmmapi.episode.models import PBSMMEpisode as Episode
 
 
@@ -18,7 +21,7 @@ class PBSMMAllEpisodeListView(ListView, PBSMMObjectListMixin):
         """
         Back-filter the queryset for parental Season (and grand-parental Show).
         """
-        qs = super(PBSMMAllEpisodeListView, self).get_queryset()
+        qs = super().get_queryset()
         qs = filter_offline_seasons(qs, self.request.user.is_authenticated)
         return qs
 
@@ -36,7 +39,7 @@ class PBSMMSeasonEpisodeListView(ListView, PBSMMObjectListMixin):
         """
         Back-filter the queryset for parental Season (and grand-parental Show).
         """
-        qs = super(PBSMMSeasonEpisodeListView, self).get_queryset()
+        qs = super().get_queryset()
         # Filter out the grandparent show
         show_slug = self.kwargs['show_slug']
         qs = qs.filter(season__show__slug=show_slug)
@@ -61,10 +64,10 @@ class PBSMMEpisodeDetailView(DetailView, PBSMMObjectDetailMixin):
         """
         Back filter the Episode's parental Season and grand-parental Show
         """
-        obj = super(PBSMMEpisodeDetailView, self).get_object(queryset=queryset)
+        obj = super().get_object(queryset=queryset)
         obj = filter_offline_parent_season(obj, self.request.user)
         return obj
 
     def get_context_data(self, **kwargs):
-        context = super(PBSMMEpisodeDetailView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         return context

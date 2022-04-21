@@ -8,4 +8,6 @@ class PBSMMEpisodeApp(CMSApp):
     name = _("Episode App")
 
     def get_urls(self, page=None, language=None, **kwargs):
-        return ['pbsmmapi.episode.urls', ]
+        return [
+            'pbsmmapi.episode.urls',
+        ]

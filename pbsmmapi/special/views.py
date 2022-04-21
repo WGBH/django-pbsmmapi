@@ -1,8 +1,10 @@
-from django.views.generic import DetailView, ListView
+from django.views.generic import DetailView
+from django.views.generic import ListView
 
-from pbsmmapi.special.models import PBSMMSpecial as Special
-from pbsmmapi.abstract.mixins import PBSMMObjectDetailMixin, PBSMMObjectListMixin
 from pbsmmapi.abstract.mixin_helpers import filter_offline_shows
+from pbsmmapi.abstract.mixins import PBSMMObjectDetailMixin
+from pbsmmapi.abstract.mixins import PBSMMObjectListMixin
+from pbsmmapi.special.models import PBSMMSpecial as Special
 
 
 class PBSMMAllSpecialListView(ListView, PBSMMObjectListMixin):
@@ -11,12 +13,12 @@ class PBSMMAllSpecialListView(ListView, PBSMMObjectListMixin):
     context_object_name = 'special_list'
 
     def get_queryset(self):
-        qs = super(PBSMMAllSpecialListView, self).get_queryset()
+        qs = super().get_queryset()
         qs = filter_offline_shows(qs, self.request.user.is_authenticated)
         return qs
 
     def get_context_data(self, **kwargs):
-        context = super(PBSMMAllSpecialListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         return context
 
 
@@ -26,14 +28,14 @@ class PBSMMShowSpecialListView(ListView, PBSMMObjectListMixin):
     context_object_name = 'special_list'
 
     def get_queryset(self):
-        qs = super(PBSMMShowSpecialListView, self).get_queryset()
+        qs = super().get_queryset()
         show_slug = self.kwargs['show_slug']
         qs = qs.filter(show__slug=show_slug)
         qs = filter_offline_shows(qs, self.request.user.is_authenticated)
         return qs
 
     def get_context_data(self, **kwargs):
-        context = super(PBSMMShowSpecialListView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         return context
 
 
@@ -43,5 +45,5 @@ class PBSMMSpecialDetailView(DetailView, PBSMMObjectDetailMixin):
     context_object_name = 'special'
 
     def get_context_data(self, **kwargs):
-        context = super(PBSMMSpecialDetailView, self).get_context_data(**kwargs)
+        context = super().get_context_data(**kwargs)
         return context

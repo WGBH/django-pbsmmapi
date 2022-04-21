@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from ..abstract.admin import PBSMMAbstractAdmin
-from ..asset.admin import PBSMMAbstractAssetAdmin
-from .forms import PBSMMShowCreateForm, PBSMMShowEditForm
-from .models import PBSMMShow, PBSMMShowAsset
+from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
+from pbsmmapi.asset.admin import PBSMMAbstractAssetAdmin
+from pbsmmapi.show.forms import PBSMMShowCreateForm
+from pbsmmapi.show.forms import PBSMMShowEditForm
+from pbsmmapi.show.models import PBSMMShow
+from pbsmmapi.show.models import PBSMMShowAsset
 
 
 class ShowAssetInline(admin.TabularInline):
@@ -164,14 +166,14 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
     def get_readonly_fields(self, request, obj=None):
         if not obj:
             return self.add_readonly_fields
-        return super(PBSMMShowAdmin, self).get_readonly_fields(request, obj)
+        return super().get_readonly_fields(request, obj)
 
     # Switch between the fieldsets depending on whether we're adding or
     # viewing a record
     def get_fieldsets(self, request, obj=None):
         if not obj:
             return self.add_fieldsets
-        return super(PBSMMShowAdmin, self).get_fieldsets(request, obj)
+        return super().get_fieldsets(request, obj)
 
     # Apply the chosen fieldsets tuple to the viewed form
     def get_form(self, request, obj=None, **kwargs):
@@ -184,12 +186,7 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
                 }
             )
         defaults.update(kwargs)
-        return super(PBSMMShowAdmin, self).get_form(request, obj, **kwargs)
-
-
-#####################################################
-# Create a highly formated table of children/relationships
-#####################################################
+        return super().get_form(request, obj, **kwargs)
 
     def format_seasons_list(self, obj):
         out = '<table width=\"100%\" border=2>\n' + \
@@ -217,8 +214,8 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
     format_seasons_list.short_description = 'SEASON LIST'
 
     def format_specials_list(self, obj):
-        # It turns out that some shows, e.g., The Open Mind, have an INSANE number of specials.
-        # In this case, just return the Top 50
+        # It turns out that some shows, e.g., The Open Mind, have an INSANE
+        # number of specials. In this case, just return the Top 50
         out = ''
         specials_list = obj.specials.order_by('-premiered_on')
         if specials_list.count() > 100:

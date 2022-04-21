@@ -1,23 +1,22 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from django.urls import reverse
 
-from ..abstract.helpers import time_zone_aware_now
-from ..abstract.models import PBSMMGenericSeason
-
-from ..api.api import get_PBSMM_record
-from ..api.helpers import check_pagination
-from ..asset.models import PBSMMAbstractAsset
-from ..asset.ingest_asset import process_asset_record
-
-from .ingest_season import process_season_record
-from .ingest_children import process_episodes
+from pbsmmapi.abstract.helpers import time_zone_aware_now
+from pbsmmapi.abstract.models import PBSMMGenericSeason
+from pbsmmapi.api.api import get_PBSMM_record
+from pbsmmapi.api.helpers import check_pagination
+from pbsmmapi.asset.ingest_asset import process_asset_record
+from pbsmmapi.asset.models import PBSMMAbstractAsset
+from pbsmmapi.season.ingest_children import process_episodes
+from pbsmmapi.season.ingest_season import process_season_record
 
 PBSMM_SEASON_ENDPOINT = 'https://media.services.pbs.org/api/v1/seasons/'
 
@@ -77,10 +76,10 @@ class PBSMMSeason(PBSMMGenericSeason):
         return mark_safe(out)
 
     def __unicode__(self):
-        return "%s | %d | %s " % (self.object_id, self.ordinal, self.title)
+        return f'{self.object_id} | {self.ordinal} | {self.title}'
 
     def __str__(self):
-        return "%s | %d | %s " % (self.object_id, self.ordinal, self.title)
+        return f'{self.object_id} | {self.ordinal} | {self.title}'
 
     def __object_model_type(self):
         """
@@ -98,8 +97,8 @@ class PBSMMSeason(PBSMMGenericSeason):
         if an explicit title is not set from the Show title and Episode ordinal.
         """
         if self.show:
-            return '%s Season %d' % (self.show.title, self.ordinal)
-        return 'Season %d' % self.ordinal
+            return f'{self.show.title} Season {self.ordinal}'
+        return 'Season {self.ordinal}'
 
     printable_title = property(__printable_title)
 
@@ -117,7 +116,7 @@ class PBSMMSeasonAsset(PBSMMAbstractAsset):
         db_table = 'pbsmm_season_asset'
 
     def __unicode__(self):
-        return "%s: %s" % (self.season.title, self.title)
+        return f'{self.season.title}: {self.title}'
 
 
 def process_season_assets(endpoint, this_season):
@@ -158,27 +157,26 @@ def process_season_assets(endpoint, this_season):
             asset.delete()
 
 
-################################
-# PBS MediaManager API interface
-################################
-
-# The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
-
-# That way, one can force a reingestion from the Admin OR one can do it from a management script
-# by simply getting the record, setting ingest_on_save on the record, and calling save().
-
-
 @receiver(models.signals.pre_save, sender=PBSMMSeason)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
     """
-    Get a Season's data from the PBS MM API.   Either update or create a PBSMMSeason record.
+    Get a Season's data from the PBS MM API.   Either update or create a
+    PBSMMSeason record.
+
+    The interface/access is done with a 'pre_save' receiver based on the value of
+    'ingest_on_save'
+
+    That way, one can force a reingestion from the Admin OR one can do it from a
+    management script by simply getting the record, setting ingest_on_save on the
+    record, and calling save().
     """
     if instance.__class__ is not PBSMMSeason:
         return
 
-    # If this is a new record, then someone has started it in the Admin using EITHER a legacy COVE ID
-    # OR a PBSMM UUID.   Depending on which, the retrieval endpoint is slightly different, so this sets
-    # the appropriate URL to access.
+    # If this is a new record, then someone has started it in the Admin using
+    # EITHER a legacy COVE ID OR a PBSMM UUID.   Depending on which, the
+    # retrieval endpoint is slightly different, so this sets the appropriate
+    # URL to access.
     if instance.pk and instance.object_id and str(instance.object_id).strip():
         # Object is being edited
         if not instance.ingest_on_save:
@@ -188,7 +186,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         if not instance.object_id:
             return  # do nothing - can't get an ID to look up!
 
-    url = "{}{}/".format(PBSMM_SEASON_ENDPOINT, instance.object_id)
+    url = f'{PBSMM_SEASON_ENDPOINT}{instance.object_id}/'
 
     # OK - get the record from the API
     (status, json) = get_PBSMM_record(url)

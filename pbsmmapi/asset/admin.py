@@ -3,11 +3,11 @@ from django.utils.safestring import mark_safe
 
 
 class PBSMMAbstractAssetAdmin(admin.ModelAdmin):
-    # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
-    # want to be able to view it in the context of the Django system.
+    # Why so many readonly_fields?  Because we don't want to override what's
+    # coming from the API, but we do want to be able to view it in the context
+    # of the Django system.
     #
-    # Most things here are fields, some are method output and some are
-    # properties.
+    # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
         'api_endpoint_link', 'asset_publicly_available', 'availability',
         'can_embed_player', 'canonical_image', 'canonical_image_tag', 'chapters',

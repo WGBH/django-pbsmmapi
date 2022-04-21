@@ -1,25 +1,27 @@
-from ..abstract.helpers import set_json_serialized_field, fix_non_aware_datetime
-"""
-This is the code that parses the JSON for an Asset returned by the PBSMM API, and
-puts it into the schema for an *-Asset object (e.g., EpisodeAsset, ShowAsset, etc.;
-all *-Asset models have the same structure, only the FK to the parent changes).
+from ..abstract.helpers import fix_non_aware_datetime
+from ..abstract.helpers import set_json_serialized_field
 
-This is USUALLY called when ingesting a ancestral object, i.e.:
-    After an ancestral object is ingested from the API (e.g., an Episode),
-    all of the associated Assets are ingested (with the code below).
-"""
+# This is the code that parses the JSON for an Asset returned by the PBSMM API, and
+# puts it into the schema for an *-Asset object (e.g., EpisodeAsset, ShowAsset, etc.;
+# all *-Asset models have the same structure, only the FK to the parent changes).
+#
+# This is USUALLY called when ingesting a ancestral object, i.e.:
+#     After an ancestral object is ingested from the API (e.g., an Episode),
+#     all of the associated Assets are ingested (with the code below).
 
 # THIS IS THE INGEST SCRIPT FOR ASSET RECORDS
 
-# This just makes nice serialized JSON content fragments from the API record's JSON content.
-# It's a dirty way to avoid having to create ancillary tables with foreign keys back to objects.
-# For example, let's say there's a field that shows all of the available languages for an object; do you
-# REALLY want to have N records for EACH object that just says object #1234 is in English/Spanish?
-# No - of course you don't.   So instead have a SINGLE simple field that has the value of, e.g.,
-# ['en', 'es'] that you can de-serialize as necessary with the appropriate tests.
+# This just makes nice serialized JSON content fragments from the API record's
+# JSON content. It's a dirty way to avoid having to create ancillary tables
+# with foreign keys back to objects. For example, let's say there's a field
+# that shows all of the available languages for an object; do you REALLY want
+# to have N records for EACH object that just says object #1234 is in
+# English/Spanish? No - of course you don't.   So instead have a SINGLE simple
+# field that has the value of, e.g., ['en', 'es'] that you can de-serialize as
+# necessary with the appropriate tests.
 #
-# I find that this works GREAT with model properties.  Using the above example you could quickly create
-# a "is_spanish_available" property in a few lines:
+# I find that this works GREAT with model properties.  Using the above example
+# you could quickly create a "is_spanish_available" property in a few lines:
 #
 #    def is_spanish_available(self):
 #        langs = json.loads(self.languages)

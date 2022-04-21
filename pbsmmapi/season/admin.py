@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from .forms import PBSMMSeasonCreateForm, PBSMMSeasonEditForm
-from .models import PBSMMSeason, PBSMMSeasonAsset
-from ..abstract.admin import PBSMMAbstractAdmin
-from ..asset.admin import PBSMMAbstractAssetAdmin
+from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
+from pbsmmapi.asset.admin import PBSMMAbstractAssetAdmin
+from pbsmmapi.season.forms import PBSMMSeasonCreateForm
+from pbsmmapi.season.forms import PBSMMSeasonEditForm
+from pbsmmapi.season.models import PBSMMSeason
+from pbsmmapi.season.models import PBSMMSeasonAsset
 
 
 class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
@@ -17,11 +19,11 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
     )
     list_display_links = ('pk', 'printable_title')
     list_filter = ('show__title_sortable', )
-    # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
-    # want to be able to view it in the context of the Django system.
+    # Why so many readonly_fields?  Because we don't want to override what's
+    # coming from the API, but we do want to be able to view it in the context
+    # of the Django system.
     #
-    # Most things here are fields, some are method output and some are
-    # properties.
+    # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
         'api_endpoint', 'api_endpoint_link', 'assemble_asset_table', 'canonical_image',
         'canonical_image_tag', 'date_created', 'date_last_api_update', 'description_long',
@@ -96,7 +98,7 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
     def get_fieldsets(self, request, obj=None):
         if not obj:
             return self.add_fieldsets
-        return super(PBSMMSeasonAdmin, self).get_fieldsets(request, obj)
+        return super().get_fieldsets(request, obj)
 
     # Apply the chosen fieldsets tuple to the viewed form
     def get_form(self, request, obj=None, **kwargs):
@@ -109,7 +111,7 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
                 }
             )
         defaults.update(kwargs)
-        return super(PBSMMSeasonAdmin, self).get_form(request, obj, **kwargs)
+        return super().get_form(request, obj, **kwargs)
 
     def format_episode_list(self, obj):
 

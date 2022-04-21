@@ -1,14 +1,17 @@
-from ..api.api import get_PBSMM_record
-from ..abstract.helpers import set_json_serialized_field, fix_non_aware_datetime
+from pbsmmapi.abstract.helpers import fix_non_aware_datetime
+from pbsmmapi.abstract.helpers import set_json_serialized_field
+from pbsmmapi.api.api import get_PBSMM_record
 
 
 def process_season_record(obj, instance, origin='season'):
     """
-    Take the data returned from a single Season's API JSON content and map it to a PBSMMEpisode database record.
+    Take the data returned from a single Season's API JSON content and map it
+    to a PBSMMEpisode database record.
     """
-    # We have to get the detail endpoint now because PBS removed the show link from season listings.
+    # We have to get the detail endpoint now because PBS removed the show link
+    # from season listings.
     self_link = obj['links']['self']
-    status, obj = get_PBSMM_record(self_link)
+    _, obj = get_PBSMM_record(self_link)
 
     # These are the top-level fields - almost everything else is under attrs
     if 'attributes' not in obj.keys():

@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 
-from ..abstract.helpers import time_zone_aware_now
-from ..abstract.models import PBSMMGenericEpisode
-from ..api.api import get_PBSMM_record
-from ..api.helpers import check_pagination
-from ..asset.models import PBSMMAbstractAsset
-from ..asset.ingest_asset import process_asset_record
-
-from .ingest_episode import process_episode_record
+from pbsmmapi.abstract.helpers import time_zone_aware_now
+from pbsmmapi.abstract.models import PBSMMGenericEpisode
+from pbsmmapi.api.api import get_PBSMM_record
+from pbsmmapi.api.helpers import check_pagination
+from pbsmmapi.asset.ingest_asset import process_asset_record
+from pbsmmapi.asset.models import PBSMMAbstractAsset
+from pbsmmapi.episode.ingest_episode import process_episode_record
 
 PBSMM_EPISODE_ENDPOINT = 'https://media.services.pbs.org/api/v1/episodes/'
 
@@ -95,7 +95,8 @@ class PBSMMEpisode(PBSMMGenericEpisode):
 
     def short_episode_code(self):
         """
-        This is just the Episode "code" without the Show slug, e.g.,  0523 for the 23rd episode of Season 5
+        This is just the Episode "code" without the Show slug, e.g.,  0523 for
+        the 23rd episode of Season 5
         """
         return "%02d%02d" % (self.season.ordinal, self.ordinal)
 
@@ -151,7 +152,9 @@ class PBSMMEpisodeAsset(PBSMMAbstractAsset):
 def process_episode_assets(endpoint, this_episode):
     """
     Scrape assets for this episode, page by page, until there are no more.
-    There's probably a way to abstract this so that for all the *-Asset scrapers it would be more DRY.
+
+    There's probably a way to abstract this so that for all the *-Asset
+    scrapers it would be more DRY.
     """
     # Handle pagination
     keep_going = True
@@ -193,13 +196,12 @@ def process_episode_assets(endpoint, this_episode):
     return
 
 
-################################
 # PBS MediaManager API interface
-################################
 
-# The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
-# That way, one can force a reingestion from the Admin OR one can do it from a management script
-# by simply getting the record, setting ingest_on_save on the record, and calling save().
+# The interface/access is done with a 'pre_save' receiver based on the value of
+# 'ingest_on_save' That way, one can force a reingestion from the Admin OR one
+# can do it from a management script by simply getting the record, setting
+# ingest_on_save on the record, and calling save().
 
 
 @receiver(models.signals.pre_save, sender=PBSMMEpisode)
@@ -210,9 +212,10 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     if instance.__class__ is not PBSMMEpisode:
         return
 
-    # If this is a new record, then someone has started it in the Admin using EITHER a legacy COVE ID
-    # OR a PBSMM UUID.   Depending on which, the retrieval endpoint is slightly different, so this sets
-    # the appropriate URL to access.
+    # If this is a new record, then someone has started it in the Admin using
+    # EITHER a legacy COVE ID OR a PBSMM UUID. Depending on which, the
+    # retrieval endpoint is slightly different, so this sets the appropriate
+    # URL to access.
     if instance.pk and instance.object_id and str(instance.object_id).strip():
         # Object is being edited
         op = 'edit'

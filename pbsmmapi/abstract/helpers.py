@@ -1,11 +1,7 @@
-import json
 from datetime import datetime
+import json
 
 import pytz
-
-####
-# These are helper functions used throughout the package.
-####
 
 
 def set_json_serialized_field(attrs, field, default=None):
@@ -60,20 +56,20 @@ def get_default_asset(obj):
 
 def get_canonical_image(image_list, image_type_override=None):
     """
-    Most Objects (except Season for no explicable reason) have an Images JSON serialized field.
-    It is a list of images with an associated "profile" value; however, there is no controlled vocabulary
-    for this.
+    Most Objects (except Season for no explicable reason) have an Images JSON
+    serialized field. It is a list of images with an associated "profile"
+    value; however, there is no controlled vocabulary for this.
 
     So - if an object has several different images, how do we know which one to use?
 
-        1) Set an image_type_override field.   If this is set, and the type exists in the list,
-            then that's the answer.
-        2) Look for 'mezzanine' as a sub-string for the image 'profile' value - if you find that,
-            return it.
-        3) DEFAULT - send back the first image in the list.   That's probably completely random,
-            but one needs a backup plan.
-        4) (still to be coded) - get the SITE_CANONICAL_IMAGE path from the SETTINGS file:
-            This is the absolute last-ditch effort.
+        1) Set an image_type_override field.   If this is set, and the type
+           exists in the list, then that's the answer.
+        2) Look for 'mezzanine' as a sub-string for the image 'profile' value -
+           if you find that, return it.
+        3) DEFAULT - send back the first image in the list.   That's probably
+           completely random, but one needs a backup plan.
+        4) (still to be coded) - get the SITE_CANONICAL_IMAGE path from the
+           SETTINGS file: This is the absolute last-ditch effort.
 
     """
     # What's the pattern to look for in the image list 'profile' value
@@ -93,17 +89,14 @@ def get_canonical_image(image_list, image_type_override=None):
         # return the first image in the list
         return image_list[0]['image']
 
-    # This is my last chance!  Return the SITE_CANONICAL_IMAGE URL from the settings file.
-    # I STILL NEED TO CODE THIS
-    # return SITE_CANONICAL_IMAGE URL
-
     return None
 
 
 def fix_non_aware_datetime(obj):
     """
-    Ugh - for SOME REASON some of the DateTime values returned by the PBS MM API are NOT time zone aware.
-    SO - fudge them by adding 00:00:00 UTC (if even a time is not provided) or assume the time is UTC.
+    Ugh - for SOME REASON some of the DateTime values returned by the PBS MM
+    API are NOT time zone aware. SO - fudge them by adding 00:00:00 UTC (if
+    even a time is not provided) or assume the time is UTC.
     """
     if obj is None:
         return None

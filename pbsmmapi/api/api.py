@@ -1,14 +1,16 @@
-import requests
 from django.conf import settings
+import requests
 
 
 def get_PBSMM_record(url):
     """
     This makes the call to the PBS MM API.
 
-    It requires that the PBSMM_API_ID and PBSMM_API_SECRET values be set in the project's settings.py file.
+    It requires that the PBSMM_API_ID and PBSMM_API_SECRET values be set in the
+    project's settings.py file.
 
-    It takes an endpoint URL and returns the status_code at that endpoint and the JSON returned.
+    It takes an endpoint URL and returns the status_code at that endpoint and
+    the JSON returned.
 
     No other checking/analysis is done.
     """

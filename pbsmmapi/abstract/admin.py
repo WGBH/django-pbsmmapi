@@ -1,9 +1,9 @@
 from datetime import datetime
 
-import pytz
 from django.contrib import admin
 from django.contrib.admin import site
 from django.utils.safestring import mark_safe
+import pytz
 
 # This removed the delete function from the Admin action dropdown.
 # You can 're-add' it, if necessary, by explicitly adding it to the
@@ -75,10 +75,13 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
 
 
 def get_abstract_asset_table(object_list, default_asset, parent_type):
-    url = '/admin/%s/pbsmm%sasset' % (parent_type, parent_type)
+    url = f'/admin/{parent_type}/pbsmm{parent_type}asset'
     if len(object_list) < 1:
         return "(No assets)"
-    out = "<p>Highlighted row indicates which Asset will appear on the parent object's detail page.</p>"
+    out = (
+        "<p>Highlighted row indicates which Asset will "
+        "appear on the parent object's detail page.</p>"
+    )
     out += "<table width=\"100%\" border=2>"
     out += "\n<tr style=\"background-color: #999;l\"><th>Title</th><th>Type</th><th>Duration</th><th>Avail?</th><th>API</th><th>Set as Default?</th></tr>"
     for item in object_list:

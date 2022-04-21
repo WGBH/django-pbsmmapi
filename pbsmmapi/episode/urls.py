@@ -1,5 +1,8 @@
 from django.conf.urls import url
-from .views import PBSMMAllEpisodeListView, PBSMMSeasonEpisodeListView, PBSMMEpisodeDetailView
+
+from pbsmmapi.episode.views import PBSMMAllEpisodeListView
+from pbsmmapi.episode.views import PBSMMEpisodeDetailView
+from pbsmmapi.episode.views import PBSMMSeasonEpisodeListView
 
 # For now assume there is an Episode listing page, and an Episode detail page.
 #

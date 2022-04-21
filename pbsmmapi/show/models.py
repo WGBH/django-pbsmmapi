@@ -5,21 +5,19 @@ from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
-from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
+from django.utils.translation import ugettext_lazy as _
 
-from ..abstract.gatekeeper import can_object_page_be_shown
-from ..abstract.helpers import time_zone_aware_now
-from ..abstract.models import PBSMMGenericShow
-
-from ..api.api import get_PBSMM_record
-from ..api.helpers import check_pagination
-
-from ..asset.ingest_asset import process_asset_record
-from ..asset.models import PBSMMAbstractAsset
-
-from .ingest_show import process_show_record
-from .ingest_children import process_seasons, process_specials
+from pbsmmapi.abstract.gatekeeper import can_object_page_be_shown
+from pbsmmapi.abstract.helpers import time_zone_aware_now
+from pbsmmapi.abstract.models import PBSMMGenericShow
+from pbsmmapi.api.api import get_PBSMM_record
+from pbsmmapi.api.helpers import check_pagination
+from pbsmmapi.asset.ingest_asset import process_asset_record
+from pbsmmapi.asset.models import PBSMMAbstractAsset
+from pbsmmapi.show.ingest_children import process_seasons
+from pbsmmapi.show.ingest_children import process_specials
+from pbsmmapi.show.ingest_show import process_show_record
 
 PBSMM_SHOW_ENDPOINT = 'https://media.services.pbs.org/api/v1/shows/'
 
@@ -124,24 +122,24 @@ def process_show_assets(endpoint, this_show):
             asset.delete()
 
 
-################################
-# PBS MediaManager API interface
-################################
-
-# The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
-
-# That way, one can force a reingestion from the Admin OR one can do it from a management script
-# by simply getting the record, setting ingest_on_save on the record, and calling save().
-
-
 @receiver(models.signals.pre_save, sender=PBSMMShow)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
+    '''
+    PBS MediaManager API interface
+
+    The interface/access is done with a 'pre_save' receiver based on the value of
+    'ingest_on_save'
+
+    That way, one can force a reingestion from the Admin OR one can do it from a
+    management script by simply getting the record, setting ingest_on_save on the
+    record, and calling save().
+    '''
     if instance.__class__ is not PBSMMShow:
         return
 
-    # If this is a new record, then someone has started it in the Admin using
-    # a PBSMM UUID.   Depending on which, the retrieval endpoint is slightly different, so this sets
-    # the appropriate URL to access.
+    # If this is a new record, then someone has started it in the Admin using a
+    # PBSMM UUID.   Depending on which, the retrieval endpoint is slightly
+    # different, so this sets the appropriate URL to access.
     if instance.pk and instance.slug and str(instance.slug).strip():
         # Object is being edited
         if not instance.ingest_on_save:
@@ -151,7 +149,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         if not instance.slug:
             return  # do nothing - can't get an ID to look up!
 
-    url = "{}{}/".format(PBSMM_SHOW_ENDPOINT, instance.slug)
+    url = f'{PBSMM_SHOW_ENDPOINT}{instance.slug}/'
 
     # OK - get the record from the API
     (status, json) = get_PBSMM_record(url)

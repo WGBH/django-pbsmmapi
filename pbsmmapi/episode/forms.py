@@ -1,5 +1,6 @@
 from django import forms
-from .models import PBSMMEpisode
+
+from pbsmmapi.episode.models import PBSMMEpisode
 
 
 class PBSMMEpisodeCreateForm(forms.ModelForm):
@@ -14,7 +15,6 @@ class PBSMMEpisodeCreateForm(forms.ModelForm):
 
 
 class PBSMMEpisodeEditForm(forms.ModelForm):
-
     class Meta:
         model = PBSMMEpisode
         exclude = []

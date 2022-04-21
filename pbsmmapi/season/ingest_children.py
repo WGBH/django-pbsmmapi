@@ -1,7 +1,7 @@
-from ..api.api import get_PBSMM_record
-from ..api.helpers import check_pagination
-from ..episode.models import PBSMMEpisode
-from ..episode.ingest_episode import process_episode_record
+from pbsmmapi.api.api import get_PBSMM_record
+from pbsmmapi.api.helpers import check_pagination
+from pbsmmapi.episode.ingest_episode import process_episode_record
+from pbsmmapi.episode.models import PBSMMEpisode
 
 
 def process_episodes(endpoint, this_season):
@@ -16,7 +16,7 @@ def process_episodes(endpoint, this_season):
     keep_going = True
     while keep_going:
         # this is the "Seasons" endpoint for the show
-        (status, json) = get_PBSMM_record(endpoint)
+        (_, json) = get_PBSMM_record(endpoint)
 
         episode_list = json['data']
 
