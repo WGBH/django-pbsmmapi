@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load cms_tags sekizai_tags staticfiles pbsmm_tags %}
+{% load sekizai_tags staticfiles pbsmm_tags %}
 
 {% block content %}
 <h1> this is the {% if all_seasons %} Global {% else %}{{ parent_show.title }}{% endif %} season listing page </h1>
