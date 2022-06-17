@@ -27,7 +27,6 @@ class PBSMMAbstractAssetAdmin(admin.ModelAdmin):
             {
                 'fields': (
                     'ingest_on_save',
-                    'override_default_asset',
                     (
                         'date_created', 'date_last_api_update', 'updated_at',
                         'last_api_status_color'

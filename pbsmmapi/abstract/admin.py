@@ -61,7 +61,6 @@ def get_abstract_asset_table(object_list, default_asset, parent_type):
         out += '\n\t<td>%s</td>' % item.formatted_duration
         out += "\n\t<td>%s</td>" % item.asset_publicly_available()
         out += "\n\t<td><a href=\"%s\" target=\"_new\">API</a></td>" % item.api_endpoint
-        out += "\n\t<td>%s</td>" % item.is_default
         out += "\n</tr>"
     out += "\n</table>"
     return out

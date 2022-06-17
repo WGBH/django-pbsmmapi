@@ -18,11 +18,6 @@ PBSMM_BASE_URL = 'https://media.services.pbs.org/'
 PBSMM_ASSET_ENDPOINT = f'{PBSMM_BASE_URL}api/v1/assets/'
 PBSMM_LEGACY_ASSET_ENDPOINT = f'{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id='
 
-YES_NO = (
-    (1, 'Yes'),
-    (0, 'No'),
-)
-
 
 class PBSMMAbstractAsset(PBSMMGenericAsset):
     """
@@ -110,21 +105,6 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         blank=True,
     )
 
-    # This is a custom field that lies outside of the API.
-    # It alloes the content producer to define WHICH Asset is shown on the
-    # parental object's Detail page. Since the PBSMM API does not know how to
-    # distinguish mutliple "clips" from one another, this is necessary to show
-    # a Promo vs. a Short Form video, etc.
-    #
-    # ... thanks PBS.
-
-    override_default_asset = models.PositiveIntegerField(
-        _('Override Default Asset'), null=False, choices=YES_NO, default=0
-    )
-
-    class Meta:
-        abstract = True
-
     ###
     # Properties and methods
     ###
@@ -210,11 +190,5 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
             return "%d:%02d:%02d" % (hours, minutes, seconds)
         return ''
 
-    @property
-    def is_default(self):
-        """
-        Return True/False if the Asset is the "default" Asset for it's parent.
-        """
-        if self.override_default_asset:
-            return True
-        return False
+    class Meta:
+        abstract = True
