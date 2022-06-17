@@ -6,9 +6,7 @@ from uuid import UUID
 from django.db import models
 from django.dispatch import receiver
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
-
-from pbsmmapi.abstract.gatekeeper import can_object_page_be_shown
+from django.utils.translation import gettext_lazy as _
 from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericShow
 from pbsmmapi.api.api import get_PBSMM_record
@@ -40,12 +38,6 @@ class PBSMMAbstractShow(PBSMMGenericShow):
         help_text='Also ingest all Episodes (for each Season)',
     )
 
-    class Meta:
-        verbose_name = 'PBS MM Show'
-        verbose_name_plural = 'PBS MM Shows'
-        db_table = 'pbsmm_show'
-        abstract = True
-
     def get_absolute_url(self):
         return reverse('show-detail', args=[self.slug])
 
@@ -54,17 +46,17 @@ class PBSMMAbstractShow(PBSMMGenericShow):
             return self.title
         return "ID %d: unknown" % self.id
 
-    def __object_model_type(self):
+    @property
+    def object_model_type(self):
         # This handles the correspondence to the "type" field in the PBSMM JSON
         # object
         return 'show'
 
-    object_model_type = property(__object_model_type)
-
-    def __available_to_public(self):
-        return can_object_page_be_shown(None, self)
-
-    available_to_public = property(__available_to_public)
+    class Meta:
+        verbose_name = 'PBS MM Show'
+        verbose_name_plural = 'PBS MM Shows'
+        db_table = 'pbsmm_show'
+        abstract = True
 
 
 class PBSMMShow(PBSMMAbstractShow):

@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
 from pbsmmapi.asset.admin import PBSMMAbstractAssetAdmin
 from pbsmmapi.show.forms import PBSMMShowCreateForm
@@ -37,20 +36,49 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
     add_form = PBSMMShowCreateForm
     model = PBSMMShow
     list_display = (
-        'pk', 'slug', 'object_id', 'title_sortable', 'show_publish_status',
-        'date_last_api_update', 'last_api_status_color'
+        'pk',
+        'slug',
+        'object_id',
+        'title_sortable',
+        'date_last_api_update',
+        'last_api_status_color',
     )
     list_display_links = ('pk', 'slug', 'object_id')
     readonly_fields = [
-        'api_endpoint', 'api_endpoint_link', 'assemble_asset_table', 'audience',
-        'can_embed_player', 'canonical_image_tag', 'date_created', 'date_last_api_update',
-        'description_long', 'description_short', 'display_episode_number',
-        'episode_count', 'format_seasons_list', 'format_specials_list', 'funder_message',
-        'ga_event', 'ga_page', 'genre', 'hashtag', 'images', 'is_excluded_from_dfp',
-        'language', 'last_api_status_color', 'links', 'nola', 'object_id',
-        'ordinal_season', 'platforms', 'premiered_on', 'pretty_image_list',
-        'show_publish_status', 'sort_episodes_descending', 'title', 'title_sortable',
-        'updated_at'
+        'api_endpoint',
+        'api_endpoint_link',
+        'assemble_asset_table',
+        'audience',
+        'can_embed_player',
+        'canonical_image_tag',
+        'date_created',
+        'date_last_api_update',
+        'description_long',
+        'description_short',
+        'display_episode_number',
+        'episode_count',
+        'format_seasons_list',
+        'format_specials_list',
+        'funder_message',
+        'ga_event',
+        'ga_page',
+        'genre',
+        'hashtag',
+        'images',
+        'is_excluded_from_dfp',
+        'language',
+        'last_api_status_color',
+        'links',
+        'nola',
+        'object_id',
+        'ordinal_season',
+        'platforms',
+        'premiered_on',
+        'pretty_image_list',
+        'sort_episodes_descending',
+        'title',
+        'title_sortable',
+        'updated_at',
     ]
     add_readonly_fields = []
     add_fieldsets = (
@@ -87,12 +115,10 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
             {
                 'fields': (
                     (
-                        'ingest_on_save', 'ingest_seasons', 'ingest_specials',
-                        'ingest_episodes'
-                    ),
-                    (
-                        'publish_status',
-                        'live_as_of',
+                        'ingest_on_save',
+                        'ingest_seasons',
+                        'ingest_specials',
+                        'ingest_episodes',
                     ),
                 ),
             },

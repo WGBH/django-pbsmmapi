@@ -1,23 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 import json
 
 from django.db import models
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
-from jsonfield import JSONField
-
-from pbsmmapi.abstract.gatekeeper import can_object_page_be_shown
+from django.utils.translation import gettext_lazy as _
 from pbsmmapi.abstract.helpers import get_canonical_image
-from pbsmmapi.abstract.helpers import get_default_asset
-from pbsmmapi.abstract.helpers import is_in_the_future
-
-PUBLISH_STATUS_LIST = (
-    (-1, 'NEVER Available'),
-    (0, 'USE "Live as of Date"'),
-    (1, 'ALWAYS Available'),
-)
 
 
 class GenericObjectManagement(models.Model):
@@ -41,15 +28,12 @@ class GenericObjectManagement(models.Model):
         null=True,
         blank=True,
     )
-    json = JSONField(
+    json = models.JSONField(
         _('JSON'),
         null=True,
         blank=True,
         help_text='This is the last JSON uploaded.',
     )
-
-    class Meta:
-        abstract = True
 
     def last_api_status_color(self):
         template = '<b><span style="color:#%s;">%d</span></b>'
@@ -61,54 +45,8 @@ class GenericObjectManagement(models.Model):
 
     last_api_status_color.short_description = 'Status'
 
-    def show_publish_status(self):
-        if self.publish_status > 0:
-            return mark_safe(
-                "<span style=\"color: #0c0;\"><b>ALWAYS</b></span> Available"
-            )
-        if self.publish_status < 0:
-            return mark_safe("<span style=\"color: #c00;\"><B>NEVER</b></span> Available")
-        # it EQUALS zero
-        if self.live_as_of is None:
-            return "Never Published"
-
-        dstr = self.live_as_of.strftime("%x")
-        if is_in_the_future(self.live_as_of):
-            return mark_safe(f'<b>Goes LIVE: {dstr}</b>')
-
-        return mark_safe(f'<B>LIVE</B> <span style="color: #999;">as of: {dstr}</style>')
-
-    show_publish_status.short_description = 'Pub. Status'
-
-
-class GenericAccessControl(models.Model):
-    publish_status = models.IntegerField(
-        _('Publish Status'), default=0, null=False, choices=PUBLISH_STATUS_LIST
-    )
-    # live_as_of starts out as NULL meaning "I am still being worked on" (if
-    # publish_status == 0) OR "I have deliberately been pushed live (if
-    # publish_status == 1)"
-
-    # if set, then after that date/time the object is "live".
-
-    # This allows content producers to 'set it and forget it'.
-    live_as_of = models.DateTimeField(
-        _('Live As Of'),
-        null=True,
-        blank=True,
-        help_text='You can Set this to a future date/time to schedule availability.'
-    )
-
     class Meta:
         abstract = True
-
-    def __is_publicly_available(self):
-        # can_object_page_be_shown is the site gatekeeper.
-        # if the user is None (as is called here) that means "not logged into
-        # the Amdin": i.e., the general public.
-        return can_object_page_be_shown(None, self)
-
-    is_publicly_available = property(__is_publicly_available)
 
 
 class PBSMMObjectID(models.Model):
@@ -442,11 +380,6 @@ class PBSMMHashtag(models.Model):
 class PBSMMGenericObject(PBSMMObjectID, PBSMMObjectTitleSortableTitle,
                          PBSMMObjectDescription, PBSMMObjectDates,
                          GenericObjectManagement, PBSObjectMetadata):
-    def __get_default_asset(self):
-        return get_default_asset(self)
-
-    default_asset = property(__get_default_asset)
-
     class Meta:
         abstract = True
 
@@ -463,18 +396,16 @@ class PBSMMGenericRemoteAsset(PBSMMGenericObject):
         abstract = True
 
 
-class PBSMMGenericShow(PBSMMGenericObject, GenericAccessControl, PBSMMObjectSlug,
-                       PBSMMImage, PBSMMLinks, PBSMMNOLA, PBSMMHashtag, PBSMMGenre,
-                       PBSMMFunder, PBSMMPlayerMetadata, PBSMMGoogleTracking,
-                       PBSMMEpisodeSeason, PBSMMPlatforms, PBSMMAudience,
-                       PBSMMBroadcastDates, PBSMMLanguage):
+class PBSMMGenericShow(PBSMMGenericObject, PBSMMObjectSlug, PBSMMImage, PBSMMLinks,
+                       PBSMMNOLA, PBSMMHashtag, PBSMMGenre, PBSMMFunder,
+                       PBSMMPlayerMetadata, PBSMMGoogleTracking, PBSMMEpisodeSeason,
+                       PBSMMPlatforms, PBSMMAudience, PBSMMBroadcastDates, PBSMMLanguage):
     class Meta:
         abstract = True
 
 
 class PBSMMGenericEpisode(
         PBSMMGenericObject,
-        GenericAccessControl,
         PBSMMObjectSlug,
         PBSMMFunder,
         PBSMMLanguage,
@@ -487,15 +418,13 @@ class PBSMMGenericEpisode(
         abstract = True
 
 
-class PBSMMGenericSeason(PBSMMGenericObject, GenericAccessControl, PBSMMLinks,
-                         PBSMMImage):
+class PBSMMGenericSeason(PBSMMGenericObject, PBSMMLinks, PBSMMImage):
     class Meta:
         abstract = True
 
 
 class PBSMMGenericSpecial(
         PBSMMGenericObject,
-        GenericAccessControl,
         PBSMMObjectSlug,
         PBSMMLanguage,
         PBSMMBroadcastDates,
@@ -506,8 +435,7 @@ class PBSMMGenericSpecial(
         abstract = True
 
 
-class PBSMMGenericCollection(PBSMMGenericObject, GenericAccessControl, PBSMMObjectSlug,
-                             PBSMMImage):
+class PBSMMGenericCollection(PBSMMGenericObject, PBSMMObjectSlug, PBSMMImage):
     # There is no sortable title field - it is allowed in the model purely out
     # of laziness since abstracting it out from PBSGenericObject would be
     # more-complicated than leaving it in. PLUS I suspect that eventually it'll
@@ -516,10 +444,10 @@ class PBSMMGenericCollection(PBSMMGenericObject, GenericAccessControl, PBSMMObje
         abstract = True
 
 
-class PBSMMGenericFranchise(PBSMMGenericObject, GenericAccessControl, PBSMMObjectSlug,
-                            PBSMMFunder, PBSMMNOLA, PBSMMBroadcastDates, PBSMMImage,
-                            PBSMMPlatforms, PBSMMLinks, PBSMMHashtag, PBSMMGoogleTracking,
-                            PBSMMGenre, PBSMMPlayerMetadata):
+class PBSMMGenericFranchise(PBSMMGenericObject, PBSMMObjectSlug, PBSMMFunder, PBSMMNOLA,
+                            PBSMMBroadcastDates, PBSMMImage, PBSMMPlatforms, PBSMMLinks,
+                            PBSMMHashtag, PBSMMGoogleTracking, PBSMMGenre,
+                            PBSMMPlayerMetadata):
     # There is no can_embed_player field - again, laziness (see above)
     class Meta:
         abstract = True

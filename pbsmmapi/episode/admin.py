@@ -1,5 +1,4 @@
 from django.contrib import admin
-
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
 from pbsmmapi.asset.admin import PBSMMAbstractAssetAdmin
 from pbsmmapi.episode.forms import PBSMMEpisodeCreateForm
@@ -14,8 +13,11 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
     add_form = PBSMMEpisodeCreateForm
 
     list_display = (
-        'pk', 'title_sortable', 'full_episode_code', 'date_last_api_update',
-        'last_api_status_color', 'show_publish_status'
+        'pk',
+        'title_sortable',
+        'full_episode_code',
+        'date_last_api_update',
+        'last_api_status_color',
     )
     list_display_links = ('pk', 'title_sortable')
     list_filter = ('season__show__title_sortable', )
@@ -25,11 +27,27 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
     #
     # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
-        'api_endpoint_link', 'assemble_asset_table', 'canonical_image_tag',
-        'date_created', 'date_last_api_update', 'description_long', 'description_short',
-        'encored_on', 'funder_message', 'images', 'language', 'last_api_status_color',
-        'links', 'nola', 'ordinal', 'premiered_on', 'segment', 'show_publish_status',
-        'slug', 'title', 'title_sortable', 'updated_at'
+        'api_endpoint_link',
+        'assemble_asset_table',
+        'canonical_image_tag',
+        'date_created',
+        'date_last_api_update',
+        'description_long',
+        'description_short',
+        'encored_on',
+        'funder_message',
+        'images',
+        'language',
+        'last_api_status_color',
+        'links',
+        'nola',
+        'ordinal',
+        'premiered_on',
+        'segment',
+        'slug',
+        'title',
+        'title_sortable',
+        'updated_at',
     ]
 
     # If we're adding a record - no sense in seeing all the things that aren't
@@ -49,15 +67,6 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
                     ('object_id', 'date_created'),
                     ('date_last_api_update', 'updated_at', 'last_api_status_color'),
                 ),
-            },
-        ),
-        (
-            'Administration',
-            {
-                'fields': ((
-                    'publish_status',
-                    'live_as_of',
-                ), ),
             },
         ),
         (

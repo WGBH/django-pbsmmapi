@@ -1,5 +1,4 @@
 from django.contrib import admin
-
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
 from pbsmmapi.asset.admin import PBSMMAbstractAssetAdmin
 from pbsmmapi.special.forms import PBSMMSpecialCreateForm
@@ -15,8 +14,12 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
     list_filter = ('show__slug', )
 
     list_display = (
-        'pk', 'title_sortable', 'show', 'premiered_on', 'date_last_api_update',
-        'last_api_status_color', 'show_publish_status'
+        'pk',
+        'title_sortable',
+        'show',
+        'premiered_on',
+        'date_last_api_update',
+        'last_api_status_color',
     )
     list_display_links = ('pk', 'title_sortable')
     # Why so many readonly_fields?  Because we don't want to override what's

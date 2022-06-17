@@ -1,6 +1,5 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
 from pbsmmapi.asset.admin import PBSMMAbstractAssetAdmin
 from pbsmmapi.season.forms import PBSMMSeasonCreateForm
@@ -14,8 +13,12 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
     add_form = PBSMMSeasonCreateForm
     model = PBSMMSeason
     list_display = (
-        'pk', 'printable_title', 'show', 'ordinal', 'date_last_api_update',
-        'last_api_status_color', 'show_publish_status'
+        'pk',
+        'printable_title',
+        'show',
+        'ordinal',
+        'date_last_api_update',
+        'last_api_status_color',
     )
     list_display_links = ('pk', 'printable_title')
     list_filter = ('show__title_sortable', )
@@ -25,11 +28,26 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
     #
     # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
-        'api_endpoint', 'api_endpoint_link', 'assemble_asset_table', 'canonical_image',
-        'canonical_image_tag', 'date_created', 'date_last_api_update', 'description_long',
-        'description_short', 'format_episode_list', 'images', 'last_api_status',
-        'last_api_status_color', 'links', 'ordinal', 'pretty_image_list', 'show_api_id',
-        'show_publish_status', 'title', 'title_sortable', 'updated_at'
+        'api_endpoint',
+        'api_endpoint_link',
+        'assemble_asset_table',
+        'canonical_image',
+        'canonical_image_tag',
+        'date_created',
+        'date_last_api_update',
+        'description_long',
+        'description_short',
+        'format_episode_list',
+        'images',
+        'last_api_status',
+        'last_api_status_color',
+        'links',
+        'ordinal',
+        'pretty_image_list',
+        'show_api_id',
+        'title',
+        'title_sortable',
+        'updated_at',
     ]
 
     add_fieldsets = ((None, {

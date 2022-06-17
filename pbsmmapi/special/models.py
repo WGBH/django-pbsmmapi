@@ -7,8 +7,7 @@ from django.db import models
 from django.dispatch import receiver
 from django.urls import reverse
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
-
+from django.utils.translation import gettext_lazy as _
 from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericSpecial
 from pbsmmapi.api.api import get_PBSMM_record
@@ -70,7 +69,6 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         out += f'\n\t<td>{self.assets.count()}</td>'
         out += f'\n\t<td>{self.date_last_api_update.strftime("%x %X")}</td>'
         out += f'\n\t<td>{self.last_api_status_color()}</td>'
-        out += f'\n\t<td>{self.show_publish_status()}</td>'
         out += '\n</tr>'
         return mark_safe(out)
 

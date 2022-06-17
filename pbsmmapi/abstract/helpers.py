@@ -1,5 +1,5 @@
-from datetime import datetime
 import json
+from datetime import datetime
 
 import pytz
 
@@ -14,44 +14,6 @@ def set_json_serialized_field(attrs, field, default=None):
     if val:
         return json.dumps(val)
     return default
-
-
-def get_default_asset(obj):
-    """
-    Some objects have >1 assets associated with them.
-    One common example is that an episode might have a Preview long before
-    the episode airs, then will have a full-length video for some time,
-    which might expire, after which we'll want the Preview again.
-
-    There is NOTHING in the PBSMM API that tells you WHICH Asset associated
-    with an object is the "most appropriate one".   Therefore we need a function
-    to guess.
-
-    Each Asset model has a "is_default_asset" flag which can be set by the content
-    producer.  This is taken as the canonical answer.   Failing that, this will
-    return  a) the first available "full length" asset it encounters, or
-    b) the first available asset.   If nothing is available, it will return nothing.
-    """
-    asset_list = obj.assets.all()
-    # Try 1: get the first one marked "defautl"
-    attempt_one = asset_list.filter(override_default_asset=1)
-    if attempt_one:
-        for x in attempt_one:
-            if x.is_asset_publicly_available():
-                return x
-    # Try 2: get the first one marked "full length"
-    attempt_two = asset_list.filter(object_type='full_length')
-    if attempt_two:
-        for x in attempt_two:
-            if x.is_asset_publicly_available():
-                return x
-    # Try 3: get the first asset on the list
-    if asset_list:
-        for x in asset_list:
-            if x.is_asset_publicly_available():
-                return x
-    # NO ASSET FOR YOU!
-    return None
 
 
 def get_canonical_image(image_list, image_type_override=None):
@@ -113,12 +75,3 @@ def time_zone_aware_now():
     This just sends back a time zone aware "now()" with UTC as the time zone.
     """
     return datetime.now(pytz.utc)
-
-
-def is_in_the_future(dt):
-    """
-    Is this (UTC) date/time value in the future or not?
-    """
-    if dt > datetime.now(pytz.utc):
-        return True
-    return False
