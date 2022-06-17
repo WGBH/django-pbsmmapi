@@ -23,10 +23,10 @@ from ..abstract.helpers import set_json_serialized_field
 # I find that this works GREAT with model properties.  Using the above example
 # you could quickly create a "is_spanish_available" property in a few lines:
 #
+#    @property
 #    def is_spanish_available(self):
 #        langs = json.loads(self.languages)
 #        return 'en' in lange
-#    is_spanish_available = property(is_spanish_available)
 #
 # Wow - that was simple!
 # RAD - 6 Feb 2018

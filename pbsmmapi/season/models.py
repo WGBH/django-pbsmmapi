@@ -33,7 +33,7 @@ class PBSMMSeason(PBSMMGenericSeason):
     show = models.ForeignKey(
         'show.PBSMMShow',
         related_name='seasons',
-        on_delete=models.CASCADE,  # required for Django 2.0
+        on_delete=models.CASCADE,
         null=True,
         blank=True  # added for AR5 support
     )
@@ -74,7 +74,8 @@ class PBSMMSeason(PBSMMGenericSeason):
     def __str__(self):
         return f'{self.object_id} | {self.ordinal} | {self.title}'
 
-    def __object_model_type(self):
+    @property
+    def object_model_type(self):
         """
         This return the object type.
         """
@@ -82,9 +83,8 @@ class PBSMMSeason(PBSMMGenericSeason):
         # object
         return 'season'
 
-    object_model_type = property(__object_model_type)
-
-    def __printable_title(self):
+    @property
+    def printable_title(self):
         """
         This creates a human friendly title out of the Season metadata
         if an explicit title is not set from the Show title and Episode ordinal.
@@ -93,14 +93,12 @@ class PBSMMSeason(PBSMMGenericSeason):
             return f'{self.show.title} Season {self.ordinal}'
         return 'Season {self.ordinal}'
 
-    printable_title = property(__printable_title)
-
 
 class PBSMMSeasonAsset(PBSMMAbstractAsset):
     season = models.ForeignKey(
         PBSMMSeason,
         related_name='assets',
-        on_delete=models.CASCADE,  # required for Django 2.0
+        on_delete=models.CASCADE,
     )
 
     class Meta:

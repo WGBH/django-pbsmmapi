@@ -42,7 +42,7 @@ class PBSMMEpisode(PBSMMGenericEpisode):
     season = models.ForeignKey(
         'season.PBSMMSeason',
         related_name='episodes',
-        on_delete=models.CASCADE,  # required for Django 2.0
+        on_delete=models.CASCADE,
         null=True,
         blank=True  # ADDED FOR AR5 support
     )
@@ -66,15 +66,15 @@ class PBSMMEpisode(PBSMMGenericEpisode):
     def __str__(self):
         return self.title
 
-    def __object_model_type(self):
+    @property
+    def object_model_type(self):
         """
         This just returns object "type"
         """
         return 'episode'
 
-    object_model_type = property(__object_model_type)
-
-    def __full_episode_code(self):
+    @property
+    def full_episode_code(self):
         """
         This just formats the Episode as:
             show-XXYY where XX is the season and YY is the ordinal, e.g.,:  roadshow-2305
@@ -88,8 +88,6 @@ class PBSMMEpisode(PBSMMGenericEpisode):
             )
         return "{}: (episode {})".format(self.pk, self.ordinal)
 
-    full_episode_code = property(__full_episode_code)
-
     def short_episode_code(self):
         """
         This is just the Episode "code" without the Show slug, e.g.,  0523 for
@@ -99,14 +97,13 @@ class PBSMMEpisode(PBSMMGenericEpisode):
 
     short_episode_code.short_description = 'Ep #'
 
-    def __get_nola_code(self):
+    @property
+    def nola_code(self):
         if self.nola is None or self.nola == '':
             return None
         if self.season.show.nola is None or self.season.show.nola == '':
             return None
         return "%s-%s" % (self.season.show.nola, self.nola)
-
-    nola_code = property(__get_nola_code)
 
     def create_table_line(self):
         """
@@ -133,7 +130,7 @@ class PBSMMEpisodeAsset(PBSMMAbstractAsset):
     episode = models.ForeignKey(
         PBSMMEpisode,
         related_name='assets',
-        on_delete=models.CASCADE,  # required for Django 2.0
+        on_delete=models.CASCADE,
     )
 
     class Meta:

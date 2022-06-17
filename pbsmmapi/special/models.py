@@ -27,7 +27,7 @@ class PBSMMSpecial(PBSMMGenericSpecial):
     show = models.ForeignKey(
         'show.PBSMMShow',
         related_name='specials',
-        on_delete=models.CASCADE,  # required for Django 2.0
+        on_delete=models.CASCADE,
         null=True,
         blank=True  # added for AR5 support
     )
@@ -43,21 +43,19 @@ class PBSMMSpecial(PBSMMGenericSpecial):
     def __str__(self):
         return f"{self.object_id} | {self.show} | {self.title} "
 
-    def __object_model_type(self):
+    @property
+    def object_model_type(self):
         # This handles the correspondence to the "type" field in the PBSMM JSON
         # object
         return 'special'
 
-    object_model_type = property(__object_model_type)
-
-    def __get_nola_code(self):
+    @property
+    def nola_code(self):
         if self.nola is None or self.nola == '':
             return None
         if self.show.nola is None or self.show.nola == '':
             return None
         return f'{self.show.nola}-{self.nola}'
-
-    nola_code = property(__get_nola_code)
 
     def create_table_line(self):
         out = "<tr>"
@@ -75,7 +73,7 @@ class PBSMMSpecialAsset(PBSMMAbstractAsset):
     special = models.ForeignKey(
         PBSMMSpecial,
         related_name='assets',
-        on_delete=models.CASCADE,  # required for Django 2.0
+        on_delete=models.CASCADE,
     )
 
     def __str__(self):

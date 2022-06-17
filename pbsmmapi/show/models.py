@@ -65,7 +65,7 @@ class PBSMMShowAsset(PBSMMAbstractAsset):
     show = models.ForeignKey(
         PBSMMShow,
         related_name='assets',
-        on_delete=models.CASCADE,  # required for Django 2.0
+        on_delete=models.CASCADE,
     )
 
     class Meta:

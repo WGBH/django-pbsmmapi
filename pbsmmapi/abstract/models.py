@@ -171,10 +171,9 @@ class PBSMMBroadcastDates(models.Model):
     '''
     premiered_on = models.DateTimeField(_('Premiered On'), null=True, blank=True)
 
-    def __short_premiere_date(self):
+    @property
+    def short_premiere_date(self):
         return self.premiered_on.strftime('%x')
-
-    short_premiere_date = property(__short_premiere_date)
 
     class Meta:
         abstract = True
@@ -210,7 +209,8 @@ class PBSMMImage(models.Model):
     class Meta:
         abstract = True
 
-    def __get_canonical_image(self):
+    @property
+    def get_canonical_image(self):
         if self.images:
             image_list = json.loads(self.images)
             if self.canonical_image_type_override:
@@ -221,8 +221,6 @@ class PBSMMImage(models.Model):
                 image_list, image_type_override=image_type_override
             )
         return None
-
-    canonical_image = property(__get_canonical_image)
 
     def canonical_image_tag(self):
         if self.canonical_image and "http" in self.canonical_image:
