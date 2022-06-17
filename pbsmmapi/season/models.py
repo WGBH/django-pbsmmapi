@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from uuid import UUID
 
 from django.db import models
@@ -73,9 +71,6 @@ class PBSMMSeason(PBSMMGenericSeason):
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
         return mark_safe(out)
 
-    def __unicode__(self):
-        return f'{self.object_id} | {self.ordinal} | {self.title}'
-
     def __str__(self):
         return f'{self.object_id} | {self.ordinal} | {self.title}'
 
@@ -113,7 +108,7 @@ class PBSMMSeasonAsset(PBSMMAbstractAsset):
         verbose_name_plural = 'PBS MM Seasons - Assets'
         db_table = 'pbsmm_season_asset'
 
-    def __unicode__(self):
+    def __str__(self):
         return f'{self.season.title}: {self.title}'
 
 

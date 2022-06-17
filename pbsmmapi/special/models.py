@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from uuid import UUID
 
 from django.db import models
@@ -42,7 +40,7 @@ class PBSMMSpecial(PBSMMGenericSpecial):
     def get_absolute_url(self):
         return reverse('special-detail', (), {'slug': self.slug})
 
-    def __unicode__(self):
+    def __str__(self):
         return f"{self.object_id} | {self.show} | {self.title} "
 
     def __object_model_type(self):
@@ -80,13 +78,13 @@ class PBSMMSpecialAsset(PBSMMAbstractAsset):
         on_delete=models.CASCADE,  # required for Django 2.0
     )
 
+    def __str__(self):
+        return f'{self.special.title}: {self.title}'
+
     class Meta:
         verbose_name = 'PBS MM Special Asset'
         verbose_name_plural = 'PBS MM Specials - Assets'
         db_table = 'pbsmm_special_asset'
-
-    def __unicode__(self):
-        return f'{self.special.title}: {self.title}'
 
 
 def process_special_assets(endpoint, this_special):

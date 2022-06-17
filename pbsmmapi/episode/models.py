@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from uuid import UUID
 
 from django.db import models
@@ -65,7 +63,7 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         """
         return reverse('episode-detail', (), {'slug': self.slug})
 
-    def __unicode__(self):
+    def __str__(self):
         return self.title
 
     def __object_model_type(self):
@@ -143,7 +141,7 @@ class PBSMMEpisodeAsset(PBSMMAbstractAsset):
         verbose_name_plural = 'PBS MM Episodes - Assets'
         db_table = 'pbsmm_episode_asset'
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s" % (self.episode.title, self.title)
 
 

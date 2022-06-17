@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from uuid import UUID
 
 from django.db import models
@@ -41,7 +39,7 @@ class PBSMMAbstractShow(PBSMMGenericShow):
     def get_absolute_url(self):
         return reverse('show-detail', args=[self.slug])
 
-    def __unicode__(self):
+    def __str__(self):
         if self.title:
             return self.title
         return "ID %d: unknown" % self.id
@@ -75,7 +73,7 @@ class PBSMMShowAsset(PBSMMAbstractAsset):
         verbose_name_plural = 'PBS MM Shows - Assets'
         db_table = 'pbsmm_show_asset'
 
-    def __unicode__(self):
+    def __str__(self):
         return "%s: %s" % (self.show, self.title)
 
 
