@@ -64,13 +64,13 @@ class PBSMMShowAsset(PBSMMAbstractAsset):
         on_delete=models.CASCADE,
     )
 
+    def __str__(self):
+        return "%s: %s" % (self.show, self.title)
+
     class Meta:
         verbose_name = 'PBS MM Show - Asset'
         verbose_name_plural = 'PBS MM Shows - Assets'
         db_table = 'pbsmm_show_asset'
-
-    def __str__(self):
-        return "%s: %s" % (self.show, self.title)
 
 
 def process_show_assets(endpoint, this_show):

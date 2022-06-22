@@ -4,7 +4,6 @@ import json
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-from pbsmmapi.abstract.helpers import get_canonical_image
 
 
 class GenericObjectManagement(models.Model):
@@ -195,50 +194,15 @@ class PBSMMImage(models.Model):
         help_text='JSON serialized field',
     )
 
-    canonical_image_type_override = models.CharField(
-        _('Canonical Image Type Override'),
-        max_length=80,
-        null=True,
-        blank=True,
-        help_text='Profile Image Type to use for Canonical Image',
-    )
-
-    @property
-    def canonical_image(self):
-        if self.images:
-            image_list = json.loads(self.images)
-            if self.canonical_image_type_override:
-                image_type_override = self.canonical_image_type_override
-            else:
-                image_type_override = None
-            return get_canonical_image(
-                image_list, image_type_override=image_type_override
-            )
-        return None
-
-    def canonical_image_tag(self):
-        if self.canonical_image and "http" in self.canonical_image:
-            title = (
-                f'<a href="{self.canonical_image}" target="_blank">'
-                f'{self.canonical_image}</a><br/>'
-            )
-            img = f'<img src="{self.canonical_image}" width="400">'
-            return mark_safe(title + img)
-        return None
-
-    canonical_image_tag.short_description = 'Canonical Image (display width=400px)'
-
     def pretty_image_list(self):
-        canonical = self.canonical_image
         if self.images:
             image_list = json.loads(self.images)
             out = '<table width=\"100%\">'
-            out += '<tr><th>Profile</th><th>Canonical?</th><th>Updated At</th></tr>'
+            out += '<tr><th>Profile</th><th>Updated At</th></tr>'
             for image in image_list:
                 out += '\n<tr>'
                 out += f'<td><a href="{image["image"]}" target="_new">'
                 out += f'{image["profile"]}</a></td>'
-                out += f'<td>{str(image["image"] == canonical)}</td>'
                 out += f'<td>{image["updated_at"]}</td>'
                 out += '</tr>'
             out += '</table>'
@@ -319,7 +283,10 @@ class PBSMMGoogleTracking(models.Model):
 
 class PBSMMGenre(models.Model):
     genre = models.TextField(
-        _('Genre'), null=True, blank=True, help_text='JSON Serialized Field'
+        _('Genre'),
+        null=True,
+        blank=True,
+        help_text='JSON Serialized Field',
     )
 
     class Meta:
@@ -350,7 +317,12 @@ class PBSMMEpisodeSeason(models.Model):
 
 
 class PBSMMLanguage(models.Model):
-    language = models.CharField(_('Language'), max_length=10, null=True, blank=True)
+    language = models.CharField(
+        _('Language'),
+        max_length=10,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         abstract = True
@@ -358,7 +330,10 @@ class PBSMMLanguage(models.Model):
 
 class PBSMMAudience(models.Model):
     audience = models.TextField(
-        _('Audience'), null=True, blank=True, help_text='JSON Serialized Field'
+        _('Audience'),
+        null=True,
+        blank=True,
+        help_text='JSON Serialized Field',
     )
 
     class Meta:
@@ -366,7 +341,12 @@ class PBSMMAudience(models.Model):
 
 
 class PBSMMHashtag(models.Model):
-    hashtag = models.CharField(_('Hashtag'), max_length=100, null=True, blank=True)
+    hashtag = models.CharField(
+        _('Hashtag'),
+        max_length=100,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         abstract = True

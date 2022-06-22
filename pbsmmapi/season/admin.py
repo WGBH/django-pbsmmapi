@@ -31,8 +31,6 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
         'api_endpoint',
         'api_endpoint_link',
         'assemble_asset_table',
-        'canonical_image',
-        'canonical_image_tag',
         'date_created',
         'date_last_api_update',
         'description_long',
@@ -100,8 +98,6 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
                 'fields': (
                     'images',
                     'pretty_image_list',
-                    'canonical_image_type_override',
-                    'canonical_image_tag',
                 ),
             },
         ),

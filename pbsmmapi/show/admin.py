@@ -50,7 +50,6 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
         'assemble_asset_table',
         'audience',
         'can_embed_player',
-        'canonical_image_tag',
         'date_created',
         'date_last_api_update',
         'description_long',
@@ -168,8 +167,6 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
                 'fields': (
                     'images',
                     'pretty_image_list',
-                    'canonical_image_type_override',
-                    'canonical_image_tag',
                 ),
             },
         ),
@@ -276,8 +273,14 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
 class PBSMMShowAssetAdmin(PBSMMAbstractAssetAdmin):
     model = PBSMMShowAsset
     list_display = (
-        'pk', 'object_id', 'show_title', 'object_type', 'legacy_tp_media_id',
-        'asset_publicly_available', 'title_sortable', 'duration'
+        'pk',
+        'object_id',
+        'show_title',
+        'object_type',
+        'legacy_tp_media_id',
+        'asset_publicly_available',
+        'title_sortable',
+        'duration',
     )
 
     def show_title(self, obj):

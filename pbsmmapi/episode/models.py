@@ -43,12 +43,12 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         related_name='episodes',
         on_delete=models.CASCADE,
         null=True,
-        blank=True  # ADDED FOR AR5 support
+        blank=True,
     )
     season_api_id = models.UUIDField(
         _('Season Object ID'),
         null=True,
-        blank=True  # does this work?
+        blank=True,  # does this work?
     )
 
     @property
