@@ -104,13 +104,7 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         blank=True,
     )
 
-    ###
     # Properties and methods
-    ###
-
-    def __str__(self):
-        return f'{self.pk} | {self.object_id} ({self.legacy_tp_media_id}) | {self.title}'
-
     @property
     def object_model_type(self):
         '''
@@ -188,6 +182,9 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
             seconds %= 60
             return '%d:%02d:%02d' % (hours, minutes, seconds)
         return ''
+
+    def __str__(self):
+        return f'{self.pk} | {self.object_id} ({self.legacy_tp_media_id}) | {self.title}'
 
     class Meta:
         abstract = True
