@@ -10,11 +10,11 @@ class GenericObjectManagement(models.Model):
     date_created = models.DateTimeField(
         _('Created On'),
         auto_now_add=True,
-        help_text="Not set by API",
+        help_text='Not set by API',
     )
     date_last_api_update = models.DateTimeField(
         _('Last API Retrieval'),
-        help_text="Not set by API",
+        help_text='Not set by API',
         null=True,
     )
     ingest_on_save = models.BooleanField(

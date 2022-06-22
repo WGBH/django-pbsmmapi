@@ -1,10 +1,11 @@
 from datetime import datetime
+
 import pytz
 from dateutil import parser
 
 
 def check_asset_availability(start=None, end=None):
-    """
+    '''
     Am I within the Asset's availablity window?
 
     If "start" is defined,  now >= start must be True
@@ -17,7 +18,7 @@ def check_asset_availability(start=None, end=None):
         0: True or False
         1: A code  -1 = unknown, 0 = not-yet-available, 1 = available, 2 = expired
         2: the text associated with the code (see previous line)
-    """
+    '''
     now = datetime.now(pytz.utc)
 
     if start:

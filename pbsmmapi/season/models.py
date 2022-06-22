@@ -18,9 +18,9 @@ PBSMM_SEASON_ENDPOINT = 'https://media.services.pbs.org/api/v1/seasons/'
 
 
 class PBSMMSeason(PBSMMGenericSeason):
-    """
+    '''
     These are the fields that are unique to PBSMMSeason
-    """
+    '''
     ordinal = models.PositiveIntegerField(_('Ordinal'), null=True, blank=True)
 
     # This is the parental Show
@@ -59,19 +59,19 @@ class PBSMMSeason(PBSMMGenericSeason):
 
     @property
     def object_model_type(self):
-        """
+        '''
         This return the object type.
-        """
+        '''
         # This handles the correspondence to the "type" field in the PBSMM JSON
         # object
         return 'season'
 
     @property
     def printable_title(self):
-        """
+        '''
         This creates a human friendly title out of the Season metadata
         if an explicit title is not set from the Show title and Episode ordinal.
-        """
+        '''
         if self.show:
             return f'{self.show.title} Season {self.ordinal}'
         return 'Season {self.ordinal}'
@@ -103,9 +103,9 @@ class PBSMMSeasonAsset(PBSMMAbstractAsset):
 
 
 def process_season_assets(endpoint, this_season):
-    """
+    '''
     For each Asset associated with this Season, ingest them page by page.
-    """
+    '''
     keep_going = True
     scraped_object_ids = []
     while keep_going:
@@ -142,7 +142,7 @@ def process_season_assets(endpoint, this_season):
 
 @receiver(models.signals.pre_save, sender=PBSMMSeason)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
-    """
+    '''
     Get a Season's data from the PBS MM API.   Either update or create a
     PBSMMSeason record.
 
@@ -152,7 +152,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     That way, one can force a reingestion from the Admin OR one can do it from a
     management script by simply getting the record, setting ingest_on_save on the
     record, and calling save().
-    """
+    '''
     if instance.__class__ is not PBSMMSeason:
         return
 
@@ -195,12 +195,12 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
 
 @receiver(models.signals.post_save, sender=PBSMMSeason)
 def handle_children(sender, instance, *args, **kwargs):
-    """
+    '''
     If the ingest_episodes flag is set, then also ingest every episode for this Season.
 
     Also, always ingest the Assets associated with this Season.
 
-    """
+    '''
     if instance.ingest_episodes:
         # This is the FIRST endpoint - there might be more, depending on
         # pagination!

@@ -5,11 +5,11 @@ from pbsmmapi.episode.models import PBSMMEpisode
 
 
 def process_episodes(endpoint, this_season):
-    """
+    '''
     Step through each page of a list of PBSMM API Episodes, and ingest each episode.
 
     As Episodes are always associated with a Season, that's the only parameter.
-    """
+    '''
     if this_season is None:  # oops no season - escape doing nothing...
         return
 

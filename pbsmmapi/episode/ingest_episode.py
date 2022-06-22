@@ -3,10 +3,10 @@ from pbsmmapi.abstract.helpers import set_json_serialized_field
 
 
 def process_episode_record(obj, instance):
-    """
+    '''
     This is the code that takes a PBSMM API-returned Episode and aligns it with
     a PBSMMEpisode database record.
-    """
+    '''
     # These are the top-level fields - almost everything else is under attrs
     if 'attributes' not in obj.keys():
         attrs = obj['data'].get('attributes')

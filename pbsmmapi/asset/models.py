@@ -18,14 +18,14 @@ PBSMM_LEGACY_ASSET_ENDPOINT = f'{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id='
 
 
 class PBSMMAbstractAsset(PBSMMGenericAsset):
-    """
+    '''
     These are fields unique to Assets.
     Each object model has a *-Asset table, e.g., PBSMMEpisode has PBSMMEpisodeAsset,
     PBSMMShow has PBSShowAsset, etc.
 
     Aside from the FK reference to the parent, each of these *-Asset models are
     identical in structure.
-    """
+    '''
     # These fields are unique to Asset
     legacy_tp_media_id = models.BigIntegerField(
         _('COVE ID'),
@@ -46,13 +46,14 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         _('Duration'),
         null=True,
         blank=True,
-        help_text="(in seconds)",
+        help_text='(in seconds)',
     )
 
     object_type = models.CharField(  # This is 'clip', etc.
         _('Object Type'),
         max_length=40,
-        null=True, blank=True,
+        null=True,
+        blank=True,
     )
 
     # CAPTIONS
@@ -87,7 +88,7 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         _('Chapters'),
         null=True,
         blank=True,
-        help_text="JSON serialized field",
+        help_text='JSON serialized field',
     )
 
     content_rating = models.CharField(
@@ -112,20 +113,20 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
 
     @property
     def object_model_type(self):
-        """
+        '''
         This handles the correspondence to the "type" field in the PBSMM JSON
         object. Basically this just makes it easy to identify whether an object
         is an asset or not.
-        """
+        '''
         return 'asset'
 
     def asset_publicly_available(self):
-        """
+        '''
         This is mostly for tables listing Assets in the Admin detail page for
         ancestral objects: e.g., an Episode's page in the Admin has a list of
         the episode's assets, and this provides a simple column to show
         availability in that list.
-        """
+        '''
         if self.availability:
             a = json.loads(self.availability)
             p = a.get('public', None)
@@ -138,17 +139,17 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
 
     @property
     def is_asset_publicly_available(self):
-        """
+        '''
         Am I available to the public?  True/False.
-        """
+        '''
         return self.asset_publicly_available
 
     @property
     def duration_hms(self):
         # TODO rewrite this
-        """
+        '''
         Show the asset's duration as #h ##m ##s.
-        """
+        '''
         if self.duration:
             d = self.duration
             hours = d // 3600
@@ -176,16 +177,16 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
     @property
     def formatted_duration(self):
         # TODO rewrite this
-        """
+        '''
         Show the Asset's duration as ##:##:##
-        """
+        '''
         if self.duration:
             seconds = self.duration
             hours = seconds // 3600
             seconds %= 3600
             minutes = seconds // 60
             seconds %= 60
-            return "%d:%02d:%02d" % (hours, minutes, seconds)
+            return '%d:%02d:%02d' % (hours, minutes, seconds)
         return ''
 
     class Meta:

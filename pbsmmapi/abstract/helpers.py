@@ -5,11 +5,11 @@ import pytz
 
 
 def set_json_serialized_field(attrs, field, default=None):
-    """
+    '''
     Return a JSON serialized field,
     but don't send back [] or {} or ''
     (return default which default to None)
-    """
+    '''
     val = attrs.get(field, default)
     if val:
         return json.dumps(val)
@@ -17,11 +17,11 @@ def set_json_serialized_field(attrs, field, default=None):
 
 
 def fix_non_aware_datetime(obj):
-    """
+    '''
     Ugh - for SOME REASON some of the DateTime values returned by the PBS MM
     API are NOT time zone aware. SO - fudge them by adding 00:00:00 UTC (if
     even a time is not provided) or assume the time is UTC.
-    """
+    '''
     if obj is None:
         return None
     if ':' not in obj:  # oops no time
@@ -33,7 +33,7 @@ def fix_non_aware_datetime(obj):
 
 
 def time_zone_aware_now():
-    """
+    '''
     This just sends back a time zone aware "now()" with UTC as the time zone.
-    """
+    '''
     return datetime.now(pytz.utc)
