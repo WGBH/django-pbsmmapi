@@ -155,18 +155,12 @@ class PBSMMObjectDates(models.Model):
         abstract = True
 
 
-#############################
-# FIELDS DEFINITELY ASSOCIATED WITH SOME BUT NOT ALL OBJECTS (confirmed)
-#############################
-
-
-###############
-# FIELDS ASSOCIATED WITH BROADCAST OR PREMIERE (on whatever platform)
-###############
 class PBSMMBroadcastDates(models.Model):
     '''
     premiered_on exists for Episode, Franchise, Show, and Special but NOT
-    Collection or Season encored_on ONLY exists for Episode so we might have to
+    Collection or Season
+
+    encored_on ONLY exists for Episode so we might have to
     split them up
     '''
     premiered_on = models.DateTimeField(_('Premiered On'), null=True, blank=True)
@@ -378,16 +372,30 @@ class PBSMMHashtag(models.Model):
         abstract = True
 
 
-class PBSMMGenericObject(PBSMMObjectID, PBSMMObjectTitleSortableTitle,
-                         PBSMMObjectDescription, PBSMMObjectDates,
-                         GenericObjectManagement, PBSObjectMetadata):
+class PBSMMGenericObject(
+        PBSMMObjectID,
+        PBSMMObjectTitleSortableTitle,
+        PBSMMObjectDescription,
+        PBSMMObjectDates,
+        GenericObjectManagement,
+        PBSObjectMetadata,
+):
     class Meta:
         abstract = True
 
 
-class PBSMMGenericAsset(PBSMMGenericObject, PBSMMObjectSlug, PBSMMImage, PBSMMFunder,
-                        PBSMMPlayerMetadata, PBSMMLinks, PBSMMGeo, PBSMMPlatforms,
-                        PBSMMWindows, PBSMMLanguage):
+class PBSMMGenericAsset(
+        PBSMMGenericObject,
+        PBSMMObjectSlug,
+        PBSMMImage,
+        PBSMMFunder,
+        PBSMMPlayerMetadata,
+        PBSMMLinks,
+        PBSMMGeo,
+        PBSMMPlatforms,
+        PBSMMWindows,
+        PBSMMLanguage,
+):
     class Meta:
         abstract = True
 
@@ -397,10 +405,23 @@ class PBSMMGenericRemoteAsset(PBSMMGenericObject):
         abstract = True
 
 
-class PBSMMGenericShow(PBSMMGenericObject, PBSMMObjectSlug, PBSMMImage, PBSMMLinks,
-                       PBSMMNOLA, PBSMMHashtag, PBSMMGenre, PBSMMFunder,
-                       PBSMMPlayerMetadata, PBSMMGoogleTracking, PBSMMEpisodeSeason,
-                       PBSMMPlatforms, PBSMMAudience, PBSMMBroadcastDates, PBSMMLanguage):
+class PBSMMGenericShow(
+        PBSMMGenericObject,
+        PBSMMObjectSlug,
+        PBSMMLinks,
+        PBSMMNOLA,
+        PBSMMHashtag,
+        PBSMMImage,
+        PBSMMGenre,
+        PBSMMFunder,
+        PBSMMPlayerMetadata,
+        PBSMMGoogleTracking,
+        PBSMMEpisodeSeason,
+        PBSMMPlatforms,
+        PBSMMAudience,
+        PBSMMBroadcastDates,
+        PBSMMLanguage,
+):
     class Meta:
         abstract = True
 
@@ -444,10 +465,20 @@ class PBSMMGenericCollection(PBSMMGenericObject, PBSMMObjectSlug, PBSMMImage):
         abstract = True
 
 
-class PBSMMGenericFranchise(PBSMMGenericObject, PBSMMObjectSlug, PBSMMFunder, PBSMMNOLA,
-                            PBSMMBroadcastDates, PBSMMImage, PBSMMPlatforms, PBSMMLinks,
-                            PBSMMHashtag, PBSMMGoogleTracking, PBSMMGenre,
-                            PBSMMPlayerMetadata):
+class PBSMMGenericFranchise(
+        PBSMMGenericObject,
+        PBSMMObjectSlug,
+        PBSMMFunder,
+        PBSMMNOLA,
+        PBSMMBroadcastDates,
+        PBSMMImage,
+        PBSMMPlatforms,
+        PBSMMLinks,
+        PBSMMHashtag,
+        PBSMMGoogleTracking,
+        PBSMMGenre,
+        PBSMMPlayerMetadata,
+):
     # There is no can_embed_player field - again, laziness (see above)
     class Meta:
         abstract = True

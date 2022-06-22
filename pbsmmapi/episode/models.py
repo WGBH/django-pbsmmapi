@@ -3,7 +3,6 @@ from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
-from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from pbsmmapi.abstract.helpers import time_zone_aware_now
@@ -18,9 +17,9 @@ PBSMM_EPISODE_ENDPOINT = 'https://media.services.pbs.org/api/v1/episodes/'
 
 
 class PBSMMEpisode(PBSMMGenericEpisode):
-    """
+    '''
     These are the fields that are unique to Episode records.
-    """
+    '''
     encored_on = models.DateTimeField(
         _('Encored On'),
         blank=True,
@@ -52,48 +51,32 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         blank=True  # does this work?
     )
 
-    class Meta:
-        verbose_name = 'PBS MM Episode'
-        verbose_name_plural = 'PBS MM Episodes'
-        db_table = 'pbsmm_episode'
-
-    def get_absolute_url(self):
-        """
-        This is so the Admin can have a "view on site" button
-        """
-        return reverse('episode-detail', (), {'slug': self.slug})
-
-    def __str__(self):
-        return self.title
-
     @property
     def object_model_type(self):
-        """
+        '''
         This just returns object "type"
-        """
+        '''
         return 'episode'
 
     @property
     def full_episode_code(self):
-        """
+        '''
         This just formats the Episode as:
             show-XXYY where XX is the season and YY is the ordinal, e.g.,:  roadshow-2305
             for Roadshow, Season 23, Episode 5.
 
             Useful in lists of episodes that cross Seasons/Shows.
-        """
+        '''
         if self.season and self.season.show and self.season.ordinal:
-            return "%s-%02d%02d" % (
-                self.season.show.slug, self.season.ordinal, self.ordinal
-            )
-        return "{}: (episode {})".format(self.pk, self.ordinal)
+            return f'{self.season.show.slug}-{self.season.ordinal:02d}-{self.ordinal:02d}'
+        return f'{self.pk}: (episode {self.ordinal})'
 
     def short_episode_code(self):
-        """
+        '''
         This is just the Episode "code" without the Show slug, e.g.,  0523 for
         the 23rd episode of Season 5
-        """
-        return "%02d%02d" % (self.season.ordinal, self.ordinal)
+        '''
+        return f'{self.season.ordinal:02d}{self.ordinal:02d}'
 
     short_episode_code.short_description = 'Ep #'
 
@@ -103,13 +86,13 @@ class PBSMMEpisode(PBSMMGenericEpisode):
             return None
         if self.season.show.nola is None or self.season.show.nola == '':
             return None
-        return "%s-%s" % (self.season.show.nola, self.nola)
+        return f'{self.season.show.nola}{self.nola}'
 
     def create_table_line(self):
-        """
+        '''
         This just formats a line in a Table of Episodes.
         Used on a Season's admin page and a Show's admin page.
-        """
+        '''
         out = "<tr>"
         out += "\t<td></td>"
         out += "\n\t<td>%02d%02d:</td>" % (self.season.ordinal, self.ordinal)
@@ -122,33 +105,41 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
         return mark_safe(out)
 
+    def __str__(self):
+        return self.title
+
+    class Meta:
+        verbose_name = 'PBS MM Episode'
+        verbose_name_plural = 'PBS MM Episodes'
+        db_table = 'pbsmm_episode'
+
 
 class PBSMMEpisodeAsset(PBSMMAbstractAsset):
-    """
+    '''
     These are the Assets associated with an episode.
-    """
+    '''
     episode = models.ForeignKey(
         PBSMMEpisode,
         related_name='assets',
         on_delete=models.CASCADE,
     )
 
+    def __str__(self):
+        return f'{self.episode.title}: {self.title}'
+
     class Meta:
         verbose_name = 'PBS MM Episode Asset'
         verbose_name_plural = 'PBS MM Episodes - Assets'
         db_table = 'pbsmm_episode_asset'
 
-    def __str__(self):
-        return "%s: %s" % (self.episode.title, self.title)
-
 
 def process_episode_assets(endpoint, this_episode):
-    """
+    '''
     Scrape assets for this episode, page by page, until there are no more.
 
     There's probably a way to abstract this so that for all the *-Asset
     scrapers it would be more DRY.
-    """
+    '''
     # Handle pagination
     keep_going = True
     scraped_object_ids = []
@@ -199,9 +190,9 @@ def process_episode_assets(endpoint, this_episode):
 
 @receiver(models.signals.pre_save, sender=PBSMMEpisode)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
-    """
+    '''
     This calls the PBS MM API for an Episode and then either saves or creates it.
-    """
+    '''
     if instance.__class__ is not PBSMMEpisode:
         return
 
@@ -245,12 +236,12 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
 
 @receiver(models.signals.post_save, sender=PBSMMEpisode)
 def handle_children(sender, instance, *args, **kwargs):
-    """
+    '''
     This gets all the children.
     For the case of Episodes, that just means the Episode Assets.
 
     We ALWAYS get the Assets when the Episode is ingested.
-    """
+    '''
     if not instance:
         return
 
