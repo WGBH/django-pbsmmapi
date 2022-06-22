@@ -195,7 +195,10 @@ class PBSMMNOLA(models.Model):
 # abide by this nomenclature or not
 class PBSMMImage(models.Model):
     images = models.TextField(
-        _('Images'), null=True, blank=True, help_text='JSON serialized field'
+        _('Images'),
+        null=True,
+        blank=True,
+        help_text='JSON serialized field',
     )
 
     canonical_image_type_override = models.CharField(
@@ -203,14 +206,11 @@ class PBSMMImage(models.Model):
         max_length=80,
         null=True,
         blank=True,
-        help_text='Profile Image Type to use for Canonical Image'
+        help_text='Profile Image Type to use for Canonical Image',
     )
 
-    class Meta:
-        abstract = True
-
     @property
-    def get_canonical_image(self):
+    def canonical_image(self):
         if self.images:
             image_list = json.loads(self.images)
             if self.canonical_image_type_override:
@@ -252,6 +252,9 @@ class PBSMMImage(models.Model):
         return None
 
     pretty_image_list.short_description = 'Image List'
+
+    class Meta:
+        abstract = True
 
 
 class PBSMMFunder(models.Model):
@@ -407,7 +410,6 @@ class PBSMMGenericEpisode(
         PBSMMObjectSlug,
         PBSMMFunder,
         PBSMMLanguage,
-        PBSMMImage,
         PBSMMBroadcastDates,
         PBSMMNOLA,
         PBSMMLinks,

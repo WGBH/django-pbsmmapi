@@ -29,14 +29,12 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
     readonly_fields = [
         'api_endpoint_link',
         'assemble_asset_table',
-        'canonical_image_tag',
         'date_created',
         'date_last_api_update',
         'description_long',
         'description_short',
         'encored_on',
         'funder_message',
-        'images',
         'language',
         'last_api_status_color',
         'links',
@@ -83,17 +81,6 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
         ('Assets', {
             'fields': ('assemble_asset_table', ),
         }),
-        (
-            'Images',
-            {
-                'classes': ('collapse', ),
-                'fields': (
-                    'images',
-                    'canonical_image_type_override',
-                    'canonical_image_tag',
-                ),
-            },
-        ),
         (
             'Description and Texts',
             {
@@ -151,8 +138,14 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
 class PBSMMEpisodeAssetAdmin(PBSMMAbstractAssetAdmin):
     model = PBSMMEpisodeAsset
     list_display = (
-        'pk', 'object_id', 'full_episode_code', 'object_type', 'legacy_tp_media_id',
-        'asset_publicly_available', 'title_sortable', 'duration'
+        'pk',
+        'object_id',
+        'full_episode_code',
+        'object_type',
+        'legacy_tp_media_id',
+        'asset_publicly_available',
+        'title_sortable',
+        'duration',
     )
 
     def full_episode_code(self, obj):
