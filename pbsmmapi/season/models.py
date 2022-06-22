@@ -3,7 +3,6 @@ from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
-from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from pbsmmapi.abstract.helpers import time_zone_aware_now
@@ -46,19 +45,6 @@ class PBSMMSeason(PBSMMGenericSeason):
         help_text='Also ingest all Episodes (for each Season)'
     )
 
-    class Meta:
-        verbose_name = 'PBS MM Season'
-        verbose_name_plural = 'PBS MM Seasons'
-        # app_label = 'pbsmmapi'
-        db_table = 'pbsmm_season'
-        ordering = ['-ordinal']
-
-    def get_absolute_url(self):
-        """
-        This enables the "Show on Site" link on the Admin page
-        """
-        return reverse('season-detail', (), {'pk': self.pk})
-
     def create_table_line(self):
         this_title = "Season %d: %s" % (self.ordinal, self.title)
         out = "<tr style=\"background-color: #ddd;\">"
@@ -92,6 +78,12 @@ class PBSMMSeason(PBSMMGenericSeason):
         if self.show:
             return f'{self.show.title} Season {self.ordinal}'
         return 'Season {self.ordinal}'
+
+    class Meta:
+        verbose_name = 'PBS MM Season'
+        verbose_name_plural = 'PBS MM Seasons'
+        db_table = 'pbsmm_season'
+        ordering = ['-ordinal']
 
 
 class PBSMMSeasonAsset(PBSMMAbstractAsset):

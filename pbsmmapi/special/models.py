@@ -3,7 +3,6 @@ from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
-from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from pbsmmapi.abstract.helpers import time_zone_aware_now
@@ -29,19 +28,8 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         related_name='specials',
         on_delete=models.CASCADE,
         null=True,
-        blank=True  # added for AR5 support
+        blank=True,
     )
-
-    class Meta:
-        verbose_name = 'PBS MM Special'
-        verbose_name_plural = 'PBS MM Specials'
-        db_table = 'pbsmm_special'
-
-    def get_absolute_url(self):
-        return reverse('special-detail', (), {'slug': self.slug})
-
-    def __str__(self):
-        return f"{self.object_id} | {self.show} | {self.title} "
 
     @property
     def object_model_type(self):
@@ -67,6 +55,14 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         out += f'\n\t<td>{self.last_api_status_color()}</td>'
         out += '\n</tr>'
         return mark_safe(out)
+
+    def __str__(self):
+        return f"{self.object_id} | {self.show} | {self.title} "
+
+    class Meta:
+        verbose_name = 'PBS MM Special'
+        verbose_name_plural = 'PBS MM Specials'
+        db_table = 'pbsmm_special'
 
 
 class PBSMMSpecialAsset(PBSMMAbstractAsset):

@@ -3,7 +3,6 @@ from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
-from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericShow
@@ -35,9 +34,6 @@ class PBSMMAbstractShow(PBSMMGenericShow):
         default=False,
         help_text='Also ingest all Episodes (for each Season)',
     )
-
-    def get_absolute_url(self):
-        return reverse('show-detail', args=[self.slug])
 
     def __str__(self):
         if self.title:
