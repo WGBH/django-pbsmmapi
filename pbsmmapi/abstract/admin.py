@@ -27,9 +27,7 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
 
     def assemble_asset_table(self, obj):
         asset_list = obj.assets.all()
-        out = get_abstract_asset_table(
-            asset_list, obj.default_asset, obj.object_model_type
-        )
+        out = get_abstract_asset_table(asset_list, obj.object_model_type)
         return mark_safe(out)
 
     assemble_asset_table.short_description = 'Assets'
@@ -38,16 +36,14 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
         abstract = True
 
 
-def get_abstract_asset_table(object_list, default_asset, parent_type):
+def get_abstract_asset_table(object_list, parent_type):
     url = f'/admin/{parent_type}/pbsmm{parent_type}asset'
     if len(object_list) < 1:
         return "(No assets)"
     out = "<table width=\"100%\" border=2>"
-    out += "\n<tr style=\"background-color: #999;l\"><th>Title</th><th>Type</th><th>Duration</th><th>Avail?</th><th>API</th><th>Set as Default?</th></tr>"
+    out += "\n<tr style=\"background-color: #999;l\"><th>Title</th><th>Type</th><th>Duration</th><th>Avail?</th><th>API</th></tr>"
     for item in object_list:
         row_color = '#ffffff;'
-        if default_asset is not None and item == default_asset:
-            row_color = '#ffff66;'
 
         out += "\n<tr style=\"background-color:%s\">" % row_color
         out += "\n\t<td><a href=\"%s/%d/change/\" target=\"_new\">%s</a></td>" % (
