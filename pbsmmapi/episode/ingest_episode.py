@@ -1,5 +1,4 @@
 from pbsmmapi.abstract.helpers import fix_non_aware_datetime
-from pbsmmapi.abstract.helpers import set_json_serialized_field
 
 
 def process_episode_record(obj, instance):
@@ -45,14 +44,14 @@ def process_episode_record(obj, instance):
     instance.segment = attrs.get('segment', None)
 
     # Unprocessed - store as JSON fragments
-    instance.links = set_json_serialized_field(attrs, 'links', default=None)
+    instance.links = attrs.get('links', None)
 
     # References: Season
     this_season = attrs.get('season', None)
     try:
         instance.season_api_id = this_season.get('id', None)
-    except:
-        pass
+    except AttributeError:
+        instance.season_api_id = None
 
     instance.json = obj
     return instance

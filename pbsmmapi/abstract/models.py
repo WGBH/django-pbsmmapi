@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import json
-
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -177,17 +175,19 @@ class PBSMMNOLA(models.Model):
     This exists for Episode, Franchise, and Special but NOT for Collection,
     Show, or Season
     '''
-    nola = models.CharField(_('NOLA Code'), max_length=8, null=True, blank=True)
+    nola = models.CharField(
+        _('NOLA Code'),
+        max_length=8,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         abstract = True
 
 
-# Here's something annoying: images only exists for Asset, but the other object
-# have images, just called something else. I have to decide whether I will
-# abide by this nomenclature or not
 class PBSMMImage(models.Model):
-    images = models.TextField(
+    images = models.JSONField(
         _('Images'),
         null=True,
         blank=True,
@@ -196,7 +196,7 @@ class PBSMMImage(models.Model):
 
     def pretty_image_list(self):
         if self.images:
-            image_list = json.loads(self.images)
+            image_list = self.images
             out = '<table width=\"100%\">'
             out += '<tr><th>Profile</th><th>Updated At</th></tr>'
             for image in image_list:
@@ -220,7 +220,6 @@ class PBSMMFunder(models.Model):
         _('Funder Message'),
         null=True,
         blank=True,
-        help_text='JSON serialized field',
     )
 
     class Meta:
@@ -237,8 +236,11 @@ class PBSMMPlayerMetadata(models.Model):
 
 
 class PBSMMLinks(models.Model):
-    links = models.TextField(
-        _('Links'), null=True, blank=True, help_text='JSON serialized field'
+    links = models.JSONField(
+        _('Links'),
+        null=True,
+        blank=True,
+        help_text='JSON serialized field',
     )
 
     class Meta:
@@ -246,8 +248,11 @@ class PBSMMLinks(models.Model):
 
 
 class PBSMMPlatforms(models.Model):
-    platforms = models.TextField(
-        _('Platforms'), null=True, blank=True, help_text='JSON serialized field'
+    platforms = models.JSONField(
+        _('Platforms'),
+        null=True,
+        blank=True,
+        help_text='JSON serialized field',
     )
 
     class Meta:
@@ -255,8 +260,11 @@ class PBSMMPlatforms(models.Model):
 
 
 class PBSMMWindows(models.Model):
-    windows = models.TextField(
-        _('Windows'), null=True, blank=True, help_text='JSON serialized field'
+    windows = models.JSONField(
+        _('Windows'),
+        null=True,
+        blank=True,
+        help_text='JSON serialized field',
     )
 
     class Meta:
@@ -265,8 +273,11 @@ class PBSMMWindows(models.Model):
 
 class PBSMMGeo(models.Model):
     # countries --- hold off until needed
-    geo_profile = models.TextField(
-        _('Geo Profile'), null=True, blank=True, help_text='JSON serialized field'
+    geo_profile = models.JSONField(
+        _('Geo Profile'),
+        null=True,
+        blank=True,
+        help_text='JSON serialized field',
     )
 
     class Meta:
@@ -282,7 +293,7 @@ class PBSMMGoogleTracking(models.Model):
 
 
 class PBSMMGenre(models.Model):
-    genre = models.TextField(
+    genre = models.JSONField(
         _('Genre'),
         null=True,
         blank=True,
@@ -329,7 +340,7 @@ class PBSMMLanguage(models.Model):
 
 
 class PBSMMAudience(models.Model):
-    audience = models.TextField(
+    audience = models.JSONField(
         _('Audience'),
         null=True,
         blank=True,

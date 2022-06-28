@@ -1,5 +1,4 @@
-from ..abstract.helpers import fix_non_aware_datetime
-from ..abstract.helpers import set_json_serialized_field
+from pbsmmapi.abstract.helpers import fix_non_aware_datetime
 
 # This is the code that parses the JSON for an Asset returned by the PBSMM API, and
 # puts it into the schema for an *-Asset object (e.g., EpisodeAsset, ShowAsset, etc.;
@@ -10,26 +9,6 @@ from ..abstract.helpers import set_json_serialized_field
 #     all of the associated Assets are ingested (with the code below).
 
 # THIS IS THE INGEST SCRIPT FOR ASSET RECORDS
-
-# This just makes nice serialized JSON content fragments from the API record's
-# JSON content. It's a dirty way to avoid having to create ancillary tables
-# with foreign keys back to objects. For example, let's say there's a field
-# that shows all of the available languages for an object; do you REALLY want
-# to have N records for EACH object that just says object #1234 is in
-# English/Spanish? No - of course you don't.   So instead have a SINGLE simple
-# field that has the value of, e.g., ['en', 'es'] that you can de-serialize as
-# necessary with the appropriate tests.
-#
-# I find that this works GREAT with model properties.  Using the above example
-# you could quickly create a "is_spanish_available" property in a few lines:
-#
-#    @property
-#    def is_spanish_available(self):
-#        langs = json.loads(self.languages)
-#        return 'en' in lange
-#
-# Wow - that was simple!
-# RAD - 6 Feb 2018
 
 
 def process_asset_record(obj, instance, origin=None):
@@ -82,23 +61,23 @@ def process_asset_record(obj, instance, origin=None):
     instance.language = attrs.get('language', None)
 
     # Unprocessed
-    instance.tags = set_json_serialized_field(attrs, 'tags', default=None)
+    instance.tags = attrs.get('tags', None)
     # According to PBS this isn't really used - legacy for some third parties - skipping
     # However, Antiques Roadshow appears to be one of them.
-    instance.topics = set_json_serialized_field(attrs, 'topics', default=None)
+    instance.topics = attrs.get('topics', None)
     # Availabilty is in three parts: public, station_members, local_members -
     # there might be different dates for each
-    instance.availability = set_json_serialized_field(
-        attrs, 'availabilities', default=None
-    )
+    instance.availability = attrs.get('availabilities', None)
     # The canonical image used for this is the one that has 'mezzanine' in it
-    instance.images = set_json_serialized_field(attrs, 'images', default=None)
+    instance.images = attrs.get('images', None)
     # This can have things like "where to buy the DVD" for shows - not too
     # useful (so far) for Asset records
-    instance.links = set_json_serialized_field(attrs, 'links', default=None)
+    instance.links = attrs.get('links', None)
     # Basically, this is the set of places one is allowed to access the asset
-    instance.geo_profile = set_json_serialized_field(attrs, 'geo_profile', default=None)
+    instance.geo_profile = attrs.get('geo_profile', None)
     # For compatibility (so far)
-    instance.platforms = set_json_serialized_field(attrs, 'platforms', default=None)
+    instance.platforms = attrs.get('platforms', None)
+
+    instance.json = obj
 
     return instance
