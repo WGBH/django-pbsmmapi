@@ -1,9 +1,8 @@
 [tool.poetry]
-python
 name='django-pbsmmapi'
 version='0.2.5'
 description="Django models that import content from the PBS MediaManager API"
-readme=README.md
+readme='README.md'
 license='MIT License, see LICENSE'
 authors=['Bob Donahue']
 classifiers=[
