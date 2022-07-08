@@ -132,13 +132,6 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
     asset_publicly_available.boolean = True
 
     @property
-    def is_asset_publicly_available(self):
-        '''
-        Am I available to the public?  True/False.
-        '''
-        return self.asset_publicly_available
-
-    @property
     def duration_hms(self):
         # TODO rewrite this
         '''
