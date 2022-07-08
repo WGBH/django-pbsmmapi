@@ -227,9 +227,15 @@ class PBSMMFunder(models.Model):
 
 
 class PBSMMPlayerMetadata(models.Model):
-    is_excluded_from_dfp = models.BooleanField(_('Is excluded from DFP'), default=False)
+    is_excluded_from_dfp = models.BooleanField(
+        _('Is excluded from DFP'),
+        default=False,
+    )
 
-    can_embed_player = models.BooleanField(_('Can Embed Player'), default=False)
+    can_embed_player = models.BooleanField(
+        _('Can Embed Player'),
+        default=False,
+    )
 
     class Meta:
         abstract = True
@@ -285,8 +291,18 @@ class PBSMMGeo(models.Model):
 
 
 class PBSMMGoogleTracking(models.Model):
-    ga_page = models.CharField(_('GA Page Tag'), max_length=40, null=True, blank=True)
-    ga_event = models.CharField(_('GA Event Tag'), max_length=40, null=True, blank=True)
+    ga_page = models.CharField(
+        _('GA Page Tag'),
+        max_length=40,
+        null=True,
+        blank=True,
+    )
+    ga_event = models.CharField(
+        _('GA Event Tag'),
+        max_length=40,
+        null=True,
+        blank=True,
+    )
 
     class Meta:
         abstract = True
@@ -449,7 +465,7 @@ class PBSMMGenericSpecial(
 
 class PBSMMGenericCollection(PBSMMGenericObject, PBSMMObjectSlug, PBSMMImage):
     # There is no sortable title field - it is allowed in the model purely out
-    # of laziness since abstracting it out from PBSGenericObject would be
+    # of laziness since abstracting it out from PBSMMGenericObject would be
     # more-complicated than leaving it in. PLUS I suspect that eventually it'll
     # be added...
     class Meta:
