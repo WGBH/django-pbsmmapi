@@ -1,5 +1,4 @@
 from pbsmmapi.abstract.helpers import fix_non_aware_datetime
-from pbsmmapi.abstract.helpers import set_json_serialized_field
 
 
 def process_show_record(obj, instance):
@@ -42,11 +41,11 @@ def process_show_record(obj, instance):
     instance.ordinal_season = attrs.get('ordinal_season', True)
 
     # Unprocessed - store as JSON fragments
-    instance.images = set_json_serialized_field(attrs, 'images', default=None)
-    instance.links = set_json_serialized_field(attrs, 'links', default=None)
-    instance.platforms = set_json_serialized_field(attrs, 'platforms', default=None)
-    instance.genre = set_json_serialized_field(attrs, 'genre', default=None)
-    instance.audience = set_json_serialized_field(attrs, 'audience', default=None)
+    instance.images = attrs.get('images', None)
+    instance.links = attrs.get('links', None)
+    instance.platforms = attrs.get('platforms', None)
+    instance.genre = attrs.get('genre', None)
+    instance.audience = attrs.get('audience', None)
 
     instance.json = obj
     return instance

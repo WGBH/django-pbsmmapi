@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import json
-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from pbsmmapi.abstract.models import PBSMMGenericAsset
@@ -35,7 +33,7 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         help_text='(Legacy TP Media ID)',
     )
 
-    availability = models.TextField(
+    availability = models.JSONField(
         _('Availability'),
         null=True,
         blank=True,
@@ -63,13 +61,13 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
     )
 
     # TAGS, Topics
-    tags = models.TextField(
+    tags = models.JSONField(
         _('Tags'),
         null=True,
         blank=True,
         help_text='JSON serialized field',
     )
-    topics = models.TextField(
+    topics = models.JSONField(
         _('Topics'),
         null=True,
         blank=True,
@@ -84,7 +82,7 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
     )
 
     # CHAPTERS
-    chapters = models.TextField(
+    chapters = models.JSONField(
         _('Chapters'),
         null=True,
         blank=True,
@@ -122,21 +120,16 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         availability in that list.
         '''
         if self.availability:
-            a = json.loads(self.availability)
-            p = a.get('public', None)
-            if p:
-                return check_asset_availability(start=p['start'], end=p['end'])[0]
+            public_window = self.availability.get('public', None)
+            if public_window:
+                return check_asset_availability(
+                    start=public_window['start'],
+                    end=public_window['end'],
+                )[0]
         return None
 
     asset_publicly_available.short_description = 'Pub. Avail.'
     asset_publicly_available.boolean = True
-
-    @property
-    def is_asset_publicly_available(self):
-        '''
-        Am I available to the public?  True/False.
-        '''
-        return self.asset_publicly_available
 
     @property
     def duration_hms(self):

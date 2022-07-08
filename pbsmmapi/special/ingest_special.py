@@ -1,5 +1,4 @@
 from pbsmmapi.abstract.helpers import fix_non_aware_datetime
-from pbsmmapi.abstract.helpers import set_json_serialized_field
 
 
 def process_special_record(obj, instance, origin='native'):
@@ -34,7 +33,7 @@ def process_special_record(obj, instance, origin='native'):
     instance.language = attrs.get('language', None)
 
     # Unprocessed - store as JSON fragments
-    instance.links = set_json_serialized_field(attrs, 'links', default=None)
+    instance.links = attrs.get('links', None)
     instance.json = obj
 
     return instance

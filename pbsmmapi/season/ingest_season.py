@@ -1,5 +1,4 @@
 from pbsmmapi.abstract.helpers import fix_non_aware_datetime
-from pbsmmapi.abstract.helpers import set_json_serialized_field
 from pbsmmapi.api.api import get_PBSMM_record
 
 
@@ -55,18 +54,16 @@ def process_season_record(obj, instance, origin='season'):
     instance.hashtag = attrs.get('hashtag', None)
 
     # Unprocessed - store as JSON fragments
-    instance.genre = set_json_serialized_field(attrs, 'genre', default=None)
-    instance.links = set_json_serialized_field(attrs, 'links', default=None)
+    instance.genre = attrs.get('genre', None)
+    instance.links = attrs.get('links', None)
 
     # The canonical image used for this is the one that has 'mezzanine' in it
-    instance.images = set_json_serialized_field(attrs, 'images', default=None)
+    instance.images = attrs.get('images', None)
     if instance.images is None:  # try latest_asset_images
-        instance.images = set_json_serialized_field(
-            attrs, 'latest_asset_images', default=None
-        )
+        instance.images = attrs.get('latest_asset_images', None)
 
-    instance.platforms = set_json_serialized_field(attrs, 'platforms', default=None)
-    instance.audience = set_json_serialized_field(attrs, 'audience', default=None)
+    instance.platforms = attrs.get('platforms', None)
+    instance.audience = attrs.get('audience', None)
 
     # References to parents
     show = attrs.get('show', None)
