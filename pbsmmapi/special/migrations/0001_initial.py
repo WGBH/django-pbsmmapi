@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 from django.db import migrations, models
 import django.db.models.deletion
-import jsonfield.fields
 
 
 class Migration(migrations.Migration):
@@ -24,7 +23,7 @@ class Migration(migrations.Migration):
                 ('date_last_api_update', models.DateTimeField(help_text='Not set by API', null=True, verbose_name='Last API Retrieval')),
                 ('ingest_on_save', models.BooleanField(default=False, help_text='If true, then will update values from the PBSMM API on save()', verbose_name='Ingest on Save')),
                 ('last_api_status', models.PositiveIntegerField(blank=True, null=True, verbose_name='Last API Status')),
-                ('json', jsonfield.fields.JSONField(blank=True, help_text='This is the last JSON uploaded.', null=True, verbose_name='JSON')),
+                ('json', models.JSONField(blank=True, help_text='This is the last JSON uploaded.', null=True, verbose_name='JSON')),
                 ('publish_status', models.IntegerField(choices=[(-1, 'NEVER Available'), (0, 'USE "Live as of Date"'), (1, 'ALWAYS Available')], default=0, verbose_name='Publish Status')),
                 ('live_as_of', models.DateTimeField(blank=True, help_text='You can Set this to a future date/time to schedule availability.', null=True, verbose_name='Live As Of')),
                 ('object_id', models.UUIDField(blank=True, null=True, unique=True, verbose_name='Object ID')),
@@ -55,7 +54,7 @@ class Migration(migrations.Migration):
                 ('date_last_api_update', models.DateTimeField(help_text='Not set by API', null=True, verbose_name='Last API Retrieval')),
                 ('ingest_on_save', models.BooleanField(default=False, help_text='If true, then will update values from the PBSMM API on save()', verbose_name='Ingest on Save')),
                 ('last_api_status', models.PositiveIntegerField(blank=True, null=True, verbose_name='Last API Status')),
-                ('json', jsonfield.fields.JSONField(blank=True, help_text='This is the last JSON uploaded.', null=True, verbose_name='JSON')),
+                ('json', models.JSONField(blank=True, help_text='This is the last JSON uploaded.', null=True, verbose_name='JSON')),
                 ('object_id', models.UUIDField(blank=True, null=True, unique=True, verbose_name='Object ID')),
                 ('api_endpoint', models.URLField(blank=True, help_text='Endpoint to original record from the API', null=True, verbose_name='Link to API Record')),
                 ('title', models.CharField(blank=True, max_length=200, null=True, verbose_name='Title')),

@@ -1,6 +1,6 @@
 from django.forms import ModelForm
 
-from .models import PBSMMShow
+from pbsmmapi.show.models import PBSMMShow
 
 
 class PBSMMShowCreateForm(ModelForm):

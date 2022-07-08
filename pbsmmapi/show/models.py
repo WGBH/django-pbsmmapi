@@ -1,25 +1,18 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
 from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
-from django.utils.translation import ugettext_lazy as _
-from django.urls import reverse
-
-from ..abstract.gatekeeper import can_object_page_be_shown
-from ..abstract.helpers import time_zone_aware_now
-from ..abstract.models import PBSMMGenericShow
-
-from ..api.api import get_PBSMM_record
-from ..api.helpers import check_pagination
-
-from ..asset.ingest_asset import process_asset_record
-from ..asset.models import PBSMMAbstractAsset
-
-from .ingest_show import process_show_record
-from .ingest_children import process_seasons, process_specials
+from django.utils.translation import gettext_lazy as _
+from pbsmmapi.abstract.helpers import time_zone_aware_now
+from pbsmmapi.abstract.models import PBSMMGenericShow
+from pbsmmapi.api.api import get_PBSMM_record
+from pbsmmapi.api.helpers import check_pagination
+from pbsmmapi.asset.ingest_asset import process_asset_record
+from pbsmmapi.asset.models import PBSMMAbstractAsset
+from pbsmmapi.show.ingest_children import process_seasons
+from pbsmmapi.show.ingest_children import process_specials
+from pbsmmapi.show.ingest_show import process_show_record
 
 PBSMM_SHOW_ENDPOINT = 'https://media.services.pbs.org/api/v1/shows/'
 
@@ -42,31 +35,22 @@ class PBSMMAbstractShow(PBSMMGenericShow):
         help_text='Also ingest all Episodes (for each Season)',
     )
 
+    def __str__(self):
+        if self.title:
+            return self.title
+        return "ID %d: unknown" % self.id
+
+    @property
+    def object_model_type(self):
+        # This handles the correspondence to the "type" field in the PBSMM JSON
+        # object
+        return 'show'
+
     class Meta:
         verbose_name = 'PBS MM Show'
         verbose_name_plural = 'PBS MM Shows'
         db_table = 'pbsmm_show'
         abstract = True
-
-    def get_absolute_url(self):
-        return reverse('show-detail', args=[self.slug])
-
-    def __unicode__(self):
-        if self.title:
-            return self.title
-        return "ID %d: unknown" % self.id
-
-    def __object_model_type(self):
-        # This handles the correspondence to the "type" field in the PBSMM JSON
-        # object
-        return 'show'
-
-    object_model_type = property(__object_model_type)
-
-    def __available_to_public(self):
-        return can_object_page_be_shown(None, self)
-
-    available_to_public = property(__available_to_public)
 
 
 class PBSMMShow(PBSMMAbstractShow):
@@ -77,16 +61,16 @@ class PBSMMShowAsset(PBSMMAbstractAsset):
     show = models.ForeignKey(
         PBSMMShow,
         related_name='assets',
-        on_delete=models.CASCADE,  # required for Django 2.0
+        on_delete=models.CASCADE,
     )
+
+    def __str__(self):
+        return "%s: %s" % (self.show, self.title)
 
     class Meta:
         verbose_name = 'PBS MM Show - Asset'
         verbose_name_plural = 'PBS MM Shows - Assets'
         db_table = 'pbsmm_show_asset'
-
-    def __unicode__(self):
-        return "%s: %s" % (self.show, self.title)
 
 
 def process_show_assets(endpoint, this_show):
@@ -124,24 +108,24 @@ def process_show_assets(endpoint, this_show):
             asset.delete()
 
 
-################################
-# PBS MediaManager API interface
-################################
-
-# The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
-
-# That way, one can force a reingestion from the Admin OR one can do it from a management script
-# by simply getting the record, setting ingest_on_save on the record, and calling save().
-
-
 @receiver(models.signals.pre_save, sender=PBSMMShow)
 def scrape_PBSMMAPI(sender, instance, **kwargs):
+    '''
+    PBS MediaManager API interface
+
+    The interface/access is done with a 'pre_save' receiver based on the value of
+    'ingest_on_save'
+
+    That way, one can force a reingestion from the Admin OR one can do it from a
+    management script by simply getting the record, setting ingest_on_save on the
+    record, and calling save().
+    '''
     if instance.__class__ is not PBSMMShow:
         return
 
-    # If this is a new record, then someone has started it in the Admin using
-    # a PBSMM UUID.   Depending on which, the retrieval endpoint is slightly different, so this sets
-    # the appropriate URL to access.
+    # If this is a new record, then someone has started it in the Admin using a
+    # PBSMM UUID.   Depending on which, the retrieval endpoint is slightly
+    # different, so this sets the appropriate URL to access.
     if instance.pk and instance.slug and str(instance.slug).strip():
         # Object is being edited
         if not instance.ingest_on_save:
@@ -151,7 +135,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         if not instance.slug:
             return  # do nothing - can't get an ID to look up!
 
-    url = "{}{}/".format(PBSMM_SHOW_ENDPOINT, instance.slug)
+    url = f'{PBSMM_SHOW_ENDPOINT}{instance.slug}/'
 
     # OK - get the record from the API
     (status, json) = get_PBSMM_record(url)

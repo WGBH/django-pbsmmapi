@@ -3,20 +3,42 @@ from django.utils.safestring import mark_safe
 
 
 class PBSMMAbstractAssetAdmin(admin.ModelAdmin):
-    # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
-    # want to be able to view it in the context of the Django system.
+    # Why so many readonly_fields?  Because we don't want to override what's
+    # coming from the API, but we do want to be able to view it in the context
+    # of the Django system.
     #
-    # Most things here are fields, some are method output and some are
-    # properties.
+    # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
-        'api_endpoint_link', 'asset_publicly_available', 'availability',
-        'can_embed_player', 'canonical_image', 'canonical_image_tag', 'chapters',
-        'content_rating', 'content_rating_description', 'date_created',
-        'date_last_api_update', 'description_long', 'description_short', 'duration',
-        'geo_profile', 'images', 'is_excluded_from_dfp', 'language',
-        'last_api_status_color', 'links', 'object_type', 'platforms', 'player_code',
-        'player_code_preview', 'slug', 'tags', 'title', 'title_sortable', 'topics',
-        'updated_at', 'windows'
+        'api_endpoint_link',
+        'asset_publicly_available',
+        'availability',
+        'can_embed_player',
+        'chapters',
+        'content_rating',
+        'content_rating_description',
+        'date_created',
+        'date_last_api_update',
+        'description_long',
+        'description_short',
+        'duration',
+        'geo_profile',
+        'images',
+        'pretty_image_list',
+        'is_excluded_from_dfp',
+        'language',
+        'last_api_status_color',
+        'links',
+        'object_type',
+        'platforms',
+        'player_code',
+        'player_code_preview',
+        'slug',
+        'tags',
+        'title',
+        'title_sortable',
+        'topics',
+        'updated_at',
+        'windows',
     ]
     search_fields = ('title', )
 
@@ -27,7 +49,6 @@ class PBSMMAbstractAssetAdmin(admin.ModelAdmin):
             {
                 'fields': (
                     'ingest_on_save',
-                    'override_default_asset',
                     (
                         'date_created', 'date_last_api_update', 'updated_at',
                         'last_api_status_color'
@@ -53,8 +74,7 @@ class PBSMMAbstractAssetAdmin(admin.ModelAdmin):
                 'classes': ('collapse', ),
                 'fields': (
                     'images',
-                    'canonical_image_type_override',
-                    'canonical_image_tag',
+                    'pretty_image_list',
                 ),
             },
         ),

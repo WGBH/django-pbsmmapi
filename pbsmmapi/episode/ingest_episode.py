@@ -1,10 +1,11 @@
-from ..abstract.helpers import set_json_serialized_field, fix_non_aware_datetime
+from pbsmmapi.abstract.helpers import fix_non_aware_datetime
 
 
 def process_episode_record(obj, instance):
-    """
-    This is the code that takes a PBSMM API-returned Episode and aligns it with a PBSMMEpisode database record.
-    """
+    '''
+    This is the code that takes a PBSMM API-returned Episode and aligns it with
+    a PBSMMEpisode database record.
+    '''
     # These are the top-level fields - almost everything else is under attrs
     if 'attributes' not in obj.keys():
         attrs = obj['data'].get('attributes')
@@ -43,14 +44,14 @@ def process_episode_record(obj, instance):
     instance.segment = attrs.get('segment', None)
 
     # Unprocessed - store as JSON fragments
-    instance.links = set_json_serialized_field(attrs, 'links', default=None)
+    instance.links = attrs.get('links', None)
 
     # References: Season
     this_season = attrs.get('season', None)
     try:
         instance.season_api_id = this_season.get('id', None)
-    except:
-        pass
+    except AttributeError:
+        instance.season_api_id = None
 
     instance.json = obj
     return instance

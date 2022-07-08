@@ -1,22 +1,22 @@
-from ..api.api import get_PBSMM_record
-from ..api.helpers import check_pagination
-from ..episode.models import PBSMMEpisode
-from ..episode.ingest_episode import process_episode_record
+from pbsmmapi.api.api import get_PBSMM_record
+from pbsmmapi.api.helpers import check_pagination
+from pbsmmapi.episode.ingest_episode import process_episode_record
+from pbsmmapi.episode.models import PBSMMEpisode
 
 
 def process_episodes(endpoint, this_season):
-    """
+    '''
     Step through each page of a list of PBSMM API Episodes, and ingest each episode.
 
     As Episodes are always associated with a Season, that's the only parameter.
-    """
+    '''
     if this_season is None:  # oops no season - escape doing nothing...
         return
 
     keep_going = True
     while keep_going:
         # this is the "Seasons" endpoint for the show
-        (status, json) = get_PBSMM_record(endpoint)
+        (_, json) = get_PBSMM_record(endpoint)
 
         episode_list = json['data']
 

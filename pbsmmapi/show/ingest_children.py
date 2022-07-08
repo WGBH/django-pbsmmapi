@@ -1,11 +1,9 @@
-from ..api.api import get_PBSMM_record
-from ..api.helpers import check_pagination
-
-from ..season.models import PBSMMSeason
-from ..season.ingest_season import process_season_record
-
-from ..special.models import PBSMMSpecial
-from ..special.ingest_special import process_special_record
+from pbsmmapi.api.api import get_PBSMM_record
+from pbsmmapi.api.helpers import check_pagination
+from pbsmmapi.season.ingest_season import process_season_record
+from pbsmmapi.season.models import PBSMMSeason
+from pbsmmapi.special.ingest_special import process_special_record
+from pbsmmapi.special.models import PBSMMSpecial
 
 
 def process_seasons(endpoint, this_show):
@@ -13,7 +11,7 @@ def process_seasons(endpoint, this_show):
     keep_going = True
     while keep_going:
         # this is the "Seasons" endpoint for the show
-        (status, json) = get_PBSMM_record(endpoint)
+        (_, json) = get_PBSMM_record(endpoint)
         if 'data' in json.keys():
             season_list = json['data']
         else:
@@ -47,7 +45,7 @@ def process_specials(endpoint, this_show):
     keep_going = True
     while keep_going:
         # this is a page from the "Seasons" endpoint for the show
-        (status, json) = get_PBSMM_record(endpoint)
+        (_, json) = get_PBSMM_record(endpoint)
         if 'data' in json.keys():
             data = json['data']
         else:

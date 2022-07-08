@@ -1,22 +1,17 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
-from django.urls import reverse
-
-from ..abstract.helpers import time_zone_aware_now
-from ..abstract.models import PBSMMGenericSpecial
-
-from ..api.api import get_PBSMM_record
-from ..api.helpers import check_pagination
-from ..asset.models import PBSMMAbstractAsset
-from ..asset.ingest_asset import process_asset_record
-
-from .ingest_special import process_special_record
+from django.utils.translation import gettext_lazy as _
+from pbsmmapi.abstract.helpers import time_zone_aware_now
+from pbsmmapi.abstract.models import PBSMMGenericSpecial
+from pbsmmapi.api.api import get_PBSMM_record
+from pbsmmapi.api.helpers import check_pagination
+from pbsmmapi.asset.ingest_asset import process_asset_record
+from pbsmmapi.asset.models import PBSMMAbstractAsset
+from pbsmmapi.special.ingest_special import process_special_record
 
 PBSMM_SPECIAL_ENDPOINT = 'https://media.services.pbs.org/api/v1/specials/'
 
@@ -31,66 +26,59 @@ class PBSMMSpecial(PBSMMGenericSpecial):
     show = models.ForeignKey(
         'show.PBSMMShow',
         related_name='specials',
-        on_delete=models.CASCADE,  # required for Django 2.0
+        on_delete=models.CASCADE,
         null=True,
-        blank=True  # added for AR5 support
+        blank=True,
     )
+
+    @property
+    def object_model_type(self):
+        # This handles the correspondence to the "type" field in the PBSMM JSON
+        # object
+        return 'special'
+
+    @property
+    def nola_code(self):
+        if self.nola is None or self.nola == '':
+            return None
+        if self.show.nola is None or self.show.nola == '':
+            return None
+        return f'{self.show.nola}-{self.nola}'
+
+    def create_table_line(self):
+        out = "<tr>"
+        out += f'\n\t<td><a href="/admin/special/pbsmmspecial/{self.id}'
+        out += f'/change/"><B>{self.title}</b></a></td>'
+        out += f'\n\t<td><a href="{self.api_endpoint}" target="_new">API</a></td>'
+        out += f'\n\t<td>{self.assets.count()}</td>'
+        out += f'\n\t<td>{self.date_last_api_update.strftime("%x %X")}</td>'
+        out += f'\n\t<td>{self.last_api_status_color()}</td>'
+        out += '\n</tr>'
+        return mark_safe(out)
+
+    def __str__(self):
+        return f"{self.object_id} | {self.show} | {self.title} "
 
     class Meta:
         verbose_name = 'PBS MM Special'
         verbose_name_plural = 'PBS MM Specials'
         db_table = 'pbsmm_special'
 
-    def get_absolute_url(self):
-        return reverse('special-detail', (), {'slug': self.slug})
-
-    def __unicode__(self):
-        return "%s | %s | %s " % (self.object_id, self.show, self.title)
-
-    def __object_model_type(self):
-        # This handles the correspondence to the "type" field in the PBSMM JSON
-        # object
-        return 'special'
-
-    object_model_type = property(__object_model_type)
-
-    def __get_nola_code(self):
-        if self.nola is None or self.nola == '':
-            return None
-        if self.show.nola is None or self.show.nola == '':
-            return None
-        return "%s-%s" % (self.show.nola, self.nola)
-
-    nola_code = property(__get_nola_code)
-
-    def create_table_line(self):
-        out = "<tr>"
-        out += "\n\t<td><a href=\"/admin/special/pbsmmspecial/%d/change/\"><B>%s</b></a></td>" % (
-            self.id, self.title
-        )
-        out += "\n\t<td><a href=\"%s\" target=\"_new\">API</a></td>" % self.api_endpoint
-        out += "\n\t<td>%d</td>" % self.assets.count()
-        out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
-        out += "\n\t<td>%s</td>" % self.last_api_status_color()
-        out += "\n\t<td>%s</td>" % self.show_publish_status()
-        out += "\n</tr>"
-        return mark_safe(out)
-
 
 class PBSMMSpecialAsset(PBSMMAbstractAsset):
     special = models.ForeignKey(
         PBSMMSpecial,
         related_name='assets',
-        on_delete=models.CASCADE,  # required for Django 2.0
+        on_delete=models.CASCADE,
     )
+
+    def __str__(self):
+        return f'{self.special.title}: {self.title}'
 
     class Meta:
         verbose_name = 'PBS MM Special Asset'
         verbose_name_plural = 'PBS MM Specials - Assets'
         db_table = 'pbsmm_special_asset'
-
-    def __unicode__(self):
-        return "%s: %s" % (self.special.title, self.title)
 
 
 def process_special_assets(endpoint, this_special):
@@ -135,14 +123,14 @@ def process_special_assets(endpoint, this_special):
     return
 
 
-################################
 # PBS MediaManager API interface
-################################
 
-# The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
+# The interface/access is done with a 'pre_save' receiver based on the value of
+# 'ingest_on_save'
 
-# That way, one can force a reingestion from the Admin OR one can do it from a management script
-# by simply getting the record, setting ingest_on_save on the record, and calling save().
+# That way, one can force a reingestion from the Admin OR one can do it from a
+# management script by simply getting the record, setting ingest_on_save on the
+# record, and calling save().
 
 
 @receiver(models.signals.pre_save, sender=PBSMMSpecial)
@@ -150,9 +138,10 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     if instance.__class__ is not PBSMMSpecial:
         return
 
-    # If this is a new record, then someone has started it in the Admin using EITHER a legacy COVE ID
-    # OR a PBSMM UUID.   Depending on which, the retrieval endpoint is slightly different, so this sets
-    # the appropriate URL to access.
+    # If this is a new record, then someone has started it in the Admin using
+    # EITHER a legacy COVE ID OR a PBSMM UUID.   Depending on which, the
+    # retrieval endpoint is slightly different, so this sets the appropriate
+    # URL to access.
     if instance.pk and instance.slug and str(instance.slug).strip():
         # Object is being edited
         if not instance.ingest_on_save:
@@ -162,7 +151,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         if not instance.slug:
             return  # do nothing - can't get an ID to look up!
 
-    url = "{}{}/".format(PBSMM_SPECIAL_ENDPOINT, instance.slug)
+    url = f'{PBSMM_SPECIAL_ENDPOINT}{instance.slug}/'
 
     # OK - get the record from the API
     (status, json) = get_PBSMM_record(url)

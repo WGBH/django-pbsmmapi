@@ -1,8 +1,10 @@
 from django.contrib import admin
-from .forms import PBSMMSpecialCreateForm, PBSMMSpecialEditForm
-from .models import PBSMMSpecial, PBSMMSpecialAsset
-from ..abstract.admin import PBSMMAbstractAdmin
-from ..asset.admin import PBSMMAbstractAssetAdmin
+from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
+from pbsmmapi.asset.admin import PBSMMAbstractAssetAdmin
+from pbsmmapi.special.forms import PBSMMSpecialCreateForm
+from pbsmmapi.special.forms import PBSMMSpecialEditForm
+from pbsmmapi.special.models import PBSMMSpecial
+from pbsmmapi.special.models import PBSMMSpecialAsset
 
 
 class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
@@ -12,15 +14,19 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
     list_filter = ('show__slug', )
 
     list_display = (
-        'pk', 'title_sortable', 'show', 'premiered_on', 'date_last_api_update',
-        'last_api_status_color', 'show_publish_status'
+        'pk',
+        'title_sortable',
+        'show',
+        'premiered_on',
+        'date_last_api_update',
+        'last_api_status_color',
     )
     list_display_links = ('pk', 'title_sortable')
-    # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
-    # want to be able to view it in the context of the Django system.
+    # Why so many readonly_fields?  Because we don't want to override what's
+    # coming from the API, but we do want to be able to view it in the context
+    # of the Django system.
     #
-    # Most things here are fields, some are method output and some are
-    # properties.
+    # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
         'date_created',
         'date_last_api_update',
@@ -39,8 +45,8 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
         'assemble_asset_table',
     ]
 
-    # If we're adding a record - no sense in seeing all the things that aren't there yet, since only these TWO
-    # fields are editable anyway...
+    # If we're adding a record - no sense in seeing all the things that aren't
+    # there yet, since only these TWO fields are editable anyway...
     add_fieldsets = ((None, {
         'fields': ('slug', 'show'),
     }), )
@@ -112,7 +118,7 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
     def get_fieldsets(self, request, obj=None):
         if not obj:
             return self.add_fieldsets
-        return super(PBSMMSpecialAdmin, self).get_fieldsets(request, obj)
+        return super().get_fieldsets(request, obj)
 
     # Apply the chosen fieldsets tuple to the viewed form
     def get_form(self, request, obj=None, **kwargs):
@@ -125,7 +131,7 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
                 }
             )
         defaults.update(kwargs)
-        return super(PBSMMSpecialAdmin, self).get_form(request, obj, **kwargs)
+        return super().get_form(request, obj, **kwargs)
 
 
 class PBSMMSpecialAssetAdmin(PBSMMAbstractAssetAdmin):

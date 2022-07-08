@@ -1,10 +1,11 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
-
-from ..abstract.admin import PBSMMAbstractAdmin
-from ..asset.admin import PBSMMAbstractAssetAdmin
-from .forms import PBSMMShowCreateForm, PBSMMShowEditForm
-from .models import PBSMMShow, PBSMMShowAsset
+from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
+from pbsmmapi.asset.admin import PBSMMAbstractAssetAdmin
+from pbsmmapi.show.forms import PBSMMShowCreateForm
+from pbsmmapi.show.forms import PBSMMShowEditForm
+from pbsmmapi.show.models import PBSMMShow
+from pbsmmapi.show.models import PBSMMShowAsset
 
 
 class ShowAssetInline(admin.TabularInline):
@@ -35,20 +36,48 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
     add_form = PBSMMShowCreateForm
     model = PBSMMShow
     list_display = (
-        'pk', 'slug', 'object_id', 'title_sortable', 'show_publish_status',
-        'date_last_api_update', 'last_api_status_color'
+        'pk',
+        'slug',
+        'object_id',
+        'title_sortable',
+        'date_last_api_update',
+        'last_api_status_color',
     )
     list_display_links = ('pk', 'slug', 'object_id')
     readonly_fields = [
-        'api_endpoint', 'api_endpoint_link', 'assemble_asset_table', 'audience',
-        'can_embed_player', 'canonical_image_tag', 'date_created', 'date_last_api_update',
-        'description_long', 'description_short', 'display_episode_number',
-        'episode_count', 'format_seasons_list', 'format_specials_list', 'funder_message',
-        'ga_event', 'ga_page', 'genre', 'hashtag', 'images', 'is_excluded_from_dfp',
-        'language', 'last_api_status_color', 'links', 'nola', 'object_id',
-        'ordinal_season', 'platforms', 'premiered_on', 'pretty_image_list',
-        'show_publish_status', 'sort_episodes_descending', 'title', 'title_sortable',
-        'updated_at'
+        'api_endpoint',
+        'api_endpoint_link',
+        'assemble_asset_table',
+        'audience',
+        'can_embed_player',
+        'date_created',
+        'date_last_api_update',
+        'description_long',
+        'description_short',
+        'display_episode_number',
+        'episode_count',
+        'format_seasons_list',
+        'format_specials_list',
+        'funder_message',
+        'ga_event',
+        'ga_page',
+        'genre',
+        'hashtag',
+        'images',
+        'is_excluded_from_dfp',
+        'language',
+        'last_api_status_color',
+        'links',
+        'nola',
+        'object_id',
+        'ordinal_season',
+        'platforms',
+        'premiered_on',
+        'pretty_image_list',
+        'sort_episodes_descending',
+        'title',
+        'title_sortable',
+        'updated_at',
     ]
     add_readonly_fields = []
     add_fieldsets = (
@@ -85,12 +114,10 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
             {
                 'fields': (
                     (
-                        'ingest_on_save', 'ingest_seasons', 'ingest_specials',
-                        'ingest_episodes'
-                    ),
-                    (
-                        'publish_status',
-                        'live_as_of',
+                        'ingest_on_save',
+                        'ingest_seasons',
+                        'ingest_specials',
+                        'ingest_episodes',
                     ),
                 ),
             },
@@ -140,8 +167,6 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
                 'fields': (
                     'images',
                     'pretty_image_list',
-                    'canonical_image_type_override',
-                    'canonical_image_tag',
                 ),
             },
         ),
@@ -164,14 +189,14 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
     def get_readonly_fields(self, request, obj=None):
         if not obj:
             return self.add_readonly_fields
-        return super(PBSMMShowAdmin, self).get_readonly_fields(request, obj)
+        return super().get_readonly_fields(request, obj)
 
     # Switch between the fieldsets depending on whether we're adding or
     # viewing a record
     def get_fieldsets(self, request, obj=None):
         if not obj:
             return self.add_fieldsets
-        return super(PBSMMShowAdmin, self).get_fieldsets(request, obj)
+        return super().get_fieldsets(request, obj)
 
     # Apply the chosen fieldsets tuple to the viewed form
     def get_form(self, request, obj=None, **kwargs):
@@ -184,12 +209,7 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
                 }
             )
         defaults.update(kwargs)
-        return super(PBSMMShowAdmin, self).get_form(request, obj, **kwargs)
-
-
-#####################################################
-# Create a highly formated table of children/relationships
-#####################################################
+        return super().get_form(request, obj, **kwargs)
 
     def format_seasons_list(self, obj):
         out = '<table width=\"100%\" border=2>\n' + \
@@ -217,8 +237,8 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
     format_seasons_list.short_description = 'SEASON LIST'
 
     def format_specials_list(self, obj):
-        # It turns out that some shows, e.g., The Open Mind, have an INSANE number of specials.
-        # In this case, just return the Top 50
+        # It turns out that some shows, e.g., The Open Mind, have an INSANE
+        # number of specials. In this case, just return the Top 50
         out = ''
         specials_list = obj.specials.order_by('-premiered_on')
         if specials_list.count() > 100:
@@ -253,8 +273,14 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
 class PBSMMShowAssetAdmin(PBSMMAbstractAssetAdmin):
     model = PBSMMShowAsset
     list_display = (
-        'pk', 'object_id', 'show_title', 'object_type', 'legacy_tp_media_id',
-        'asset_publicly_available', 'title_sortable', 'duration'
+        'pk',
+        'object_id',
+        'show_title',
+        'object_type',
+        'legacy_tp_media_id',
+        'asset_publicly_available',
+        'title_sortable',
+        'duration',
     )
 
     def show_title(self, obj):
