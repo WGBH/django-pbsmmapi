@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import json
+
 from uuid import UUID
 
 from django.db import models
@@ -25,17 +27,6 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         blank=True,
         null=True,
     )
-    ordinal = models.PositiveIntegerField(
-        _('Ordinal'),
-        blank=True,
-        null=True,
-    )
-    segment = models.CharField(
-        _('Segment'),
-        max_length=200,
-        blank=True,
-        null=True,
-    )
 
     # THIS IS THE PARENTAL SEASON
     season = models.ForeignKey(
@@ -57,6 +48,28 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         This just returns object "type"
         '''
         return 'episode'
+
+    @property
+    def ordinal(self):
+        '''
+        Return object ordinal number in a season.(episode number)
+        '''
+        obj = json.loads(self.json)
+        if 'attributes' not in obj.keys():
+            return obj['data'].get('attributes').get('ordinal', None)
+        else:
+            return obj['attributes'].get('ordinal', None)
+
+    @property
+    def segment(self):
+        '''
+        Return individual segments of a single episode.
+        '''
+        obj = json.loads(self.json)
+        if 'attributes' not in obj.keys():
+            return obj['data'].get('attributes').get('segment', None)
+        else:
+            return obj['attributes'].get('segment', None)
 
     @property
     def full_episode_code(self):
