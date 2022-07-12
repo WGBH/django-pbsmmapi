@@ -56,15 +56,10 @@ def process_asset_record(obj, instance, origin=None):
     instance.duration = attrs.get('duration', None)  # in seconds
     # 'clip', 'full-length', or 'preview'
     instance.object_type = attrs.get('object_type', None)
-    instance.content_rating = attrs.get('content_rating', None)  # e.g., 'TV-G'
-    instance.content_rating_description = attrs.get('content_rating_description', None)
     instance.language = attrs.get('language', None)
 
     # Unprocessed
     instance.tags = attrs.get('tags', None)
-    # According to PBS this isn't really used - legacy for some third parties - skipping
-    # However, Antiques Roadshow appears to be one of them.
-    instance.topics = attrs.get('topics', None)
     # Availabilty is in three parts: public, station_members, local_members -
     # there might be different dates for each
     instance.availability = attrs.get('availabilities', None)
