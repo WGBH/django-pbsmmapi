@@ -40,6 +40,7 @@ def process_episode_record(obj, instance):
     instance.funder_message = attrs.get('funder_message', None)
     instance.premiered_on = fix_non_aware_datetime(attrs.get('premiered_on', None))
     instance.encored_on = fix_non_aware_datetime(attrs.get('encored_on', None))
+    instance.ordinal = attrs.get('ordinal', None)
 
     # Unprocessed - store as JSON fragments
     instance.links = attrs.get('links', None)

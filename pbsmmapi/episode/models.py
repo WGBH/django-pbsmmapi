@@ -27,7 +27,11 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         blank=True,
         null=True,
     )
-
+    ordinal = models.PositiveIntegerField(
+        _('Ordinal'),
+        blank=True,
+        null=True,
+    )
     # THIS IS THE PARENTAL SEASON
     season = models.ForeignKey(
         'season.PBSMMSeason',
@@ -48,17 +52,6 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         This just returns object "type"
         '''
         return 'episode'
-
-    @property
-    def ordinal(self):
-        '''
-        Return object ordinal number in a season.(episode number)
-        '''
-        obj = json.loads(self.json)
-        if 'attributes' not in obj.keys():
-            return obj['data'].get('attributes').get('ordinal', None)
-        else:
-            return obj['attributes'].get('ordinal', None)
 
     @property
     def segment(self):
