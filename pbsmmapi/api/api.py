@@ -1,9 +1,10 @@
 import requests
+from http import HTTPStatus
 from django.conf import settings
 
 
 def get_PBSMM_record(url):
-    '''
+    """
     This makes the call to the PBS MM API.
 
     It requires that the PBSMM_API_ID and PBSMM_API_SECRET values be set in the
@@ -13,8 +14,9 @@ def get_PBSMM_record(url):
     the JSON returned.
 
     No other checking/analysis is done.
-    '''
-    r = requests.get(url, auth=(settings.PBSMM_API_ID, settings.PBSMM_API_SECRET))
-    if r.status_code == 200:
-        return (r.status_code, r.json())
-    return (r.status_code, None)
+    """
+    auth = (settings.PBSMM_API_ID, settings.PBSMM_API_SECRET)
+    r = requests.get(url, auth=auth)
+    if r.status_code == HTTPStatus.OK:
+        return r.status_code, r.json()
+    return r.status_code, None

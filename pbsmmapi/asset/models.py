@@ -15,15 +15,15 @@ PBSMM_ASSET_ENDPOINT = f'{PBSMM_BASE_URL}api/v1/assets/'
 PBSMM_LEGACY_ASSET_ENDPOINT = f'{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id='
 
 
-class PBSMMAbstractAsset(PBSMMGenericAsset):
-    '''
+class Asset(PBSMMGenericAsset):
+    """
     These are fields unique to Assets.
     Each object model has a *-Asset table, e.g., PBSMMEpisode has PBSMMEpisodeAsset,
     PBSMMShow has PBSShowAsset, etc.
 
     Aside from the FK reference to the parent, each of these *-Asset models are
     identical in structure.
-    '''
+    """
     # These fields are unique to Asset
     legacy_tp_media_id = models.BigIntegerField(
         _('COVE ID'),
@@ -100,6 +100,16 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         _('Content Rating Description'),
         null=True,
         blank=True,
+    )
+
+    # Relationships
+
+    episode = models.ForeignKey(
+        'episode.PBSMMEpisode',
+        null=True,
+        blank=True,
+        related_name='assets',
+        on_delete=models.SET_NULL,
     )
 
     # Properties and methods
