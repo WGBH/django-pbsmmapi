@@ -15,8 +15,7 @@ def get_PBSMM_record(url):
 
     No other checking/analysis is done.
     """
-    auth = (settings.PBSMM_API_ID, settings.PBSMM_API_SECRET)
-    r = requests.get(url, auth=auth)
+    r = requests.get(url, auth=(settings.PBSMM_API_ID, settings.PBSMM_API_SECRET))
     if r.status_code == HTTPStatus.OK:
         return r.status_code, r.json()
     return r.status_code, None
