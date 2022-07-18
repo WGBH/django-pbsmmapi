@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import json
-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from pbsmmapi.abstract.models import PBSMMGenericAsset
@@ -94,33 +92,30 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         According to PBS this isn't really used - legacy for some third parties - skipping
         However, Antiques Roadshow appears to be one of them.
         '''
-        obj = json.loads(self.json)
-        if 'attributes' in obj.keys():
-            return obj.get('attributes').get('topics', None)
-        elif 'data' in obj.keys():
-            return obj['data'].get('attributes').get('topics', None)
+        if 'attributes' in self.json.keys():
+            return self.json.get('attributes').get('topics', None)
+        elif 'data' in self.json.keys():
+            return self.json['data'].get('attributes').get('topics', None)
 
     @property
     def content_rating(self):
         '''
         What audience this asset is intended for. eg: TV-Y
         '''
-        obj = json.loads(self.json)
-        if 'attributes' in obj.keys():
-            return obj.get('attributes').get('content_rating', None)
-        elif 'data' in obj.keys():
-            return obj['data'].get('attributes').get('content_rating', None)
+        if 'attributes' in self.json.keys():
+            return self.json.get('attributes').get('content_rating', None)
+        elif 'data' in self.json.keys():
+            return self.json['data'].get('attributes').get('content_rating', None)
 
     @property
     def content_rating_description(self):
         '''
         Verbose description of the content rating. eg: General Audience
         '''
-        obj = json.loads(self.json)
-        if 'attributes' in obj.keys():
-            return obj.get('attributes').get('content_rating_description', None)
-        elif 'data' in obj.keys():
-            return obj['data'].get('attributes').get('content_rating_description', None)
+        if 'attributes' in self.json.keys():
+            return self.json.get('attributes').get('content_rating_description', None)
+        elif 'data' in self.json.keys():
+            return self.json['data'].get('attributes').get('content_rating_description', None)
 
     def asset_publicly_available(self):
         '''
