@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-import json
-
 from uuid import UUID
 
 from django.db import models
@@ -58,11 +56,10 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         '''
         Return individual segments of a single episode.
         '''
-        obj = json.loads(self.json)
-        if 'attributes' not in obj.keys():
-            return obj['data'].get('attributes').get('segment', None)
+        if 'attributes' not in self.json.keys():
+            return self.json['data'].get('attributes').get('segment', None)
         else:
-            return obj['attributes'].get('segment', None)
+            return self.json['attributes'].get('segment', None)
 
     @property
     def full_episode_code(self):
