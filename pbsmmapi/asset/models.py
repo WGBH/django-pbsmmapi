@@ -146,6 +146,30 @@ class Asset(PBSMMGenericAsset):
         on_delete=models.SET_NULL,
     )
 
+    season = models.ForeignKey(
+        'season.PBSMMSeason',
+        null=True,
+        blank=True,
+        related_name='assets',
+        on_delete=models.SET_NULL,
+    )
+
+    show = models.ForeignKey(
+        'show.PBSMMShow',
+        null=True,
+        blank=True,
+        related_name='assets',
+        on_delete=models.SET_NULL,
+    )
+
+    special = models.ForeignKey(
+        'special.PBSMMSpecial',
+        null=True,
+        blank=True,
+        related_name='assets',
+        on_delete=models.SET_NULL,
+    )
+
     # Properties and methods
     @property
     def object_model_type(self):

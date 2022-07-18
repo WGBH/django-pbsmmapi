@@ -10,7 +10,7 @@ from pbsmmapi.abstract.models import PBSMMGenericSeason
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.api.helpers import check_pagination
 from pbsmmapi.asset.ingest_asset import process_asset_record
-from pbsmmapi.asset.models import PBSMMAbstractAsset
+from pbsmmapi.asset.models import Asset
 from pbsmmapi.season.ingest_children import process_episodes
 from pbsmmapi.season.ingest_season import process_season_record
 
@@ -86,22 +86,6 @@ class PBSMMSeason(PBSMMGenericSeason):
         ordering = ['-ordinal']
 
 
-class PBSMMSeasonAsset(PBSMMAbstractAsset):
-    season = models.ForeignKey(
-        PBSMMSeason,
-        related_name='assets',
-        on_delete=models.CASCADE,
-    )
-
-    class Meta:
-        verbose_name = 'PBS MM Season Asset'
-        verbose_name_plural = 'PBS MM Seasons - Assets'
-        db_table = 'pbsmm_season_asset'
-
-    def __str__(self):
-        return f'{self.season.title}: {self.title}'
-
-
 def process_season_assets(endpoint, this_season):
     '''
     For each Asset associated with this Season, ingest them page by page.
@@ -117,9 +101,9 @@ def process_season_assets(endpoint, this_season):
             scraped_object_ids.append(UUID(object_id))
 
             try:
-                instance = PBSMMSeasonAsset.objects.get(object_id=object_id)
-            except PBSMMSeasonAsset.DoesNotExist:
-                instance = PBSMMSeasonAsset()
+                instance = Asset.objects.get(object_id=object_id)
+            except Asset.DoesNotExist:
+                instance = Asset()
 
             instance = process_asset_record(item, instance, origin='special')
             instance.season = this_season
@@ -135,7 +119,7 @@ def process_season_assets(endpoint, this_season):
 
         (keep_going, endpoint) = check_pagination(json)
 
-    for asset in PBSMMSeasonAsset.objects.filter(season=this_season):
+    for asset in Asset.objects.filter(season=this_season):
         if asset.object_id not in scraped_object_ids:
             asset.delete()
 
