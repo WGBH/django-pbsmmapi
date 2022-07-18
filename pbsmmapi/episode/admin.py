@@ -4,7 +4,7 @@ from pbsmmapi.asset.admin import PBSMMAbstractAssetAdmin
 from pbsmmapi.episode.forms import PBSMMEpisodeCreateForm
 from pbsmmapi.episode.forms import PBSMMEpisodeEditForm
 from pbsmmapi.episode.models import PBSMMEpisode
-from pbsmmapi.episode.models import PBSMMEpisodeAsset
+from pbsmmapi.episode.models import Asset
 
 
 class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
@@ -136,7 +136,7 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
 
 
 class PBSMMEpisodeAssetAdmin(PBSMMAbstractAssetAdmin):
-    model = PBSMMEpisodeAsset
+    model = Asset
     list_display = (
         'pk',
         'object_id',
@@ -155,4 +155,4 @@ class PBSMMEpisodeAssetAdmin(PBSMMAbstractAssetAdmin):
 
 
 admin.site.register(PBSMMEpisode, PBSMMEpisodeAdmin)
-admin.site.register(PBSMMEpisodeAsset, PBSMMEpisodeAssetAdmin)
+admin.site.register(Asset, PBSMMEpisodeAssetAdmin)

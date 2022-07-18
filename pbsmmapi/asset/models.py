@@ -246,6 +246,3 @@ class Asset(PBSMMGenericAsset):
 
     def __str__(self):
         return f'{self.pk} | {self.object_id} ({self.legacy_tp_media_id}) | {self.title}'
-
-    class Meta:
-        abstract = True
