@@ -17,26 +17,28 @@ PBSMM_LEGACY_ASSET_ENDPOINT = f'{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id='
 
 class AssetQuerySet(models.QuerySet):
     def __int__(self):
-        """ Ensure json field is loaded always
-        """
+        '''
+        Ensure json field is loaded always
+        '''
         super().__init__()
         if 'json' not in self.query.select:
             self.query.add_select_col('json', 'json')
 
 
 class Asset(PBSMMGenericAsset):
-    """
+    '''
     These are fields unique to Assets.
     Each object model has a *-Asset table, e.g., PBSMMEpisode has PBSMMEpisodeAsset,
     PBSMMShow has PBSShowAsset, etc.
 
     Aside from the FK reference to the parent, each of these *-Asset models are
     identical in structure.
-    """
+    '''
 
     def __int__(self):
-        """ Dynamically set all asset properties based on json field
-        """
+        '''
+        Dynamically set all asset properties based on json field
+        '''
         self._set_properties(self.json.get('attributes', {}))
         self.object_id = self.json.get('id')
 

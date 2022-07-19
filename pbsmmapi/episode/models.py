@@ -115,12 +115,12 @@ class PBSMMEpisode(PBSMMGenericEpisode):
 
 
 def process_episode_assets(endpoint, this_episode):
-    """
+    '''
     Scrape assets for this episode, page by page, until there are no more.
 
     There's probably a way to abstract this so that for all the *-Asset
     scrapers it would be more DRY.
-    """
+    '''
     # Handle pagination
     keep_going = True
     scraped_object_ids = []
