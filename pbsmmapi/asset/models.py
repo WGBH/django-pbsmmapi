@@ -35,11 +35,11 @@ class Asset(PBSMMGenericAsset):
     identical in structure.
     '''
 
-    def __int__(self):
+    def __int__(self, *args, **kwargs):
         '''
         Dynamically set all asset properties based on json field
         '''
-        super().__init__()
+        super().__init__(*args, **kwargs)
         self._set_properties(self.json.get('attributes', {}))
         self.object_id = self.json.get('id')
 
@@ -246,6 +246,12 @@ class Asset(PBSMMGenericAsset):
             seconds %= 60
             return '%d:%02d:%02d' % (hours, minutes, seconds)
         return ''
+
+    def __getattr__(self, item):
+        try:
+            return self.json[item]
+        except KeyError:
+            raise AttributeError(f'Attribute {item} is missing')
 
     def __setattr__(self, key, value):
         setattr(self, key, value)
