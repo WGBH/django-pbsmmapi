@@ -39,6 +39,7 @@ class Asset(PBSMMGenericAsset):
         '''
         Dynamically set all asset properties based on json field
         '''
+        super().__init__()
         self._set_properties(self.json.get('attributes', {}))
         self.object_id = self.json.get('id')
 
@@ -245,6 +246,10 @@ class Asset(PBSMMGenericAsset):
             seconds %= 60
             return '%d:%02d:%02d' % (hours, minutes, seconds)
         return ''
+
+    def __setattr__(self, key, value):
+        setattr(self, key, value)
+        self.json[key] = value
 
     def __str__(self):
         return f'{self.pk} | {self.object_id} ({self.legacy_tp_media_id}) | {self.title}'
