@@ -16,11 +16,11 @@ PBSMM_LEGACY_ASSET_ENDPOINT = f'{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id='
 
 
 class AssetQuerySet(models.QuerySet):
-    def __int__(self):
+    def __int__(self, *args, **kwargs):
         '''
         Ensure json field is loaded always
         '''
-        super().__init__()
+        super().__init__(*args, **kwargs)
         if 'json' not in self.query.select:
             self.query.add_select_col('json', 'json')
 
