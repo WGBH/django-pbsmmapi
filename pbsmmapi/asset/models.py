@@ -15,16 +15,6 @@ PBSMM_ASSET_ENDPOINT = f'{PBSMM_BASE_URL}api/v1/assets/'
 PBSMM_LEGACY_ASSET_ENDPOINT = f'{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id='
 
 
-class AssetQuerySet(models.QuerySet):
-    def __int__(self, *args, **kwargs):
-        '''
-        Ensure json field is loaded always
-        '''
-        super().__init__(*args, **kwargs)
-        if 'json' not in self.query.select:
-            self.query.add_select_col('json', 'json')
-
-
 class Asset(PBSMMGenericAsset):
     '''
     These are fields unique to Assets.
@@ -34,32 +24,6 @@ class Asset(PBSMMGenericAsset):
     Aside from the FK reference to the parent, each of these *-Asset models are
     identical in structure.
     '''
-
-    def __int__(self, *args, **kwargs):
-        '''
-        Dynamically set all asset properties based on json field
-        '''
-        super().__init__(*args, **kwargs)
-        self._set_properties(self.json.get('attributes', {}))
-        self.object_id = self.json.get('id')
-
-    def _set_properties(self, data: dict):
-        for k, v in data.items():
-            prop = property(self._getter(v), self._setter(k))
-            setattr(self, k, prop)
-
-    @staticmethod
-    def _getter(value):
-        def inner(*_):
-            return value
-        return inner
-
-    def _setter(self, name):
-        def inner(value):
-            self.json[name] = value
-        return inner
-
-    objects = AssetQuerySet.as_manager()
 
     # These fields are unique to Asset
     legacy_tp_media_id = models.BigIntegerField(
@@ -246,16 +210,6 @@ class Asset(PBSMMGenericAsset):
             seconds %= 60
             return '%d:%02d:%02d' % (hours, minutes, seconds)
         return ''
-
-    def __getattr__(self, item):
-        try:
-            return self.json[item]
-        except KeyError:
-            raise AttributeError(f'Attribute {item} is missing')
-
-    def __setattr__(self, key, value):
-        setattr(self, key, value)
-        self.json[key] = value
 
     def __str__(self):
         return f'{self.pk} | {self.object_id} ({self.legacy_tp_media_id}) | {self.title}'
