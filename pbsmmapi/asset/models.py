@@ -95,7 +95,7 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         try:
             return self.json.get('attributes').get('topics')
         except AttributeError:
-            return None
+            return []
 
     @property
     def content_rating(self):
