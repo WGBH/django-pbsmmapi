@@ -211,5 +211,17 @@ class Asset(PBSMMGenericAsset):
             return '%d:%02d:%02d' % (hours, minutes, seconds)
         return ''
 
+    # @property
+    # def dynamic_field_list(self):
+    #     return self.json.keys()
+    #
+    # def __getattr__(self, item):
+    #     try:
+    #         return self.json[item]
+    #     except KeyError:
+    #         raise AttributeError(f'{item} not present')
+
     def __str__(self):
-        return f'{self.pk} | {self.object_id} ({self.legacy_tp_media_id}) | {self.title}'
+        return f'{self.pk} ' \
+               f'| {self.object_id} ({self.legacy_tp_media_id}) ' \
+               f'| {self.title}'
