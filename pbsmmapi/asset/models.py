@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
 from pbsmmapi.abstract.models import PBSMMGenericAsset
 from pbsmmapi.asset.helpers import check_asset_availability
 
@@ -60,7 +61,6 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         default=False,
     )
 
-    # TAGS, Topics
     tags = models.JSONField(
         _('Tags'),
         null=True,
@@ -92,30 +92,30 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         According to PBS this isn't really used - legacy for some third parties - skipping
         However, Antiques Roadshow appears to be one of them.
         '''
-        if 'attributes' in self.json.keys():
-            return self.json.get('attributes').get('topics', None)
-        elif 'data' in self.json.keys():
-            return self.json['data'].get('attributes').get('topics', None)
+        try:
+            return self.json.get('attributes').get('topics')
+        except AttributeError:
+            return None
 
     @property
     def content_rating(self):
         '''
         What audience this asset is intended for. eg: TV-Y
         '''
-        if 'attributes' in self.json.keys():
-            return self.json.get('attributes').get('content_rating', None)
-        elif 'data' in self.json.keys():
-            return self.json['data'].get('attributes').get('content_rating', None)
+        try:
+            return self.json.get('attributes').get('content_rating')
+        except AttributeError:
+            return None
 
     @property
     def content_rating_description(self):
         '''
         Verbose description of the content rating. eg: General Audience
         '''
-        if 'attributes' in self.json.keys():
-            return self.json.get('attributes').get('content_rating_description', None)
-        elif 'data' in self.json.keys():
-            return self.json['data'].get('attributes').get('content_rating_description', None)
+        try:
+            return self.json.get('attributes').get('content_rating_description')
+        except AttributeError:
+            return None
 
     def asset_publicly_available(self):
         '''
@@ -135,7 +135,6 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
 
     asset_publicly_available.short_description = 'Pub. Avail.'
     asset_publicly_available.boolean = True
-
 
     @property
     def duration_hms(self):
