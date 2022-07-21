@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
 from pbsmmapi.abstract.models import PBSMMGenericAsset
 from pbsmmapi.asset.helpers import check_asset_availability
 
@@ -60,15 +61,8 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         default=False,
     )
 
-    # TAGS, Topics
     tags = models.JSONField(
         _('Tags'),
-        null=True,
-        blank=True,
-        help_text='JSON serialized field',
-    )
-    topics = models.JSONField(
-        _('Topics'),
         null=True,
         blank=True,
         help_text='JSON serialized field',
@@ -77,27 +71,6 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
     # PLAYER FIELDS
     player_code = models.TextField(
         _('Player Code'),
-        null=True,
-        blank=True,
-    )
-
-    # CHAPTERS
-    chapters = models.JSONField(
-        _('Chapters'),
-        null=True,
-        blank=True,
-        help_text='JSON serialized field',
-    )
-
-    content_rating = models.CharField(
-        _('Content Rating'),
-        max_length=100,
-        null=True,
-        blank=True,
-    )
-
-    content_rating_description = models.TextField(
-        _('Content Rating Description'),
         null=True,
         blank=True,
     )
@@ -111,6 +84,38 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         is an asset or not.
         '''
         return 'asset'
+
+    @property
+    def topics(self):
+        '''
+        Return a list of topics if the asset have it.
+        According to PBS this isn't really used - legacy for some third parties - skipping
+        However, Antiques Roadshow appears to be one of them.
+        '''
+        try:
+            return self.json.get('attributes').get('topics')
+        except AttributeError:
+            return None
+
+    @property
+    def content_rating(self):
+        '''
+        What audience this asset is intended for. eg: TV-Y
+        '''
+        try:
+            return self.json.get('attributes').get('content_rating')
+        except AttributeError:
+            return None
+
+    @property
+    def content_rating_description(self):
+        '''
+        Verbose description of the content rating. eg: General Audience
+        '''
+        try:
+            return self.json.get('attributes').get('content_rating_description')
+        except AttributeError:
+            return None
 
     def asset_publicly_available(self):
         '''
