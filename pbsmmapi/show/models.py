@@ -9,7 +9,7 @@ from pbsmmapi.abstract.models import PBSMMGenericShow
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.api.helpers import check_pagination
 from pbsmmapi.asset.ingest_asset import process_asset_record
-from pbsmmapi.asset.models import PBSMMAbstractAsset
+from pbsmmapi.asset.models import Asset
 from pbsmmapi.show.ingest_children import process_seasons
 from pbsmmapi.show.ingest_children import process_specials
 from pbsmmapi.show.ingest_show import process_show_record
@@ -57,22 +57,6 @@ class PBSMMShow(PBSMMAbstractShow):
     pass
 
 
-class PBSMMShowAsset(PBSMMAbstractAsset):
-    show = models.ForeignKey(
-        PBSMMShow,
-        related_name='assets',
-        on_delete=models.CASCADE,
-    )
-
-    def __str__(self):
-        return "%s: %s" % (self.show, self.title)
-
-    class Meta:
-        verbose_name = 'PBS MM Show - Asset'
-        verbose_name_plural = 'PBS MM Shows - Assets'
-        db_table = 'pbsmm_show_asset'
-
-
 def process_show_assets(endpoint, this_show):
     keep_going = True
     scraped_object_ids = []
@@ -85,9 +69,9 @@ def process_show_assets(endpoint, this_show):
             scraped_object_ids.append(UUID(object_id))
 
             try:
-                instance = PBSMMShowAsset.objects.get(object_id=object_id)
-            except PBSMMShowAsset.DoesNotExist:
-                instance = PBSMMShowAsset()
+                instance = Asset.objects.get(object_id=object_id)
+            except Asset.DoesNotExist:
+                instance = Asset()
 
             instance = process_asset_record(item, instance, origin='show')
 
@@ -103,7 +87,7 @@ def process_show_assets(endpoint, this_show):
 
         (keep_going, endpoint) = check_pagination(json)
 
-    for asset in PBSMMShowAsset.objects.filter(show=this_show):
+    for asset in Asset.objects.filter(show=this_show):
         if asset.object_id not in scraped_object_ids:
             asset.delete()
 

@@ -1,10 +1,8 @@
 from django.contrib import admin
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
-from pbsmmapi.asset.admin import PBSMMAbstractAssetAdmin
 from pbsmmapi.episode.forms import PBSMMEpisodeCreateForm
 from pbsmmapi.episode.forms import PBSMMEpisodeEditForm
 from pbsmmapi.episode.models import PBSMMEpisode
-from pbsmmapi.episode.models import PBSMMEpisodeAsset
 
 
 class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
@@ -135,24 +133,4 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
         return self.readonly_fields
 
 
-class PBSMMEpisodeAssetAdmin(PBSMMAbstractAssetAdmin):
-    model = PBSMMEpisodeAsset
-    list_display = (
-        'pk',
-        'object_id',
-        'full_episode_code',
-        'object_type',
-        'legacy_tp_media_id',
-        'asset_publicly_available',
-        'title_sortable',
-        'duration',
-    )
-
-    def full_episode_code(self, obj):
-        return obj.episode.full_episode_code
-
-    full_episode_code.short_description = 'Episode'
-
-
 admin.site.register(PBSMMEpisode, PBSMMEpisodeAdmin)
-admin.site.register(PBSMMEpisodeAsset, PBSMMEpisodeAssetAdmin)

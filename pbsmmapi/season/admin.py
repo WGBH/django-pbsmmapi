@@ -1,11 +1,9 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
-from pbsmmapi.asset.admin import PBSMMAbstractAssetAdmin
 from pbsmmapi.season.forms import PBSMMSeasonCreateForm
 from pbsmmapi.season.forms import PBSMMSeasonEditForm
 from pbsmmapi.season.models import PBSMMSeason
-from pbsmmapi.season.models import PBSMMSeasonAsset
 
 
 class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
@@ -148,18 +146,4 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
     format_episode_list.short_description = 'EPISODE LIST'
 
 
-class PBSMMSeasonAssetAdmin(PBSMMAbstractAssetAdmin):
-    model = PBSMMSeasonAsset
-    list_display = (
-        'pk', 'object_id', 'season_title', 'object_type', 'legacy_tp_media_id',
-        'asset_publicly_available', 'title_sortable', 'duration'
-    )
-
-    def season_title(self, obj):
-        return obj.season.title
-
-    season_title.short_description = 'Season'
-
-
 admin.site.register(PBSMMSeason, PBSMMSeasonAdmin)
-admin.site.register(PBSMMSeasonAsset, PBSMMSeasonAssetAdmin)
