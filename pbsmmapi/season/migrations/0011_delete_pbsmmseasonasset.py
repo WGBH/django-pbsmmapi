@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('season', '0010_pbsmmseason_images_json_pbsmmseasonasset_images_json'),
+        ('season', '0011_remove_pbsmmseasonasset_chapters_and_more'),
         ('asset', '0002_move_assets_data'),
     ]
 

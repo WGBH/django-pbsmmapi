@@ -220,3 +220,8 @@ class Asset(PBSMMGenericAsset):
         return f'{self.pk} ' \
                f'| {self.object_id} ({self.legacy_tp_media_id}) ' \
                f'| {self.title}'
+
+    class Meta:
+        verbose_name = 'PBS MM Asset'
+        verbose_name_plural = 'PBS MM Assets'
+        db_table = 'pbsmm_asset'

@@ -56,7 +56,9 @@ class Migration(migrations.Migration):
                 ('special', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='assets', to='special.pbsmmspecial')),
             ],
             options={
-                'abstract': False,
+                'db_table': 'pbsmm_asset',
+                'verbose_name': 'PBS MM Asset',
+                'verbose_name_plural': 'PBS MM Assets',
             },
         ),
     ]
