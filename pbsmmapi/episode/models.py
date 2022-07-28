@@ -1,21 +1,16 @@
 # -*- coding: utf-8 -*-
 from http import HTTPStatus
-from uuid import UUID
 
 from django.db import models
-from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 from pbsmmapi.abstract.helpers import time_zone_aware_now, \
     fix_non_aware_datetime
 from pbsmmapi.abstract.models import PBSMMGenericEpisode
-from pbsmmapi.api.api import get_PBSMM_record
+from pbsmmapi.api.api import get_PBSMM_record, PBSMM_EPISODE_ENDPOINT
 from pbsmmapi.api.helpers import check_pagination
 from pbsmmapi.asset.models import Asset
-
-
-PBSMM_EPISODE_ENDPOINT = 'https://media.services.pbs.org/api/v1/episodes/'
 
 
 class PBSMMEpisode(PBSMMGenericEpisode):
@@ -126,26 +121,26 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         self.post_save(self.id)
 
     def pre_save(self):
-        object_id = str(self.object_id or "").strip()
-        if not self.ingest_on_save or self.pk or not object_id:
-            return  # we need processing only for new objects
-        url = f"{PBSMM_EPISODE_ENDPOINT}{object_id}/"
-        status, json = get_PBSMM_record(url)
-        self.object_id = object_id
-        self.last_api_status = status
-        self.date_last_api_update = time_zone_aware_now()
-        if status != HTTPStatus.OK:
-            return
-        attrs = json.get('attributes', json['data'].get('attributes'))
-        fields = (f.name for f in PBSMMEpisode._meta.get_fields())
-        for field in (f for f in fields if f != 'id'):
-            setattr(self, field, attrs.get(field))
-        self.updated_at = fix_non_aware_datetime(attrs.get('updated_at'))
-        self.api_endpoint = json['links'].get('self')
-        self.links = attrs.get('links')
-        self.season_api_id = attrs.get('season', dict()).get('id', None)
-        self.json = json
-        self.ingest_on_save = False
+        # object_id = str(self.object_id or "").strip()
+        # if not self.ingest_on_save or self.pk or not object_id:
+        #     return  # we need processing only for new objects
+        # status, json = get_PBSMM_record(f"{PBSMM_EPISODE_ENDPOINT}{object_id}/")
+        # self.object_id = object_id
+        # self.last_api_status = status
+        # self.date_last_api_update = time_zone_aware_now()
+        # if status != HTTPStatus.OK:
+        #     return
+        # attrs = json.get('attributes', json['data'].get('attributes'))
+        # fields = (f.name for f in PBSMMEpisode._meta.get_fields())
+        # for field in (f for f in fields if f != 'id'):
+        #     setattr(self, field, attrs.get(field))
+        # self.updated_at = fix_non_aware_datetime(attrs.get('updated_at'))
+        # self.api_endpoint = json['links'].get('self')
+        # self.links = attrs.get('links')
+        # self.season_api_id = attrs.get('season', dict()).get('id', None)
+        # self.json = json
+        # self.ingest_on_save = False
+        self.self_process(PBSMM_EPISODE_ENDPOINT)
 
     @staticmethod
     @db_task()

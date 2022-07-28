@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from http import HTTPStatus
 from uuid import UUID
 
 from django.db import models
@@ -7,14 +8,11 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericSeason
-from pbsmmapi.api.api import get_PBSMM_record
+from pbsmmapi.api.api import get_PBSMM_record, PBSMM_SEASON_ENDPOINT
 from pbsmmapi.api.helpers import check_pagination
 from pbsmmapi.asset.ingest_asset import process_asset_record
 from pbsmmapi.asset.models import Asset
 from pbsmmapi.season.ingest_children import process_episodes
-from pbsmmapi.season.ingest_season import process_season_record
-
-PBSMM_SEASON_ENDPOINT = 'https://media.services.pbs.org/api/v1/seasons/'
 
 
 class PBSMMSeason(PBSMMGenericSeason):
@@ -85,6 +83,29 @@ class PBSMMSeason(PBSMMGenericSeason):
         db_table = 'pbsmm_season'
         ordering = ['-ordinal']
 
+    def save(self, *args, **kwargs):
+        self.pre_save()
+        super().save(args, kwargs)
+        self.post_save()
+
+    def pre_save(self):
+        object_id = str(self.object_id or "").strip()
+        if not self.ingest_on_save or self.pk or not object_id:
+            return  # we need processing only for new objects
+        status, json = get_PBSMM_record(f"{PBSMM_SEASON_ENDPOINT}{object_id}/")
+        self.last_api_status = status
+        self.date_last_api_update = time_zone_aware_now()
+        if status != HTTPStatus.OK:
+            return
+        attrs = json.get('attributes', json['data'].get('attributes'))
+        fields = (f.name for f in PBSMMSeason._meta.get_fields())
+        for field in (f for f in fields if f != 'id'):
+            setattr(self, field, attrs.get(field))
+        self.ingest_on_save = False
+
+    def post_save(self):
+        pass
+
 
 def process_season_assets(endpoint, this_season):
     '''
@@ -124,57 +145,57 @@ def process_season_assets(endpoint, this_season):
             asset.delete()
 
 
-@receiver(models.signals.pre_save, sender=PBSMMSeason)
-def scrape_PBSMMAPI(sender, instance, **kwargs):
-    '''
-    Get a Season's data from the PBS MM API.   Either update or create a
-    PBSMMSeason record.
-
-    The interface/access is done with a 'pre_save' receiver based on the value of
-    'ingest_on_save'
-
-    That way, one can force a reingestion from the Admin OR one can do it from a
-    management script by simply getting the record, setting ingest_on_save on the
-    record, and calling save().
-    '''
-    if instance.__class__ is not PBSMMSeason:
-        return
-
-    # If this is a new record, then someone has started it in the Admin using
-    # EITHER a legacy COVE ID OR a PBSMM UUID.   Depending on which, the
-    # retrieval endpoint is slightly different, so this sets the appropriate
-    # URL to access.
-    if instance.pk and instance.object_id and str(instance.object_id).strip():
-        # Object is being edited
-        if not instance.ingest_on_save:
-            return  # do nothing - can't get an ID to look up!
-
-    else:  # object is being added
-        if not instance.object_id:
-            return  # do nothing - can't get an ID to look up!
-
-    url = f'{PBSMM_SEASON_ENDPOINT}{instance.object_id}/'
-
-    # OK - get the record from the API
-    (status, json) = get_PBSMM_record(url)
-
-    instance.last_api_status = status
-    # Update this record's time stamp (the API has its own)
-    instance.date_last_api_update = time_zone_aware_now()
-
-    # If we didn't get a record, abort (there's no sense crying over spilled
-    # bits)
-    if status != 200:
-        return
-
-    # Process the record (code is in ingest.py)
-    instance = process_season_record(json, instance)
-
-    # continue saving, but turn off the ingest_on_save flag
-    instance.ingest_on_save = False  # otherwise we could end up in an infinite loop!
-
-    # We're done here - continue with the save() operation
-    return
+# @receiver(models.signals.pre_save, sender=PBSMMSeason)
+# def scrape_PBSMMAPI(sender, instance, **kwargs):
+#     '''
+#     Get a Season's data from the PBS MM API.   Either update or create a
+#     PBSMMSeason record.
+#
+#     The interface/access is done with a 'pre_save' receiver based on the value of
+#     'ingest_on_save'
+#
+#     That way, one can force a reingestion from the Admin OR one can do it from a
+#     management script by simply getting the record, setting ingest_on_save on the
+#     record, and calling save().
+#     '''
+#     if instance.__class__ is not PBSMMSeason:
+#         return
+#
+#     # If this is a new record, then someone has started it in the Admin using
+#     # EITHER a legacy COVE ID OR a PBSMM UUID.   Depending on which, the
+#     # retrieval endpoint is slightly different, so this sets the appropriate
+#     # URL to access.
+#     if instance.pk and instance.object_id and str(instance.object_id).strip():
+#         # Object is being edited
+#         if not instance.ingest_on_save:
+#             return  # do nothing - can't get an ID to look up!
+#
+#     else:  # object is being added
+#         if not instance.object_id:
+#             return  # do nothing - can't get an ID to look up!
+#
+#     url = f'{PBSMM_SEASON_ENDPOINT}{instance.object_id}/'
+#
+#     # OK - get the record from the API
+#     (status, json) = get_PBSMM_record(url)
+#
+#     instance.last_api_status = status
+#     # Update this record's time stamp (the API has its own)
+#     instance.date_last_api_update = time_zone_aware_now()
+#
+#     # If we didn't get a record, abort (there's no sense crying over spilled
+#     # bits)
+#     if status != 200:
+#         return
+#
+#     # Process the record (code is in ingest.py)
+#     instance = process_season_record(json, instance)
+#
+#     # continue saving, but turn off the ingest_on_save flag
+#     instance.ingest_on_save = False  # otherwise we could end up in an infinite loop!
+#
+#     # We're done here - continue with the save() operation
+#     return
 
 
 @receiver(models.signals.post_save, sender=PBSMMSeason)
