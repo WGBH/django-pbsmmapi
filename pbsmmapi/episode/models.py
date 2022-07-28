@@ -1,17 +1,19 @@
 # -*- coding: utf-8 -*-
+from http import HTTPStatus
 from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-from pbsmmapi.abstract.helpers import time_zone_aware_now
+from huey.contrib.djhuey import db_task
+from pbsmmapi.abstract.helpers import time_zone_aware_now, \
+    fix_non_aware_datetime
 from pbsmmapi.abstract.models import PBSMMGenericEpisode
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.api.helpers import check_pagination
-from pbsmmapi.asset.ingest_asset import process_asset_record
 from pbsmmapi.asset.models import Asset
-from pbsmmapi.episode.ingest_episode import process_episode_record
+
 
 PBSMM_EPISODE_ENDPOINT = 'https://media.services.pbs.org/api/v1/episodes/'
 
@@ -20,6 +22,11 @@ class PBSMMEpisode(PBSMMGenericEpisode):
     '''
     These are the fields that are unique to Episode records.
     '''
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.scraped_object_ids = list()
+
     encored_on = models.DateTimeField(
         _('Encored On'),
         blank=True,
@@ -113,49 +120,49 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         verbose_name_plural = 'PBS MM Episodes'
         db_table = 'pbsmm_episode'
 
+    def save(self, *args, **kwargs):
+        self.pre_save()
+        super().save(*args, **kwargs)
+        self.post_save(self.id)
 
-def process_episode_assets(endpoint, this_episode):
-    '''
-    Scrape assets for this episode, page by page, until there are no more.
-
-    There's probably a way to abstract this so that for all the *-Asset
-    scrapers it would be more DRY.
-    '''
-    # Handle pagination
-    keep_going = True
-    scraped_object_ids = []
-    while keep_going:
-        # This is the endpoint for the 'assets' link (page with list of assets)
-        status, json = get_PBSMM_record(endpoint)
-        if 'data' in json.keys():
-            asset_list = json['data']
-        else:
+    def pre_save(self):
+        object_id = str(self.object_id or "").strip()
+        if not self.ingest_on_save or self.pk or not object_id:
+            return  # we need processing only for new objects
+        url = f"{PBSMM_EPISODE_ENDPOINT}{object_id}/"
+        status, json = get_PBSMM_record(url)
+        self.object_id = object_id
+        self.last_api_status = status
+        self.date_last_api_update = time_zone_aware_now()
+        if status != HTTPStatus.OK:
             return
+        attrs = json.get('attributes', json['data'].get('attributes'))
+        fields = (f.name for f in PBSMMEpisode._meta.get_fields())
+        for field in (f for f in fields if f != 'id'):
+            setattr(self, field, attrs.get(field))
+        self.updated_at = fix_non_aware_datetime(attrs.get('updated_at'))
+        self.api_endpoint = json['links'].get('self')
+        self.links = attrs.get('links')
+        self.season_api_id = attrs.get('season', dict()).get('id', None)
+        self.json = json
+        self.ingest_on_save = False
 
-        for item in asset_list:
-            object_id = item.get('id')
-            scraped_object_ids.append(UUID(object_id))
+    @staticmethod
+    @db_task()
+    def post_save(episode_id):
+        episode = PBSMMEpisode.object_id.get(id=episode_id)
+        episode.process_assets(episode.json['links'].get('assets'))
+        Asset.objects.filter(episode=episode).exclude(
+            object_id__in=episode.scraped_object_ids).delete()
 
-            try:
-                instance = Asset.objects.get(object_id=object_id)
-            except Asset.DoesNotExist:
-                instance = Asset()
-
-            # For now - borrow from the parent object
-            instance.last_api_status = status
-            instance.date_last_api_update = time_zone_aware_now()
-
-            instance = process_asset_record(item, instance, origin='episode')
-            instance.episode = this_episode
-            instance.ingest_on_save = True
-
-            # This needs to be here because otherwise it never updates...
-            instance.save()
-
+    def process_assets(self, endpoint):
+        status, json = get_PBSMM_record(endpoint)
+        for asset in json.get('data', list()):
+            self.scraped_object_ids.append(asset['id'])
+            Asset.set(asset, last_api_status=status, episode_id=self.id)
         keep_going, endpoint = check_pagination(json)
-
-    Asset.objects.filter(episode=this_episode).exclude(
-        object_id__in=scraped_object_ids).delete()
+        if keep_going:
+            self.process_assets(endpoint)
 
 
 # PBS MediaManager API interface
@@ -166,69 +173,47 @@ def process_episode_assets(endpoint, this_episode):
 # ingest_on_save on the record, and calling save().
 
 
-@receiver(models.signals.pre_save, sender=PBSMMEpisode)
-def scrape_PBSMMAPI(sender, instance, **kwargs):
-    '''
-    This calls the PBS MM API for an Episode and then either saves or creates it.
-    '''
-    if instance.__class__ is not PBSMMEpisode:
-        return
-
-    # If this is a new record, then someone has started it in the Admin using
-    # EITHER a legacy COVE ID OR a PBSMM UUID. Depending on which, the
-    # retrieval endpoint is slightly different, so this sets the appropriate
-    # URL to access.
-    if instance.pk and instance.object_id and str(instance.object_id).strip():
-        # Object is being edited
-        op = 'edit'
-
-    else:  # object is being added
-        op = 'create'
-        if not instance.object_id:
-            return  # do nothing - can't get an ID to look up!
-
-    if op == 'create' or instance.ingest_on_save:
-        url = "{}{}/".format(PBSMM_EPISODE_ENDPOINT, instance.object_id)
-
-        # OK - get the record from the API
-        (status, json) = get_PBSMM_record(url)
-
-        instance.last_api_status = status
-        # Update this record's time stamp (the API has its own)
-        instance.date_last_api_update = time_zone_aware_now()
-
-        # If we didn't get a record, abort (there's no sense crying over
-        # spilled bits)
-        if status != 200:
-            return
-
-        # Process the record (code is in ingest.py)
-        instance = process_episode_record(json, instance)
-
-        # continue saving, but turn off the ingest_on_save flag
-        instance.ingest_on_save = False  # otherwise we could end up in an infinite loop!
-
-    # We're done here - continue with the save() operation
-    return instance
-
-
-@receiver(models.signals.post_save, sender=PBSMMEpisode)
-def handle_children(sender, instance, *args, **kwargs):
-    '''
-    This gets all the children.
-    For the case of Episodes, that just means the Episode Assets.
-
-    We ALWAYS get the Assets when the Episode is ingested.
-    '''
-    if not instance:
-        return
-
-    if instance.__class__ is not PBSMMEpisode:
-        return
-
-    # ALWAYS GET CHILD ASSETS
-    assets_endpoint = instance.json['links'].get('assets')
-    if assets_endpoint:
-        process_episode_assets(assets_endpoint, instance)
-
-    return
+# @receiver(models.signals.pre_save, sender=PBSMMEpisode)
+# def scrape_PBSMMAPI(sender, instance, **kwargs):
+#     '''
+#     This calls the PBS MM API for an Episode and then either saves or creates it.
+#     '''
+#     if instance.__class__ is not PBSMMEpisode:
+#         return
+#
+#     # If this is a new record, then someone has started it in the Admin using
+#     # EITHER a legacy COVE ID OR a PBSMM UUID. Depending on which, the
+#     # retrieval endpoint is slightly different, so this sets the appropriate
+#     # URL to access.
+#     if instance.pk and instance.object_id and str(instance.object_id).strip():
+#         # Object is being edited
+#         op = 'edit'
+#
+#     else:  # object is being added
+#         op = 'create'
+#         if not instance.object_id:
+#             return  # do nothing - can't get an ID to look up!
+#
+#     if op == 'create' or instance.ingest_on_save:
+#         url = "{}{}/".format(PBSMM_EPISODE_ENDPOINT, instance.object_id)
+#
+#         # OK - get the record from the API
+#         (status, json) = get_PBSMM_record(url)
+#
+#         instance.last_api_status = status
+#         # Update this record's time stamp (the API has its own)
+#         instance.date_last_api_update = time_zone_aware_now()
+#
+#         # If we didn't get a record, abort (there's no sense crying over
+#         # spilled bits)
+#         if status != 200:
+#             return
+#
+#         # Process the record (code is in ingest.py)
+#         instance = process_episode_record(json, instance)
+#
+#         # continue saving, but turn off the ingest_on_save flag
+#         instance.ingest_on_save = False  # otherwise we could end up in an infinite loop!
+#
+#     # We're done here - continue with the save() operation
+#     return instance

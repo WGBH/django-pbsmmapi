@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
+from http import HTTPStatus
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from huey.contrib.djhuey import task, db_task
+from pbsmmapi.abstract.helpers import time_zone_aware_now
 
 from pbsmmapi.abstract.models import PBSMMGenericAsset
 from pbsmmapi.asset.helpers import check_asset_availability
@@ -216,12 +220,40 @@ class Asset(PBSMMGenericAsset):
             return '%d:%02d:%02d' % (hours, minutes, seconds)
         return ''
 
-    def __str__(self):
-        return f'{self.pk} ' \
-               f'| {self.object_id} ({self.legacy_tp_media_id}) ' \
-               f'| {self.title}'
-
     class Meta:
         verbose_name = 'PBS MM Asset'
         verbose_name_plural = 'PBS MM Assets'
         db_table = 'pbsmm_asset'
+
+    @staticmethod
+    @db_task()
+    def set(asset: dict, **kwargs):
+        '''
+        Update or creates an asset
+        '''
+        asset_fields = set(a.name for a in Asset._meta.get_fields())
+        attrs = asset['attributes']
+        links = asset.get('links', dict())
+        fields = dict((f, attrs.get(f)) for f in asset_fields if f != 'id')
+        fields.update(
+            api_endpoint=links.get('self'),
+            availability=attrs.get('availabilities'),
+            date_last_api_update=time_zone_aware_now(),
+            ingest_on_save=True,
+            json=asset,
+            last_api_status=HTTPStatus.OK,
+            links=links or None,
+            windows=None,
+            **kwargs
+        )
+        return next(Asset.objects.update_or_create(
+            defaults=fields,
+            object_id=asset['data']['id']
+        ))
+
+    # Overrides
+
+    def __str__(self):
+        return f'{self.pk} ' \
+               f'| {self.object_id} ({self.legacy_tp_media_id}) ' \
+               f'| {self.title}'
