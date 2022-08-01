@@ -89,6 +89,7 @@ class PBSMMSeason(PBSMMGenericSeason):
         self.post_save()
 
     def pre_save(self):
+        self.self_process(PBSMM_SEASON_ENDPOINT)
         object_id = str(self.object_id or "").strip()
         if not self.ingest_on_save or self.pk or not object_id:
             return  # we need processing only for new objects

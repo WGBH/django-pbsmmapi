@@ -4,6 +4,8 @@ from http import HTTPStatus
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+from pbsmmapi.api.helpers import check_pagination
+
 from pbsmmapi.abstract.helpers import time_zone_aware_now, \
     fix_non_aware_datetime
 
@@ -392,6 +394,12 @@ class PBSMMHashtag(models.Model):
 
 
 class Ingest(models.Model):
+    def __init__(self, *args, **kwargs):
+        super().__init__(args, kwargs)
+        self.scraped_object_ids = None
+        self.ingest_on_save = None
+        self.object_id = None
+
     def self_process(self, endpoint):
         object_id = str(self.object_id or "").strip()
         if not self.ingest_on_save or self.pk or not object_id:
@@ -412,6 +420,16 @@ class Ingest(models.Model):
         self.season_api_id = attrs.get('season', dict()).get('id', None)
         self.json = json
         self.ingest_on_save = False
+
+    def process_assets(self, endpoint):
+        from pbsmmapi.asset.models import Asset  # prevent circular import
+        status, json = get_PBSMM_record(endpoint)
+        for asset in json.get('data', list()):
+            self.scraped_object_ids.append(asset['id'])
+            Asset.set(asset, last_api_status=status, episode_id=self.id)
+        keep_going, endpoint = check_pagination(json)
+        if keep_going:
+            self.process_assets(endpoint)
 
     class Meta:
         abstract = True
