@@ -1,10 +1,8 @@
 from django.contrib import admin
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
-from pbsmmapi.asset.admin import PBSMMAbstractAssetAdmin
 from pbsmmapi.special.forms import PBSMMSpecialCreateForm
 from pbsmmapi.special.forms import PBSMMSpecialEditForm
 from pbsmmapi.special.models import PBSMMSpecial
-from pbsmmapi.special.models import PBSMMSpecialAsset
 
 
 class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
@@ -134,18 +132,4 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
         return super().get_form(request, obj, **kwargs)
 
 
-class PBSMMSpecialAssetAdmin(PBSMMAbstractAssetAdmin):
-    model = PBSMMSpecialAsset
-    list_display = (
-        'pk', 'object_id', 'special_title', 'object_type', 'legacy_tp_media_id',
-        'asset_publicly_available', 'title_sortable', 'duration'
-    )
-
-    def special_title(self, obj):
-        return obj.special.title
-
-    special_title.short_description = 'Special'
-
-
 admin.site.register(PBSMMSpecial, PBSMMSpecialAdmin)
-admin.site.register(PBSMMSpecialAsset, PBSMMSpecialAssetAdmin)

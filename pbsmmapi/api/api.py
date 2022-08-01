@@ -1,4 +1,5 @@
 import requests
+from http import HTTPStatus
 from django.conf import settings
 
 
@@ -15,6 +16,6 @@ def get_PBSMM_record(url):
     No other checking/analysis is done.
     '''
     r = requests.get(url, auth=(settings.PBSMM_API_ID, settings.PBSMM_API_SECRET))
-    if r.status_code == 200:
-        return (r.status_code, r.json())
-    return (r.status_code, None)
+    if r.status_code == HTTPStatus.OK:
+        return r.status_code, r.json()
+    return r.status_code, None

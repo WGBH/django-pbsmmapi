@@ -10,7 +10,7 @@ from pbsmmapi.abstract.models import PBSMMGenericSpecial
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.api.helpers import check_pagination
 from pbsmmapi.asset.ingest_asset import process_asset_record
-from pbsmmapi.asset.models import PBSMMAbstractAsset
+from pbsmmapi.asset.models import Asset
 from pbsmmapi.special.ingest_special import process_special_record
 
 PBSMM_SPECIAL_ENDPOINT = 'https://media.services.pbs.org/api/v1/specials/'
@@ -65,22 +65,6 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         db_table = 'pbsmm_special'
 
 
-class PBSMMSpecialAsset(PBSMMAbstractAsset):
-    special = models.ForeignKey(
-        PBSMMSpecial,
-        related_name='assets',
-        on_delete=models.CASCADE,
-    )
-
-    def __str__(self):
-        return f'{self.special.title}: {self.title}'
-
-    class Meta:
-        verbose_name = 'PBS MM Special Asset'
-        verbose_name_plural = 'PBS MM Specials - Assets'
-        db_table = 'pbsmm_special_asset'
-
-
 def process_special_assets(endpoint, this_special):
     # Handle pagination
     keep_going = True
@@ -98,9 +82,9 @@ def process_special_assets(endpoint, this_special):
             scraped_object_ids.append(UUID(object_id))
 
             try:
-                instance = PBSMMSpecialAsset.objects.get(object_id=object_id)
-            except PBSMMSpecialAsset.DoesNotExist:
-                instance = PBSMMSpecialAsset()
+                instance = Asset.objects.get(object_id=object_id)
+            except Asset.DoesNotExist:
+                instance = Asset()
 
             instance = process_asset_record(item, instance, origin='special')
 
@@ -116,7 +100,7 @@ def process_special_assets(endpoint, this_special):
 
         (keep_going, endpoint) = check_pagination(json)
 
-    for asset in PBSMMSpecialAsset.objects.filter(special=this_special):
+    for asset in Asset.objects.filter(special=this_special):
         if asset.object_id not in scraped_object_ids:
             asset.delete()
 

@@ -10,10 +10,8 @@ except ImportError:
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from pbsmmapi.episode.models import PBSMMEpisodeAsset
-from pbsmmapi.season.models import PBSMMSeasonAsset
-from pbsmmapi.show.models import PBSMMShow, PBSMMShowAsset
-from pbsmmapi.special.models import PBSMMSpecialAsset
+from pbsmmapi.episode.models import Asset
+from pbsmmapi.show.models import PBSMMShow
 from url_map import url_map
 
 default_data_set = url_map
@@ -59,7 +57,7 @@ class ShowIngestTestCase(unittest.TestCase):
     @mock.patch('pbsmmapi.api.api.requests.get', side_effect=mocked_requests_get)
     def setUp(self, mock_get):
         try:
-            nova = PBSMMShow.objects.get(slug='nova')
+            PBSMMShow.objects.get(slug='nova')
         except ObjectDoesNotExist:
             nova = PBSMMShow()
             nova.slug = 'nova'
@@ -95,7 +93,7 @@ class ShowIngestTestCase(unittest.TestCase):
         global data_set
         data_set = default_data_set
         self.reingest()
-        nova_show_asset = PBSMMShowAsset.objects.get(
+        nova_show_asset = Asset.objects.get(
             slug='nova-switching-genes-on-and-off'
         )
         self.assertEqual(
@@ -104,41 +102,41 @@ class ShowIngestTestCase(unittest.TestCase):
         data_set = assets_deleted_data_set
         self.reingest()
         data_set = default_data_set
-        with self.assertRaises(PBSMMShowAsset.DoesNotExist):
-            PBSMMShowAsset.objects.get(slug='nova-switching-genes-on-and-off')
+        with self.assertRaises(Asset.DoesNotExist):
+            Asset.objects.get(slug='nova-switching-genes-on-and-off')
 
     @mock.patch('pbsmmapi.api.api.requests.get', side_effect=mocked_requests_get)
     def test_season_asset(self, mock_get):
         global data_set
         data_set = default_data_set
         self.reingest(ingest_seasons=True)
-        landslides = PBSMMSeasonAsset.objects.get(slug='predicting-landslides-qh7jt9')
+        landslides = Asset.objects.get(slug='predicting-landslides-qh7jt9')
         self.assertEqual(landslides.title, 'Predicting Landslides')
         data_set = assets_deleted_data_set
         self.reingest(ingest_seasons=True)
-        with self.assertRaises(PBSMMSeasonAsset.DoesNotExist):
-            PBSMMSeasonAsset.objects.get(slug='predicting-landslides-qh7jt9')
+        with self.assertRaises(Asset.DoesNotExist):
+            Asset.objects.get(slug='predicting-landslides-qh7jt9')
 
     @mock.patch('pbsmmapi.api.api.requests.get', side_effect=mocked_requests_get)
     def test_special_asset(self, mock_get):
         global data_set
         data_set = default_data_set
         self.reingest(ingest_specials=True)
-        saturn = PBSMMSpecialAsset.objects.get(slug='front-row-seat-saturn-0vf9j2')
+        saturn = Asset.objects.get(slug='front-row-seat-saturn-0vf9j2')
         self.assertEqual(saturn.title, 'Front Row Seat to Saturn')
         data_set = assets_deleted_data_set
         self.reingest(ingest_specials=True)
-        with self.assertRaises(PBSMMSpecialAsset.DoesNotExist):
-            PBSMMSpecialAsset.objects.get(slug='front-row-seat-saturn-0vf9j2')
+        with self.assertRaises(Asset.DoesNotExist):
+            Asset.objects.get(slug='front-row-seat-saturn-0vf9j2')
 
     @mock.patch('pbsmmapi.api.api.requests.get', side_effect=mocked_requests_get)
     def test_episode_asset(self, mock_get):
         global data_set
         data_set = default_data_set
         self.reingest(ingest_episodes=True, ingest_seasons=True)
-        make_life = PBSMMEpisodeAsset.objects.get(slug='can-we-make-life-hquxsp')
+        make_life = Asset.objects.get(slug='can-we-make-life-hquxsp')
         self.assertEqual(make_life.title, 'Can We Make Life? Preview')
         data_set = assets_deleted_data_set
         self.reingest(ingest_episodes=True, ingest_seasons=True)
-        with self.assertRaises(PBSMMEpisodeAsset.DoesNotExist):
-            PBSMMEpisodeAsset.objects.get(slug='can-we-make-life-hquxsp')
+        with self.assertRaises(Asset.DoesNotExist):
+            Asset.objects.get(slug='can-we-make-life-hquxsp')

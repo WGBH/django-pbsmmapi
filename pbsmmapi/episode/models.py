@@ -5,12 +5,13 @@ from django.db import models
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+
 from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericEpisode
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.api.helpers import check_pagination
 from pbsmmapi.asset.ingest_asset import process_asset_record
-from pbsmmapi.asset.models import PBSMMAbstractAsset
+from pbsmmapi.asset.models import Asset
 from pbsmmapi.episode.ingest_episode import process_episode_record
 
 PBSMM_EPISODE_ENDPOINT = 'https://media.services.pbs.org/api/v1/episodes/'
@@ -117,25 +118,6 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         db_table = 'pbsmm_episode'
 
 
-class PBSMMEpisodeAsset(PBSMMAbstractAsset):
-    '''
-    These are the Assets associated with an episode.
-    '''
-    episode = models.ForeignKey(
-        PBSMMEpisode,
-        related_name='assets',
-        on_delete=models.CASCADE,
-    )
-
-    def __str__(self):
-        return f'{self.episode.title}: {self.title}'
-
-    class Meta:
-        verbose_name = 'PBS MM Episode Asset'
-        verbose_name_plural = 'PBS MM Episodes - Assets'
-        db_table = 'pbsmm_episode_asset'
-
-
 def process_episode_assets(endpoint, this_episode):
     '''
     Scrape assets for this episode, page by page, until there are no more.
@@ -148,7 +130,7 @@ def process_episode_assets(endpoint, this_episode):
     scraped_object_ids = []
     while keep_going:
         # This is the endpoint for the 'assets' link (page with list of assets)
-        (status, json) = get_PBSMM_record(endpoint)
+        status, json = get_PBSMM_record(endpoint)
         if 'data' in json.keys():
             asset_list = json['data']
         else:
@@ -159,9 +141,9 @@ def process_episode_assets(endpoint, this_episode):
             scraped_object_ids.append(UUID(object_id))
 
             try:
-                instance = PBSMMEpisodeAsset.objects.get(object_id=object_id)
-            except PBSMMEpisodeAsset.DoesNotExist:
-                instance = PBSMMEpisodeAsset()
+                instance = Asset.objects.get(object_id=object_id)
+            except Asset.DoesNotExist:
+                instance = Asset()
 
             # For now - borrow from the parent object
             instance.last_api_status = status
@@ -174,13 +156,11 @@ def process_episode_assets(endpoint, this_episode):
             # This needs to be here because otherwise it never updates...
             instance.save()
 
-        (keep_going, endpoint) = check_pagination(json)
+        keep_going, endpoint = check_pagination(json)
 
-    for asset in PBSMMEpisodeAsset.objects.filter(episode=this_episode):
-        if asset.object_id not in scraped_object_ids:
-            asset.delete()
-
-    return
+    Asset.objects.filter(
+        episode=this_episode,
+    ).exclude(object_id__in=scraped_object_ids).delete()
 
 
 # PBS MediaManager API interface

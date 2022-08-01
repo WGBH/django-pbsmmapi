@@ -1,15 +1,14 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
-from pbsmmapi.asset.admin import PBSMMAbstractAssetAdmin
+from pbsmmapi.asset.models import Asset
 from pbsmmapi.show.forms import PBSMMShowCreateForm
 from pbsmmapi.show.forms import PBSMMShowEditForm
 from pbsmmapi.show.models import PBSMMShow
-from pbsmmapi.show.models import PBSMMShowAsset
 
 
 class ShowAssetInline(admin.TabularInline):
-    model = PBSMMShowAsset
+    model = Asset
     fieldsets = (
         (
             None, {
@@ -270,24 +269,4 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
     format_specials_list.short_description = 'SPECIALS LIST'
 
 
-class PBSMMShowAssetAdmin(PBSMMAbstractAssetAdmin):
-    model = PBSMMShowAsset
-    list_display = (
-        'pk',
-        'object_id',
-        'show_title',
-        'object_type',
-        'legacy_tp_media_id',
-        'asset_publicly_available',
-        'title_sortable',
-        'duration',
-    )
-
-    def show_title(self, obj):
-        return obj.show.title
-
-    show_title.short_description = 'Show'
-
-
 admin.site.register(PBSMMShow, PBSMMShowAdmin)
-admin.site.register(PBSMMShowAsset, PBSMMShowAssetAdmin)

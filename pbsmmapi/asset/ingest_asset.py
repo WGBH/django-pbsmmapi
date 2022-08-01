@@ -1,4 +1,7 @@
+from http import HTTPStatus
 from pbsmmapi.abstract.helpers import fix_non_aware_datetime
+from pbsmmapi.api.api import get_PBSMM_record
+
 
 # This is the code that parses the JSON for an Asset returned by the PBSMM API, and
 # puts it into the schema for an *-Asset object (e.g., EpisodeAsset, ShowAsset, etc.;
@@ -9,7 +12,7 @@ from pbsmmapi.abstract.helpers import fix_non_aware_datetime
 #     all of the associated Assets are ingested (with the code below).
 
 # THIS IS THE INGEST SCRIPT FOR ASSET RECORDS
-
+PBSMM_ASSET_ENDPOINT = 'https://media.services.pbs.org/api/v1/assets/'
 
 def process_asset_record(obj, instance, origin=None):
     # Here is where all the scraping of the Asset record is done
@@ -18,11 +21,19 @@ def process_asset_record(obj, instance, origin=None):
     # attrs = obj['attributes']
     # links = obj['links']
 
-    if 'attributes' in obj.keys():
-        attrs = obj.get('attributes')
+    url = "{}{}/".format(PBSMM_ASSET_ENDPOINT, obj.get('id'))
+
+    (status, json) = get_PBSMM_record(url)
+
+    #should we abort at this time or just go with some data= better than no data?
+    if status != HTTPStatus.OK:
+        json = obj
+
+    if 'attributes' in json.keys():
+        attrs = json.get('attributes')
     else:
-        if 'data' in obj.keys():
-            attrs = obj['data'].get('attributes')
+        if 'data' in json.keys():
+            attrs = json['data'].get('attributes')
 
     links = obj.get('links')
 
@@ -56,15 +67,10 @@ def process_asset_record(obj, instance, origin=None):
     instance.duration = attrs.get('duration', None)  # in seconds
     # 'clip', 'full-length', or 'preview'
     instance.object_type = attrs.get('object_type', None)
-    instance.content_rating = attrs.get('content_rating', None)  # e.g., 'TV-G'
-    instance.content_rating_description = attrs.get('content_rating_description', None)
     instance.language = attrs.get('language', None)
 
     # Unprocessed
     instance.tags = attrs.get('tags', None)
-    # According to PBS this isn't really used - legacy for some third parties - skipping
-    # However, Antiques Roadshow appears to be one of them.
-    instance.topics = attrs.get('topics', None)
     # Availabilty is in three parts: public, station_members, local_members -
     # there might be different dates for each
     instance.availability = attrs.get('availabilities', None)
@@ -78,6 +84,6 @@ def process_asset_record(obj, instance, origin=None):
     # For compatibility (so far)
     instance.platforms = attrs.get('platforms', None)
 
-    instance.json = obj
+    instance.json = json
 
     return instance

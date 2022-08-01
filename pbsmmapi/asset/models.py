@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
 from pbsmmapi.abstract.models import PBSMMGenericAsset
 from pbsmmapi.asset.helpers import check_asset_availability
 
@@ -15,7 +16,7 @@ PBSMM_ASSET_ENDPOINT = f'{PBSMM_BASE_URL}api/v1/assets/'
 PBSMM_LEGACY_ASSET_ENDPOINT = f'{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id='
 
 
-class PBSMMAbstractAsset(PBSMMGenericAsset):
+class Asset(PBSMMGenericAsset):
     '''
     These are fields unique to Assets.
     Each object model has a *-Asset table, e.g., PBSMMEpisode has PBSMMEpisodeAsset,
@@ -24,6 +25,7 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
     Aside from the FK reference to the parent, each of these *-Asset models are
     identical in structure.
     '''
+
     # These fields are unique to Asset
     legacy_tp_media_id = models.BigIntegerField(
         _('COVE ID'),
@@ -60,15 +62,8 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         default=False,
     )
 
-    # TAGS, Topics
     tags = models.JSONField(
         _('Tags'),
-        null=True,
-        blank=True,
-        help_text='JSON serialized field',
-    )
-    topics = models.JSONField(
-        _('Topics'),
         null=True,
         blank=True,
         help_text='JSON serialized field',
@@ -81,25 +76,38 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         blank=True,
     )
 
-    # CHAPTERS
-    chapters = models.JSONField(
-        _('Chapters'),
+    # Relationships
+
+    episode = models.ForeignKey(
+        'episode.PBSMMEpisode',
         null=True,
         blank=True,
-        help_text='JSON serialized field',
+        related_name='assets',
+        on_delete=models.SET_NULL,
     )
 
-    content_rating = models.CharField(
-        _('Content Rating'),
-        max_length=100,
+    season = models.ForeignKey(
+        'season.PBSMMSeason',
         null=True,
         blank=True,
+        related_name='assets',
+        on_delete=models.SET_NULL,
     )
 
-    content_rating_description = models.TextField(
-        _('Content Rating Description'),
+    show = models.ForeignKey(
+        'show.PBSMMShow',
         null=True,
         blank=True,
+        related_name='assets',
+        on_delete=models.SET_NULL,
+    )
+
+    special = models.ForeignKey(
+        'special.PBSMMSpecial',
+        null=True,
+        blank=True,
+        related_name='assets',
+        on_delete=models.SET_NULL,
     )
 
     # Properties and methods
@@ -111,6 +119,38 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         is an asset or not.
         '''
         return 'asset'
+
+    @property
+    def topics(self):
+        '''
+        Return a list of topics if the asset have it.
+        According to PBS this isn't really used - legacy for some third parties - skipping
+        However, Antiques Roadshow appears to be one of them.
+        '''
+        try:
+            return self.json.get('attributes').get('topics')
+        except AttributeError:
+            return []
+
+    @property
+    def content_rating(self):
+        '''
+        What audience this asset is intended for. eg: TV-Y
+        '''
+        try:
+            return self.json.get('attributes').get('content_rating')
+        except AttributeError:
+            return None
+
+    @property
+    def content_rating_description(self):
+        '''
+        Verbose description of the content rating. eg: General Audience
+        '''
+        try:
+            return self.json.get('attributes').get('content_rating_description')
+        except AttributeError:
+            return None
 
     def asset_publicly_available(self):
         '''
@@ -177,7 +217,11 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
         return ''
 
     def __str__(self):
-        return f'{self.pk} | {self.object_id} ({self.legacy_tp_media_id}) | {self.title}'
+        return f'{self.pk} ' \
+               f'| {self.object_id} ({self.legacy_tp_media_id}) ' \
+               f'| {self.title}'
 
     class Meta:
-        abstract = True
+        verbose_name = 'PBS MM Asset'
+        verbose_name_plural = 'PBS MM Assets'
+        db_table = 'pbsmm_asset'
