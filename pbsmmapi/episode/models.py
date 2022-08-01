@@ -5,6 +5,7 @@ from django.db import models
 from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+
 from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericEpisode
 from pbsmmapi.api.api import get_PBSMM_record
@@ -30,13 +31,6 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         blank=True,
         null=True,
     )
-    segment = models.CharField(
-        _('Segment'),
-        max_length=200,
-        blank=True,
-        null=True,
-    )
-
     # THIS IS THE PARENTAL SEASON
     season = models.ForeignKey(
         'season.PBSMMSeason',
@@ -57,6 +51,16 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         This just returns object "type"
         '''
         return 'episode'
+
+    @property
+    def segment(self):
+        '''
+        Return individual segments of a single episode.
+        '''
+        try:
+            return self.json.get('data').get('attributes').get('segment')
+        except AttributeError:
+            return None
 
     @property
     def full_episode_code(self):
@@ -154,8 +158,9 @@ def process_episode_assets(endpoint, this_episode):
 
         keep_going, endpoint = check_pagination(json)
 
-    Asset.objects.filter(episode=this_episode).exclude(
-        object_id__in=scraped_object_ids).delete()
+    Asset.objects.filter(
+        episode=this_episode,
+    ).exclude(object_id__in=scraped_object_ids).delete()
 
 
 # PBS MediaManager API interface
