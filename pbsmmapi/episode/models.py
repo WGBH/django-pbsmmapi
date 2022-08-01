@@ -57,10 +57,10 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         '''
         Return individual segments of a single episode.
         '''
-        if 'attributes' not in self.json.keys():
-            return self.json['data'].get('attributes').get('segment', None)
-        else:
-            return self.json['attributes'].get('segment', None)
+        try:
+            return self.json.get('data').get('attributes').get('segment')
+        except AttributeError:
+            return None
 
     @property
     def full_episode_code(self):
