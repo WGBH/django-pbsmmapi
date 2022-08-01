@@ -150,15 +150,6 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         Asset.objects.filter(episode=episode).exclude(
             object_id__in=episode.scraped_object_ids).delete()
 
-    def process_assets(self, endpoint):
-        status, json = get_PBSMM_record(endpoint)
-        for asset in json.get('data', list()):
-            self.scraped_object_ids.append(asset['id'])
-            Asset.set(asset, last_api_status=status, episode_id=self.id)
-        keep_going, endpoint = check_pagination(json)
-        if keep_going:
-            self.process_assets(endpoint)
-
 
 # PBS MediaManager API interface
 
@@ -166,49 +157,3 @@ class PBSMMEpisode(PBSMMGenericEpisode):
 # 'ingest_on_save' That way, one can force a reingestion from the Admin OR one
 # can do it from a management script by simply getting the record, setting
 # ingest_on_save on the record, and calling save().
-
-
-# @receiver(models.signals.pre_save, sender=PBSMMEpisode)
-# def scrape_PBSMMAPI(sender, instance, **kwargs):
-#     '''
-#     This calls the PBS MM API for an Episode and then either saves or creates it.
-#     '''
-#     if instance.__class__ is not PBSMMEpisode:
-#         return
-#
-#     # If this is a new record, then someone has started it in the Admin using
-#     # EITHER a legacy COVE ID OR a PBSMM UUID. Depending on which, the
-#     # retrieval endpoint is slightly different, so this sets the appropriate
-#     # URL to access.
-#     if instance.pk and instance.object_id and str(instance.object_id).strip():
-#         # Object is being edited
-#         op = 'edit'
-#
-#     else:  # object is being added
-#         op = 'create'
-#         if not instance.object_id:
-#             return  # do nothing - can't get an ID to look up!
-#
-#     if op == 'create' or instance.ingest_on_save:
-#         url = "{}{}/".format(PBSMM_EPISODE_ENDPOINT, instance.object_id)
-#
-#         # OK - get the record from the API
-#         (status, json) = get_PBSMM_record(url)
-#
-#         instance.last_api_status = status
-#         # Update this record's time stamp (the API has its own)
-#         instance.date_last_api_update = time_zone_aware_now()
-#
-#         # If we didn't get a record, abort (there's no sense crying over
-#         # spilled bits)
-#         if status != 200:
-#             return
-#
-#         # Process the record (code is in ingest.py)
-#         instance = process_episode_record(json, instance)
-#
-#         # continue saving, but turn off the ingest_on_save flag
-#         instance.ingest_on_save = False  # otherwise we could end up in an infinite loop!
-#
-#     # We're done here - continue with the save() operation
-#     return instance
