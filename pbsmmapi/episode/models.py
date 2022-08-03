@@ -2,8 +2,8 @@
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-from huey.contrib.djhuey import db_task
 
+from huey.contrib.djhuey import db_task
 from pbsmmapi.abstract.models import PBSMMGenericEpisode
 from pbsmmapi.api.api import PBSMM_EPISODE_ENDPOINT
 from pbsmmapi.asset.models import Asset
@@ -24,13 +24,6 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         blank=True,
         null=True,
     )
-    segment = models.CharField(
-        _('Segment'),
-        max_length=200,
-        blank=True,
-        null=True,
-    )
-
     # THIS IS THE PARENTAL SEASON
     season = models.ForeignKey(
         'season.PBSMMSeason',
@@ -51,6 +44,16 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         This just returns object "type"
         '''
         return 'episode'
+
+    @property
+    def segment(self):
+        '''
+        Return individual segments of a single episode.
+        '''
+        try:
+            return self.json.get('data').get('attributes').get('segment')
+        except AttributeError:
+            return None
 
     @property
     def full_episode_code(self):
