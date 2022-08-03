@@ -118,12 +118,13 @@ class PBSMMEpisode(PBSMMGenericEpisode):
     def pre_save(self):
         self.process(PBSMM_EPISODE_ENDPOINT)
 
+    @staticmethod
     @db_task()
-    def post_save(self, episode_id):
+    def post_save(episode_id):
         episode = PBSMMEpisode.object_id.get(id=episode_id)
         episode.process_assets(
             episode.json['links'].get('assets'), episode_id=episode_id)
-        self.delete_stale_assets(episode=episode)
+        episode.delete_stale_assets(episode=episode)
 
 
 # PBS MediaManager API interface

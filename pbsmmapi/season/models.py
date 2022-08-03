@@ -84,10 +84,17 @@ class PBSMMSeason(PBSMMGenericSeason):
         self.post_save(self.id)
 
     def pre_save(self):
-        self.process(PBSMM_SEASON_ENDPOINT)
+        attrs = self.process(PBSMM_SEASON_ENDPOINT)
+        self.ga_page = attrs.get('tracking_ga_page')
+        self.ga_event = attrs.get('tracking_ga_event')
+        # The canonical image used for this is
+        # the one that has 'mezzanine' in it
+        if self.images is None:  # try latest_asset_images
+            self.images = attrs.get('latest_asset_images')
 
+    @staticmethod
     @db_task()
-    def post_save(self, season_id):
+    def post_save(season_id):
         '''
         If the ingest_episodes flag is set, then also ingest every
         episode for this Season.
@@ -95,17 +102,19 @@ class PBSMMSeason(PBSMMGenericSeason):
         '''
         season = PBSMMSeason.objects.get(id=season_id)
         links = season.json.get('links', dict())
-        if season.ingest_episodes:
-            self.process_episodes(links.get('episodes'))
-        self.process_assets(links.get('assets'), season_id=season_id)
+        season.process_episodes(links.get('episodes'), season)
+        season.process_assets(links.get('assets'), season_id=season_id)
         PBSMMSeason.objects.filter(id=season_id).update(ingest_episodes=False)
-        self.delete_stale_assets(season_id=season_id)
+        season.delete_stale_assets(season_id=season_id)
         # !!! this ^ needs to be checked !!!
 
     @db_task()
-    def process_episodes(self, endpoint):
+    def process_episodes(self, endpoint, season):
+        if not season.ingest_episodes:
+            return
+
         def set_episode(episode: dict, _):
             obj, created = PBSMMEpisode.objects.get_or_create(
                 object_id=episode['id'])
             obj.save()
-        self.flip_api_pages(endpoint, set_episode)
+        season.flip_api_pages(endpoint, set_episode)
