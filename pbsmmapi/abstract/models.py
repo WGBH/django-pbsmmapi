@@ -396,11 +396,11 @@ class PBSMMHashtag(models.Model):
 class Ingest(models.Model):
     def __init__(self, *args, **kwargs):
         super().__init__(args, kwargs)
-        self.scraped_object_ids = None
+        self.scraped_object_ids = list()
         self.ingest_on_save = None
         self.object_id = None
 
-    def self_process(self, endpoint):
+    def process(self, endpoint):
         object_id = str(self.object_id or "").strip()
         if not self.ingest_on_save or self.pk or not object_id:
             return  # we need processing only for new objects
@@ -411,25 +411,85 @@ class Ingest(models.Model):
         if status != HTTPStatus.OK:
             return
         attrs = json.get('attributes', json['data'].get('attributes'))
-        fields = (f.name for f in self._meta.get_fields())
-        for field in (f for f in fields if f != 'id'):
-            setattr(self, field, attrs.get(field))
+        fields = self._meta.get_fields()
+        for field in (f for f in fields if f.name != 'id'):
+            value = attrs.get(field.name)
+            self.set_attribute(field, value)
         self.updated_at = fix_non_aware_datetime(attrs.get('updated_at'))
         self.api_endpoint = json['links'].get('self')
         self.links = attrs.get('links')
-        self.season_api_id = attrs.get('season', dict()).get('id', None)
         self.json = json
         self.ingest_on_save = False
 
-    def process_assets(self, endpoint):
+    def set_attribute(self, field, value):
+        '''
+        Do some special processing for some fields
+        '''
+        if self.solve_datetime_field(field, value):
+            return
+        if self.check_for_api_id(field, value):
+            return
+        setattr(self, field.name, value)
+
+    def solve_datetime_field(self, field, value):
+        if 'DateTimeField' in field.get_internal_type():
+            setattr(self, field.name, fix_non_aware_datetime(value))
+            return True
+
+    def check_for_api_id(self, field, value):
+        '''
+        Sets <entity>_api_id property and retrieves name of property
+        e.g. if it finds `show_api_id` will set
+        self.show_api_id = json['data]['attributes]['id']
+        and returns "show"
+        '''
+        if '_api_id' not in field.name:
+            return
+        value = value or dict()  # if value is None, don't brake
+        entity = field.name.replace('_api_id', '')
+        setattr(self, field.name, value.get('id'))
+        return entity
+
+    def process_assets(self, endpoint, **kwargs):
+        '''
+        Ingest Asset page by page
+        kwargs: extra params for Asset entity
+        '''
         from pbsmmapi.asset.models import Asset  # prevent circular import
-        status, json = get_PBSMM_record(endpoint)
-        for asset in json.get('data', list()):
+
+        def set_asset(asset: dict, status: int):
             self.scraped_object_ids.append(asset['id'])
-            Asset.set(asset, last_api_status=status, episode_id=self.id)
+            Asset.set(asset, last_api_status=status, **kwargs)
+        self.flip_api_pages(endpoint, set_asset)
+
+    def flip_api_pages(self, endpoint, func):
+        '''
+        Go through every page on the api and do
+        stuff for every element in data section
+        for each element you must provide a callable
+        receiving one element and api status
+        '''
+        if not endpoint:
+            return
+        status, json = get_PBSMM_record(endpoint)
+        for entity in json.get('data', list()):
+            func(entity, status)
         keep_going, endpoint = check_pagination(json)
         if keep_going:
-            self.process_assets(endpoint)
+            self.flip_api_pages(endpoint, func)
+
+    def delete_stale_assets(self, **filters):
+        '''
+        Delete leftover assets.
+        > filters: params for asset queryset to identify parent object
+        Returns number of objects deleted and a dictionary
+        with the number of deletions per object type
+        >>> self.delete_stale_assets()
+        (1, {'pbsmmapi.Asset': 1})
+        '''
+        from pbsmmapi.asset.models import Asset  # prevent circular import
+        return Asset.objects.filter(**filters).exclude(
+            object_id__in=self.scraped_object_ids).delete()
 
     class Meta:
         abstract = True

@@ -1,15 +1,11 @@
 # -*- coding: utf-8 -*-
-from http import HTTPStatus
-
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
-from pbsmmapi.abstract.helpers import time_zone_aware_now, \
-    fix_non_aware_datetime
+
 from pbsmmapi.abstract.models import PBSMMGenericEpisode
-from pbsmmapi.api.api import get_PBSMM_record, PBSMM_EPISODE_ENDPOINT
-from pbsmmapi.api.helpers import check_pagination
+from pbsmmapi.api.api import PBSMM_EPISODE_ENDPOINT
 from pbsmmapi.asset.models import Asset
 
 
@@ -17,10 +13,6 @@ class PBSMMEpisode(PBSMMGenericEpisode):
     '''
     These are the fields that are unique to Episode records.
     '''
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
-        self.scraped_object_ids = list()
 
     encored_on = models.DateTimeField(
         _('Encored On'),
@@ -121,15 +113,14 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         self.post_save(self.id)
 
     def pre_save(self):
-        self.self_process(PBSMM_EPISODE_ENDPOINT)
+        self.process(PBSMM_EPISODE_ENDPOINT)
 
-    @staticmethod
     @db_task()
-    def post_save(episode_id):
+    def post_save(self, episode_id):
         episode = PBSMMEpisode.object_id.get(id=episode_id)
-        episode.process_assets(episode.json['links'].get('assets'))
-        Asset.objects.filter(episode=episode).exclude(
-            object_id__in=episode.scraped_object_ids).delete()
+        episode.process_assets(
+            episode.json['links'].get('assets'), episode_id=episode_id)
+        self.delete_stale_assets(episode=episode)
 
 
 # PBS MediaManager API interface
