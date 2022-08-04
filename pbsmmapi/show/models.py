@@ -62,8 +62,8 @@ class PBSMMShow(PBSMMGenericShow):
     @db_task()
     def post_save(show_id):
         show = PBSMMShow.objects.get(id=show_id)
-        if show.last_api_status != HTTPStatus.OK:
-            return
+        if int(show.last_api_status or 200) != HTTPStatus.OK:
+            return  # run only new object or had previous api call success
         show.process_assets(show.json['links'].get('assets'), show_id=show_id)
         show.process_seasons()
         show.process_specials()

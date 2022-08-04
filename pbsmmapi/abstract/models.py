@@ -404,7 +404,7 @@ class Ingest(models.Model):
 
     def process(self, endpoint):
         identifier = str(self.object_id or "").strip() or self.slug
-        if not identifier or not self.ingest_on_save:
+        if not identifier and not self.ingest_on_save:
             return  # stop processing if we don't have clearance
         status, json = get_PBSMM_record(f"{endpoint}{identifier}/")
         self.last_api_status = status
@@ -412,8 +412,7 @@ class Ingest(models.Model):
         if status != HTTPStatus.OK:
             return
         attrs = json.get('attributes', json['data'].get('attributes'))
-        fields = self._meta.get_fields()
-        for field in (f for f in fields if f.name != 'id'):
+        for field in self._meta.get_fields():
             value = attrs.get(field.name)
             self.set_attribute(field, value)
         self.updated_at = fix_non_aware_datetime(attrs.get('updated_at'))
@@ -426,11 +425,21 @@ class Ingest(models.Model):
         '''
         Do some special processing for some fields
         '''
+        if self.is_excluded_field(field):
+            return
         if self.solve_datetime_field(field, value):
             return
         if self.check_for_api_id(field, value):
             return
-        setattr(self, field.name, value)
+        try:
+            setattr(self, field.name, value)
+        except:
+            import pdb; pdb.set_trace()
+
+    @staticmethod
+    def is_excluded_field(field):
+        exclude = {'AutoField', 'ForeignKey'}
+        return field.get_internal_type() in exclude
 
     def solve_datetime_field(self, field, value):
         if 'DateTimeField' in field.get_internal_type():
