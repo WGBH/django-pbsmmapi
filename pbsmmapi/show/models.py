@@ -53,6 +53,8 @@ class PBSMMShow(PBSMMGenericShow):
 
     def pre_save(self):
         attrs = self.process(PBSMM_SHOW_ENDPOINT)
+        if not attrs:
+            return
         self.ga_page = attrs.get('tracking_ga_page')
         self.ga_event = attrs.get('tracking_ga_event')
 

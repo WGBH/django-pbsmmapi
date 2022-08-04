@@ -125,11 +125,3 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         episode.process_assets(
             episode.json['links'].get('assets'), episode_id=episode_id)
         episode.delete_stale_assets(episode_id=episode_id)
-
-
-# PBS MediaManager API interface
-
-# The interface/access is done with a 'pre_save' receiver based on the value of
-# 'ingest_on_save' That way, one can force a reingestion from the Admin OR one
-# can do it from a management script by simply getting the record, setting
-# ingest_on_save on the record, and calling save().

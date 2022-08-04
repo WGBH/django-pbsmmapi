@@ -85,6 +85,8 @@ class PBSMMSeason(PBSMMGenericSeason):
 
     def pre_save(self):
         attrs = self.process(PBSMM_SEASON_ENDPOINT)
+        if not attrs:
+            return
         self.ga_page = attrs.get('tracking_ga_page')
         self.ga_event = attrs.get('tracking_ga_event')
         # The canonical image used for this is

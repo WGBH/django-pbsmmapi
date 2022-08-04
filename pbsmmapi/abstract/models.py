@@ -395,12 +395,12 @@ class PBSMMHashtag(models.Model):
 
 class Ingest(models.Model):
     def __init__(self, *args, **kwargs):
-        super().__init__(args, kwargs)
-        self.scraped_object_ids = list()
-        # bellow fields are overridden by child classes
         self.ingest_on_save = None
         self.object_id = None
         self.slug = None
+        # above fields are overridden by child classes
+        super().__init__(*args, **kwargs)
+        self.scraped_object_ids = list()
 
     def process(self, endpoint):
         identifier = str(self.object_id or "").strip() or self.slug
@@ -454,7 +454,7 @@ class Ingest(models.Model):
     def process_assets(self, endpoint, **kwargs):
         '''
         Ingest Asset page by page
-        kwargs: extra params for Asset entity
+        kwargs: extra params send to Asset object
         '''
         from pbsmmapi.asset.models import Asset  # prevent circular import
 
