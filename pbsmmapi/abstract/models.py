@@ -400,12 +400,13 @@ class Ingest(models.Model):
         # bellow fields are overridden by child classes
         self.ingest_on_save = None
         self.object_id = None
+        self.slug = None
 
     def process(self, endpoint):
-        object_id = str(self.object_id or "").strip()
-        if not object_id or not self.ingest_on_save:
+        identifier = str(self.object_id or "").strip() or self.slug
+        if not identifier or not self.ingest_on_save:
             return  # stop processing if we don't have clearance
-        status, json = get_PBSMM_record(f"{endpoint}{object_id}/")
+        status, json = get_PBSMM_record(f"{endpoint}{identifier}/")
         self.last_api_status = status
         self.date_last_api_update = time_zone_aware_now()
         if status != HTTPStatus.OK:

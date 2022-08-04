@@ -66,8 +66,7 @@ class PBSMMShow(PBSMMGenericShow):
         show.process_seasons()
         show.process_specials()
         show.delete_stale_assets(show_id=show_id)
-        PBSMMShow.objects.filter(id=show_id).update(
-            ingest_seasons=False, ingest_specials=False, ingest_episodes=False)
+        show.stop_ingestion_restart()
 
     def process_seasons(self):
         if not self.ingest_seasons:
@@ -92,3 +91,9 @@ class PBSMMShow(PBSMMGenericShow):
             obj.ingest_on_save = True
             obj.save()
         self.flip_api_pages(self.json['links'].get('specials'), set_special)
+
+    def stop_ingestion_restart(self):
+        PBSMMShow.objects.filter(id=self.id).update(
+            ingest_seasons=False,
+            ingest_specials=False,
+            ingest_episodes=False)

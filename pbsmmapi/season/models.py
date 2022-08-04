@@ -102,19 +102,21 @@ class PBSMMSeason(PBSMMGenericSeason):
         '''
         season = PBSMMSeason.objects.get(id=season_id)
         links = season.json.get('links', dict())
-        season.process_episodes(links.get('episodes'), season)
+        season.process_episodes(links.get('episodes'))
         season.process_assets(links.get('assets'), season_id=season_id)
-        PBSMMSeason.objects.filter(id=season_id).update(ingest_episodes=False)
+        season.stop_ingestion_restart()
         season.delete_stale_assets(season_id=season_id)
-        # !!! this ^ needs to be checked !!!
 
-    @db_task()
-    def process_episodes(self, endpoint, season):
-        if not season.ingest_episodes:
+    def process_episodes(self, endpoint):
+        if not self.ingest_episodes:
             return
 
         def set_episode(episode: dict, _):
             obj, created = PBSMMEpisode.objects.get_or_create(
                 object_id=episode['id'])
             obj.save()
-        season.flip_api_pages(endpoint, set_episode)
+        self.flip_api_pages(endpoint, set_episode)
+
+    def stop_ingestion_restart(self):
+        PBSMMSeason.objects.filter(id=self.id).update(
+            ingest_episodes=False)
