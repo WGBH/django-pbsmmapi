@@ -418,7 +418,6 @@ class Ingest(models.Model):
             self.set_attribute(field, value)
         self.updated_at = fix_non_aware_datetime(attrs.get('updated_at'))
         self.api_endpoint = json['links'].get('self')
-        self.links = attrs.get('links')
         self.json = json
         self.ingest_on_save = False
         return attrs

@@ -1,19 +1,12 @@
 # -*- coding: utf-8 -*-
-from uuid import UUID
-
 from django.db import models
-from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-from pbsmmapi.abstract.helpers import time_zone_aware_now
-from pbsmmapi.abstract.models import PBSMMGenericSpecial
-from pbsmmapi.api.api import get_PBSMM_record
-from pbsmmapi.api.helpers import check_pagination
-from pbsmmapi.asset.ingest_asset import process_asset_record
-from pbsmmapi.asset.models import Asset
-from pbsmmapi.special.ingest_special import process_special_record
+from huey.contrib.djhuey import db_task
 
-PBSMM_SPECIAL_ENDPOINT = 'https://media.services.pbs.org/api/v1/specials/'
+from pbsmmapi.abstract.models import PBSMMGenericSpecial
+from pbsmmapi.api.api import PBSMM_SPECIAL_ENDPOINT
+from pbsmmapi.asset.models import Asset
 
 
 class PBSMMSpecial(PBSMMGenericSpecial):
@@ -64,105 +57,18 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         verbose_name_plural = 'PBS MM Specials'
         db_table = 'pbsmm_special'
 
+    def save(self, *args, **kwargs):
+        self.pre_save()
+        super().save(*args, **kwargs)
+        self.post_save(self.id)
 
-def process_special_assets(endpoint, this_special):
-    # Handle pagination
-    keep_going = True
-    scraped_object_ids = []
-    while keep_going:
-        (status, json) = get_PBSMM_record(endpoint)
+    def pre_save(self):
+        self.process(PBSMM_SPECIAL_ENDPOINT)
 
-        if 'data' in json.keys():
-            asset_list = json['data']
-        else:
-            return
-
-        for item in asset_list:
-            object_id = item.get('id')
-            scraped_object_ids.append(UUID(object_id))
-
-            try:
-                instance = Asset.objects.get(object_id=object_id)
-            except Asset.DoesNotExist:
-                instance = Asset()
-
-            instance = process_asset_record(item, instance, origin='special')
-
-            # For now - borrow from the parent object
-            instance.last_api_status = status
-            instance.date_last_api_update = time_zone_aware_now()
-
-            instance.special = this_special
-            instance.ingest_on_save = True
-
-            # This needs to be here because otherwise it never updates...
-            instance.save()
-
-        (keep_going, endpoint) = check_pagination(json)
-
-    for asset in Asset.objects.filter(special=this_special):
-        if asset.object_id not in scraped_object_ids:
-            asset.delete()
-
-    return
-
-
-# PBS MediaManager API interface
-
-# The interface/access is done with a 'pre_save' receiver based on the value of
-# 'ingest_on_save'
-
-# That way, one can force a reingestion from the Admin OR one can do it from a
-# management script by simply getting the record, setting ingest_on_save on the
-# record, and calling save().
-
-
-@receiver(models.signals.pre_save, sender=PBSMMSpecial)
-def scrape_PBSMMAPI(sender, instance, **kwargs):
-    if instance.__class__ is not PBSMMSpecial:
-        return
-
-    # If this is a new record, then someone has started it in the Admin using
-    # EITHER a legacy COVE ID OR a PBSMM UUID.   Depending on which, the
-    # retrieval endpoint is slightly different, so this sets the appropriate
-    # URL to access.
-    if instance.pk and instance.slug and str(instance.slug).strip():
-        # Object is being edited
-        if not instance.ingest_on_save:
-            return  # do nothing - can't get an ID to look up!
-
-    else:  # object is being added
-        if not instance.slug:
-            return  # do nothing - can't get an ID to look up!
-
-    url = f'{PBSMM_SPECIAL_ENDPOINT}{instance.slug}/'
-
-    # OK - get the record from the API
-    (status, json) = get_PBSMM_record(url)
-    instance.last_api_status = status
-    # Update this record's time stamp (the API has its own)
-    instance.date_last_api_update = time_zone_aware_now()
-
-    # If we didn't get a record, abort (there's no sense crying over spilled
-    # bits)
-    if status != 200:
-        return
-
-    # Process the record (code is in ingest.py)
-    instance = process_special_record(json, instance)
-
-    # continue saving, but turn off the ingest_on_save flag
-    instance.ingest_on_save = False  # otherwise we could end up in an infinite loop!
-
-    # We're done here - continue with the save() operation
-    return
-
-
-@receiver(models.signals.post_save, sender=PBSMMSpecial)
-def handle_child_objects(sender, instance, *args, **kwargs):
-    this_json = instance.json
-
-    # ALWAYS GET CHILD ASSETS
-    assets_endpoint = this_json['links'].get('assets')
-    if assets_endpoint:
-        process_special_assets(assets_endpoint, instance)
+    @staticmethod
+    @db_task()
+    def post_save(special_id):
+        special = PBSMMSpecial.objects.get(id=special_id)
+        endpoint = special.json['links'].get('assets')
+        special.process_assets(endpoint, special_id=special_id)
+        special.delete_stale_assets(special_id=special_id)

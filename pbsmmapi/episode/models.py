@@ -124,7 +124,7 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         episode = PBSMMEpisode.object_id.get(id=episode_id)
         episode.process_assets(
             episode.json['links'].get('assets'), episode_id=episode_id)
-        episode.delete_stale_assets(episode=episode)
+        episode.delete_stale_assets(episode_id=episode_id)
 
 
 # PBS MediaManager API interface
