@@ -427,19 +427,27 @@ class Ingest(models.Model):
         '''
         if self.is_excluded_field(field):
             return
+        if self.ingest_object_flag(field):
+            return
         if self.solve_datetime_field(field, value):
             return
         if self.check_for_api_id(field, value):
             return
-        try:
-            setattr(self, field.name, value)
-        except:
-            import pdb; pdb.set_trace()
+        setattr(self, field.name, value)
 
     @staticmethod
     def is_excluded_field(field):
         exclude = {'AutoField', 'ForeignKey'}
         return field.get_internal_type() in exclude
+
+    def ingest_object_flag(self, field):
+        '''
+        Ensure ingest bools are not None
+        '''
+        if not field.name.startswith('ingest_'):
+            return
+        setattr(self, field.name, getattr(self, field.name) or False)
+        return True
 
     def solve_datetime_field(self, field, value):
         if 'DateTimeField' in field.get_internal_type():
