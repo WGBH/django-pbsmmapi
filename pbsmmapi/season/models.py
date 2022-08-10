@@ -116,6 +116,8 @@ class PBSMMSeason(PBSMMGenericSeason):
         def set_episode(episode: dict, _):
             obj, created = PBSMMEpisode.objects.get_or_create(
                 object_id=episode['id'])
+            obj.season_id = self.id
+            obj.season_api_id = self.object_id
             obj.save()
         self.flip_api_pages(endpoint, set_episode)
 
