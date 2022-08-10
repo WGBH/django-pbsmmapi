@@ -407,6 +407,7 @@ class Ingest(models.Model):
         if not identifier and not self.ingest_on_save:
             return  # stop processing if we don't have clearance
         status, json = get_PBSMM_record(f"{endpoint}{identifier}/")
+        self.object_id = json.get('id', json['data']['id'])
         self.last_api_status = status
         self.date_last_api_update = time_zone_aware_now()
         if status != HTTPStatus.OK:
@@ -425,6 +426,8 @@ class Ingest(models.Model):
         '''
         Do some special processing for some fields
         '''
+        if value is None:
+            return
         if self.is_excluded_field(field):
             return
         if self.ingest_object_flag(field):

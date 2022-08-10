@@ -236,6 +236,7 @@ class Asset(PBSMMGenericAsset):
         links = asset.get('links', dict())
         fields = dict((f, attrs.get(f)) for f in asset_fields if f != 'id')
         fields.update(
+            object_id=asset['id'],
             api_endpoint=links.get('self'),
             availability=attrs.get('availabilities'),
             date_last_api_update=time_zone_aware_now(),
