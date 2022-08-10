@@ -57,6 +57,7 @@ class PBSMMShow(PBSMMGenericShow):
             return
         self.ga_page = attrs.get('tracking_ga_page')
         self.ga_event = attrs.get('tracking_ga_event')
+        self.episode_count = attrs.get('episodes_count')
 
     @staticmethod
     @db_task()

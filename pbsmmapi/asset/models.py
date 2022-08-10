@@ -241,15 +241,14 @@ class Asset(PBSMMGenericAsset):
             date_last_api_update=time_zone_aware_now(),
             ingest_on_save=True,
             json=asset,
-            last_api_status=HTTPStatus.OK,
             links=links or None,
             windows=None,
             **kwargs
         )
-        return next(Asset.objects.update_or_create(
+        return Asset.objects.update_or_create(
             defaults=fields,
-            object_id=asset['data']['id']
-        ))
+            object_id=asset['id']
+        )[0]
 
     # Overrides
 
