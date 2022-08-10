@@ -80,7 +80,7 @@ class PBSMMSeason(PBSMMGenericSeason):
 
     def save(self, *args, **kwargs):
         self.pre_save()
-        super().save(args, kwargs)
+        super().save(*args, **kwargs)
         self.post_save(self.id)
 
     def pre_save(self):

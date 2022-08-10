@@ -231,10 +231,15 @@ class Asset(PBSMMGenericAsset):
         '''
         Update or creates an asset
         '''
-        asset_fields = set(a.name for a in Asset._meta.get_fields())
         attrs = asset['attributes']
         links = asset.get('links', dict())
-        fields = dict((f, attrs.get(f)) for f in asset_fields if f != 'id')
+
+        def make_fields():
+            for f in (f.name for f in Asset._meta.get_fields()):
+                value = attrs.get(f)
+                if value is not None:
+                    yield f, value
+        fields = dict(make_fields())
         fields.update(
             object_id=asset['id'],
             api_endpoint=links.get('self'),

@@ -78,8 +78,9 @@ class PBSMMShow(PBSMMGenericShow):
         def set_season(season: dict, _):
             obj, created = PBSMMSeason.objects.get_or_create(
                 object_id=season['id'])
-            obj.show = self
+            obj.show_id = self.id
             obj.ingest_episodes = self.ingest_episodes
+            obj.show_api_id = self.object_id
             obj.save()
         self.flip_api_pages(self.json['links'].get('seasons'), set_season)
 
