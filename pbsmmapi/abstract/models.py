@@ -202,12 +202,6 @@ class PBSMMImage(models.Model):
         help_text='JSON serialized field',
     )
 
-    images_json = models.JSONField(
-        null=True,
-        blank=True,
-        help_text='JSON serialized field',
-    )
-
     def pretty_image_list(self):
         if self.images:
             image_list = self.images
