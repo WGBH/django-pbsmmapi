@@ -3,7 +3,7 @@ from http import HTTPStatus
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from huey.contrib.djhuey import task, db_task
+from huey.contrib.djhuey import db_task
 from pbsmmapi.abstract.helpers import time_zone_aware_now
 
 from pbsmmapi.abstract.models import PBSMMGenericAsset
