@@ -458,11 +458,10 @@ class Ingest(models.Model):
         self.show_api_id = json['data]['attributes]['id']
         and returns "show"
         '''
-        if '_api_id' not in field.name:
+        if '_api_id' not in field.name or value is None:
             return
-        value = value or dict()  # if value is None, don't brake
         entity = field.name.replace('_api_id', '')
-        setattr(self, field.name, value.get('id'))
+        setattr(self, field.name, value['id'])
         return entity
 
     def process_assets(self, endpoint, **kwargs):

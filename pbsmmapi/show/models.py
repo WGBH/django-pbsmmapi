@@ -76,12 +76,12 @@ class PBSMMShow(PBSMMGenericShow):
             return
 
         def set_season(season: dict, _):
-            obj, created = PBSMMSeason.objects.get_or_create(
+            PBSMMSeason.objects.get_or_create(
+                defaults=dict(
+                    show_id=self.id,
+                    ingest_episodes=self.ingest_episodes,
+                    show_api_id=self.object_id),
                 object_id=season['id'])
-            obj.show_id = self.id
-            obj.ingest_episodes = self.ingest_episodes
-            obj.show_api_id = self.object_id
-            obj.save()
         self.flip_api_pages(self.json['links'].get('seasons'), set_season)
 
     def process_specials(self):
@@ -89,11 +89,11 @@ class PBSMMShow(PBSMMGenericShow):
             return
 
         def set_special(special: dict, _):
-            obj, created = PBSMMSpecial.objects.get_or_create(
+            PBSMMSpecial.objects.get_or_create(
+                defaults=dict(
+                    show_id=self.id,
+                    ingest_on_save=True),
                 object_id=special['id'])
-            obj.show = self
-            obj.ingest_on_save = True
-            obj.save()
         self.flip_api_pages(self.json['links'].get('specials'), set_special)
 
     def stop_ingestion_restart(self):
