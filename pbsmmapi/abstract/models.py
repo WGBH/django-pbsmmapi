@@ -479,6 +479,7 @@ class Ingest(models.Model):
         def set_asset(asset: dict, status: int):
             self.scraped_object_ids.append(asset['id'])
             Asset.set(asset, last_api_status=status, **kwargs)
+
         self.flip_api_pages(endpoint, set_asset)
 
     def flip_api_pages(self, endpoint, func):
@@ -511,7 +512,8 @@ class Ingest(models.Model):
         '''
         from pbsmmapi.asset.models import Asset  # pylint: disable=import-outside-toplevel
         return Asset.objects.filter(**filters).exclude(
-            object_id__in=self.scraped_object_ids).delete()
+            object_id__in=self.scraped_object_ids,
+        ).delete()
 
     class Meta:
         abstract = True

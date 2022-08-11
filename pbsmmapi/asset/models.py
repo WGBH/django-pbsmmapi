@@ -237,6 +237,7 @@ class Asset(PBSMMGenericAsset):
                 value = attrs.get(f)
                 if value is not None:
                     yield f, value
+
         fields = dict(make_fields())
         fields.update(
             object_id=asset['id'],
@@ -251,7 +252,7 @@ class Asset(PBSMMGenericAsset):
         )
         return Asset.objects.update_or_create(
             defaults=fields,
-            object_id=asset['id']
+            object_id=asset['id'],
         )[0]
 
     # TODO add theseus_value

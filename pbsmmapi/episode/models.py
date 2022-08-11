@@ -122,5 +122,7 @@ class PBSMMEpisode(PBSMMGenericEpisode):
     def post_save(episode_id):
         episode = PBSMMEpisode.objects.get(id=episode_id)
         episode.process_assets(
-            episode.json['links'].get('assets'), episode_id=episode_id)
+            episode.json['links'].get('assets'),
+            episode_id=episode_id,
+        )
         episode.delete_stale_assets(episode_id=episode_id)

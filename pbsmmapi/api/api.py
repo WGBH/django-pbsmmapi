@@ -2,7 +2,6 @@ import requests
 from http import HTTPStatus
 from django.conf import settings
 
-
 PBSMM_EPISODE_ENDPOINT = 'https://media.services.pbs.org/api/v1/episodes/'
 PBSMM_SEASON_ENDPOINT = 'https://media.services.pbs.org/api/v1/seasons/'
 PBSMM_SHOW_ENDPOINT = 'https://media.services.pbs.org/api/v1/shows/'

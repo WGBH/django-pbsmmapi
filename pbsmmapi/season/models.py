@@ -68,15 +68,6 @@ class PBSMMSeason(PBSMMGenericSeason):
             return f'{self.show.title} Season {self.ordinal}'
         return 'Season {self.ordinal}'
 
-    def __str__(self):
-        return f'{self.object_id} | {self.ordinal} | {self.title}'
-
-    class Meta:
-        verbose_name = 'PBS MM Season'
-        verbose_name_plural = 'PBS MM Seasons'
-        db_table = 'pbsmm_season'
-        ordering = ['-ordinal']
-
     def save(self, *args, **kwargs):
         self.pre_save()
         super().save(*args, **kwargs)
@@ -114,12 +105,24 @@ class PBSMMSeason(PBSMMGenericSeason):
 
         def set_episode(episode: dict, _):
             obj, created = PBSMMEpisode.objects.get_or_create(
-                object_id=episode['id'])
+                object_id=episode['id'],
+            )
             obj.season_id = self.id
             obj.season_api_id = self.object_id
             obj.save()
+
         self.flip_api_pages(endpoint, set_episode)
 
     def stop_ingestion_restart(self):
         PBSMMSeason.objects.filter(id=self.id).update(
-            ingest_episodes=False)
+            ingest_episodes=False,
+        )
+
+    def __str__(self):
+        return f'{self.object_id} | {self.ordinal} | {self.title}'
+
+    class Meta:
+        verbose_name = 'PBS MM Season'
+        verbose_name_plural = 'PBS MM Seasons'
+        db_table = 'pbsmm_season'
+        ordering = ['-ordinal']
