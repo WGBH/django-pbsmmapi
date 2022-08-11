@@ -63,6 +63,7 @@ class PBSMMObjectID(models.Model):
 
     So I'm being "un-pure".  Sue me.   RAD 31-Jan-2018
     '''
+    # TODO rename to cid
     object_id = models.UUIDField(
         _('Object ID'),
         unique=True,
