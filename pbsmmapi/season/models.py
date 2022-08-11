@@ -1,20 +1,12 @@
 # -*- coding: utf-8 -*-
-from uuid import UUID
-
 from django.db import models
-from django.dispatch import receiver
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-from pbsmmapi.abstract.helpers import time_zone_aware_now
-from pbsmmapi.abstract.models import PBSMMGenericSeason
-from pbsmmapi.api.api import get_PBSMM_record
-from pbsmmapi.api.helpers import check_pagination
-from pbsmmapi.asset.ingest_asset import process_asset_record
-from pbsmmapi.asset.models import Asset
-from pbsmmapi.season.ingest_children import process_episodes
-from pbsmmapi.season.ingest_season import process_season_record
+from huey.contrib.djhuey import db_task
 
-PBSMM_SEASON_ENDPOINT = 'https://media.services.pbs.org/api/v1/seasons/'
+from pbsmmapi.abstract.models import PBSMMGenericSeason
+from pbsmmapi.api.api import PBSMM_SEASON_ENDPOINT
+from pbsmmapi.episode.models import PBSMMEpisode
 
 
 class PBSMMSeason(PBSMMGenericSeason):
@@ -76,6 +68,56 @@ class PBSMMSeason(PBSMMGenericSeason):
             return f'{self.show.title} Season {self.ordinal}'
         return 'Season {self.ordinal}'
 
+    def save(self, *args, **kwargs):
+        self.pre_save()
+        super().save(*args, **kwargs)
+        self.post_save(self.id)
+
+    def pre_save(self):
+        attrs = self.process(PBSMM_SEASON_ENDPOINT)
+        if not attrs:
+            return
+        self.ga_page = attrs.get('tracking_ga_page')
+        self.ga_event = attrs.get('tracking_ga_event')
+        # The canonical image used for this is
+        # the one that has 'mezzanine' in it
+        if self.images is None:  # try latest_asset_images
+            self.images = attrs.get('latest_asset_images')
+
+    @staticmethod
+    @db_task()
+    def post_save(season_id):
+        '''
+        If the ingest_episodes flag is set, then also ingest every
+        episode for this Season.
+        Also, always ingest the Assets associated with this Season.
+        '''
+        season = PBSMMSeason.objects.get(id=season_id)
+        links = season.json.get('links', dict())
+        season.process_episodes(links.get('episodes'))
+        season.process_assets(links.get('assets'), season_id=season_id)
+        season.stop_ingestion_restart()
+        season.delete_stale_assets(season_id=season_id)
+
+    def process_episodes(self, endpoint):
+        if not self.ingest_episodes:
+            return
+
+        def set_episode(episode: dict, _):
+            obj, created = PBSMMEpisode.objects.get_or_create(
+                object_id=episode['id'],
+            )
+            obj.season_id = self.id
+            obj.season_api_id = self.object_id
+            obj.save()
+
+        self.flip_api_pages(endpoint, set_episode)
+
+    def stop_ingestion_restart(self):
+        PBSMMSeason.objects.filter(id=self.id).update(
+            ingest_episodes=False,
+        )
+
     def __str__(self):
         return f'{self.object_id} | {self.ordinal} | {self.title}'
 
@@ -84,120 +126,3 @@ class PBSMMSeason(PBSMMGenericSeason):
         verbose_name_plural = 'PBS MM Seasons'
         db_table = 'pbsmm_season'
         ordering = ['-ordinal']
-
-
-def process_season_assets(endpoint, this_season):
-    '''
-    For each Asset associated with this Season, ingest them page by page.
-    '''
-    keep_going = True
-    scraped_object_ids = []
-    while keep_going:
-        (status, json) = get_PBSMM_record(endpoint)
-        asset_list = json['data']
-
-        for item in asset_list:
-            object_id = item.get('id')
-            scraped_object_ids.append(UUID(object_id))
-
-            try:
-                instance = Asset.objects.get(object_id=object_id)
-            except Asset.DoesNotExist:
-                instance = Asset()
-
-            instance = process_asset_record(item, instance, origin='special')
-            instance.season = this_season
-
-            # For now - borrow from the parent object
-            instance.last_api_status = status
-            instance.date_last_api_update = time_zone_aware_now()
-
-            instance.ingest_on_save = True
-
-            # This needs to be here because otherwise it never updates...
-            instance.save()
-
-        (keep_going, endpoint) = check_pagination(json)
-
-    for asset in Asset.objects.filter(season=this_season):
-        if asset.object_id not in scraped_object_ids:
-            asset.delete()
-
-
-@receiver(models.signals.pre_save, sender=PBSMMSeason)
-def scrape_PBSMMAPI(sender, instance, **kwargs):
-    '''
-    Get a Season's data from the PBS MM API.   Either update or create a
-    PBSMMSeason record.
-
-    The interface/access is done with a 'pre_save' receiver based on the value of
-    'ingest_on_save'
-
-    That way, one can force a reingestion from the Admin OR one can do it from a
-    management script by simply getting the record, setting ingest_on_save on the
-    record, and calling save().
-    '''
-    if instance.__class__ is not PBSMMSeason:
-        return
-
-    # If this is a new record, then someone has started it in the Admin using
-    # EITHER a legacy COVE ID OR a PBSMM UUID.   Depending on which, the
-    # retrieval endpoint is slightly different, so this sets the appropriate
-    # URL to access.
-    if instance.pk and instance.object_id and str(instance.object_id).strip():
-        # Object is being edited
-        if not instance.ingest_on_save:
-            return  # do nothing - can't get an ID to look up!
-
-    else:  # object is being added
-        if not instance.object_id:
-            return  # do nothing - can't get an ID to look up!
-
-    url = f'{PBSMM_SEASON_ENDPOINT}{instance.object_id}/'
-
-    # OK - get the record from the API
-    (status, json) = get_PBSMM_record(url)
-
-    instance.last_api_status = status
-    # Update this record's time stamp (the API has its own)
-    instance.date_last_api_update = time_zone_aware_now()
-
-    # If we didn't get a record, abort (there's no sense crying over spilled
-    # bits)
-    if status != 200:
-        return
-
-    # Process the record (code is in ingest.py)
-    instance = process_season_record(json, instance)
-
-    # continue saving, but turn off the ingest_on_save flag
-    instance.ingest_on_save = False  # otherwise we could end up in an infinite loop!
-
-    # We're done here - continue with the save() operation
-    return
-
-
-@receiver(models.signals.post_save, sender=PBSMMSeason)
-def handle_children(sender, instance, *args, **kwargs):
-    '''
-    If the ingest_episodes flag is set, then also ingest every episode for this Season.
-
-    Also, always ingest the Assets associated with this Season.
-
-    '''
-    if instance.ingest_episodes:
-        # This is the FIRST endpoint - there might be more, depending on
-        # pagination!
-        episodes_endpoint = instance.json['links'].get('episodes')
-
-        if episodes_endpoint:
-            process_episodes(episodes_endpoint, instance)
-
-    # ALWAYS GET CHILD ASSETS
-    assets_endpoint = instance.json['links'].get('assets')
-    if assets_endpoint:
-        process_season_assets(assets_endpoint, instance)
-
-    # This is a tricky way to unset ingest_seasons without calling save()
-    rec = PBSMMSeason.objects.filter(pk=instance.id)
-    rec.update(ingest_episodes=False)
