@@ -76,7 +76,7 @@ class PBSMMShow(PBSMMGenericShow):
             return
 
         def set_season(season: dict, _):
-            PBSMMSeason.objects.get_or_create(
+            PBSMMSeason.objects.update_or_create(
                 defaults=dict(
                     show_id=self.id,
                     ingest_episodes=self.ingest_episodes,
@@ -89,7 +89,7 @@ class PBSMMShow(PBSMMGenericShow):
             return
 
         def set_special(special: dict, _):
-            PBSMMSpecial.objects.get_or_create(
+            PBSMMSpecial.objects.update_or_create(
                 defaults=dict(
                     show_id=self.id,
                     ingest_on_save=True),
