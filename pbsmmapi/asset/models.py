@@ -254,7 +254,10 @@ class Asset(PBSMMGenericAsset):
             object_id=asset['id']
         )[0]
 
-    # Overrides
+    # TODO add theseus_value
+    # return theseus_core.video.PBSVideo
+    # exclude embed field
+    # get video_id from API player_code
 
     def __str__(self):
         return f'{self.pk} ' \
