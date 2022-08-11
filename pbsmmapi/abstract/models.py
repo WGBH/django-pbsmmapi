@@ -6,8 +6,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from pbsmmapi.api.helpers import check_pagination
 
-from pbsmmapi.abstract.helpers import time_zone_aware_now, \
-    fix_non_aware_datetime
+from pbsmmapi.abstract.helpers import fix_non_aware_datetime
 
 from pbsmmapi.api.api import get_PBSMM_record
 
