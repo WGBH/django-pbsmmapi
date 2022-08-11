@@ -399,7 +399,7 @@ class Ingest(models.Model):
         self.json = None
         # above fields are overridden by child classes
         super().__init__(*args, **kwargs)
-        self.scraped_object_ids = list()
+        self.scraped_object_ids = []
 
     def process(self, endpoint):
         identifier = str(self.object_id or '').strip() or self.slug
@@ -458,6 +458,7 @@ class Ingest(models.Model):
     def check_for_api_id(self, field, value):
         '''
         Sets <entity>_api_id property and retrieves name of property
+
         e.g. if it finds `show_api_id` will set
         self.show_api_id = json['data]['attributes]['id']
         and returns "show"
@@ -473,7 +474,8 @@ class Ingest(models.Model):
         Ingest Asset page by page
         kwargs: extra params send to Asset object
         '''
-        from pbsmmapi.asset.models import Asset  # prevent circular import
+        # prevent circular import
+        from pbsmmapi.asset.models import Asset  # pylint: disable=import-outside-toplevel
 
         def set_asset(asset: dict, status: int):
             self.scraped_object_ids.append(asset['id'])
@@ -484,13 +486,14 @@ class Ingest(models.Model):
         '''
         Go through every page on the api and do
         stuff for every element in data section
-        for each element you must provide a callable
+
+        For each element you must provide a callable
         receiving one element and api status
         '''
         if not endpoint:
             return
         status, json = get_PBSMM_record(endpoint)
-        for entity in json.get('data', list()):
+        for entity in json.get('data', []):
             func(entity, status)
         keep_going, endpoint = check_pagination(json)
         if keep_going:
@@ -500,12 +503,14 @@ class Ingest(models.Model):
         '''
         Delete leftover assets.
         > filters: params for asset queryset to identify parent object
+
         Returns number of objects deleted and a dictionary
         with the number of deletions per object type
+
         >>> self.delete_stale_assets()
         (1, {'pbsmmapi.Asset': 1})
         '''
-        from pbsmmapi.asset.models import Asset  # prevent circular import
+        from pbsmmapi.asset.models import Asset  # pylint: disable=import-outside-toplevel
         return Asset.objects.filter(**filters).exclude(
             object_id__in=self.scraped_object_ids).delete()
 
