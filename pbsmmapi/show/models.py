@@ -7,7 +7,6 @@ from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import PBSMMGenericShow
 from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
-from pbsmmapi.asset.models import Asset
 from pbsmmapi.season.models import PBSMMSeason
 from pbsmmapi.special.models import PBSMMSpecial
 
@@ -35,16 +34,6 @@ class PBSMMShow(PBSMMGenericShow):
         # This handles the correspondence to the "type" field in the PBSMM JSON
         # object
         return 'show'
-
-    class Meta:
-        verbose_name = 'PBS MM Show'
-        verbose_name_plural = 'PBS MM Shows'
-        db_table = 'pbsmm_show'
-
-    def __str__(self):
-        if self.title:
-            return self.title
-        return "ID %d: unknown" % self.id
 
     def save(self, *args, **kwargs):
         self.pre_save()
@@ -101,3 +90,13 @@ class PBSMMShow(PBSMMGenericShow):
             ingest_seasons=False,
             ingest_specials=False,
             ingest_episodes=False)
+
+    def __str__(self):
+        if self.title:
+            return self.title
+        return "ID %d: unknown" % self.id
+
+    class Meta:
+        verbose_name = 'PBS MM Show'
+        verbose_name_plural = 'PBS MM Shows'
+        db_table = 'pbsmm_show'

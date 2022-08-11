@@ -6,7 +6,6 @@ from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import PBSMMGenericSeason
 from pbsmmapi.api.api import PBSMM_SEASON_ENDPOINT
-from pbsmmapi.asset.models import Asset
 from pbsmmapi.episode.models import PBSMMEpisode
 
 

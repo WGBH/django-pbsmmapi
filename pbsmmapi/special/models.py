@@ -6,7 +6,6 @@ from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import PBSMMGenericSpecial
 from pbsmmapi.api.api import PBSMM_SPECIAL_ENDPOINT
-from pbsmmapi.asset.models import Asset
 
 
 class PBSMMSpecial(PBSMMGenericSpecial):
@@ -49,14 +48,6 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         out += '\n</tr>'
         return mark_safe(out)
 
-    def __str__(self):
-        return f"{self.object_id} | {self.show} | {self.title} "
-
-    class Meta:
-        verbose_name = 'PBS MM Special'
-        verbose_name_plural = 'PBS MM Specials'
-        db_table = 'pbsmm_special'
-
     def save(self, *args, **kwargs):
         self.pre_save()
         super().save(*args, **kwargs)
@@ -72,3 +63,11 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         endpoint = special.json['links'].get('assets')
         special.process_assets(endpoint, special_id=special_id)
         special.delete_stale_assets(special_id=special_id)
+
+    def __str__(self):
+        return f"{self.object_id} | {self.show} | {self.title} "
+
+    class Meta:
+        verbose_name = 'PBS MM Special'
+        verbose_name_plural = 'PBS MM Specials'
+        db_table = 'pbsmm_special'

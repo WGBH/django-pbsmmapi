@@ -6,7 +6,6 @@ from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 from pbsmmapi.abstract.models import PBSMMGenericEpisode
 from pbsmmapi.api.api import PBSMM_EPISODE_ENDPOINT
-from pbsmmapi.asset.models import Asset
 
 
 class PBSMMEpisode(PBSMMGenericEpisode):

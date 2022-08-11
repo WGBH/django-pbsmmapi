@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-from http import HTTPStatus
-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
