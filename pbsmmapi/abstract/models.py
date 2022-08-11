@@ -393,6 +393,10 @@ class Ingest(models.Model):
         self.ingest_on_save = None
         self.object_id = None
         self.slug = None
+        self.last_api_status = None
+        self.updated_at = None
+        self.api_endpoint = None
+        self.json = None
         # above fields are overridden by child classes
         super().__init__(*args, **kwargs)
         self.scraped_object_ids = list()
