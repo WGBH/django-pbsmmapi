@@ -21,6 +21,7 @@ class GenericObjectManagement(models.Model):
     date_last_api_update = models.DateTimeField(
         _('Last API Retrieval'),
         help_text='Not set by API',
+        auto_now=True,
         null=True,
     )
     ingest_on_save = models.BooleanField(
@@ -403,7 +404,6 @@ class Ingest(models.Model):
         status, json = get_PBSMM_record(f"{endpoint}{identifier}/")
         self.object_id = json.get('id', json['data']['id'])
         self.last_api_status = status
-        self.date_last_api_update = time_zone_aware_now()
         if status != HTTPStatus.OK:
             return
         attrs = json.get('attributes', json['data'].get('attributes'))
