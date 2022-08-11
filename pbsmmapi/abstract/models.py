@@ -444,10 +444,9 @@ class Ingest(models.Model):
         '''
         Ensure ingest bools are not None
         '''
-        if not field.name.startswith('ingest_'):
-            return
-        setattr(self, field.name, getattr(self, field.name) or False)
-        return True
+        if field.name.startswith('ingest_'):
+            setattr(self, field.name, getattr(self, field.name) or False)
+            return True
 
     def solve_datetime_field(self, field, value):
         if 'DateTimeField' in field.get_internal_type():
