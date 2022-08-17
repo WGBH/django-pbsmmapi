@@ -5,7 +5,7 @@ from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 from django.urls import reverse
 
 from ..abstract.gatekeeper import can_object_page_be_shown
