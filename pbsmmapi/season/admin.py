@@ -3,13 +3,13 @@ from django.utils.safestring import mark_safe
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
 from pbsmmapi.season.forms import PBSMMSeasonCreateForm
 from pbsmmapi.season.forms import PBSMMSeasonEditForm
-from pbsmmapi.season.models import PBSMMSeason
+from pbsmmapi.season.models import Season
 
 
 class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
     form = PBSMMSeasonEditForm
     add_form = PBSMMSeasonCreateForm
-    model = PBSMMSeason
+    model = Season
     list_display = (
         'pk',
         'printable_title',
@@ -146,4 +146,4 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
     format_episode_list.short_description = 'EPISODE LIST'
 
 
-admin.site.register(PBSMMSeason, PBSMMSeasonAdmin)
+admin.site.register(Season, PBSMMSeasonAdmin)

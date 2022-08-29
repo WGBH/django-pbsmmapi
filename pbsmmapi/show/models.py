@@ -7,11 +7,11 @@ from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import PBSMMGenericShow
 from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
-from pbsmmapi.season.models import PBSMMSeason
-from pbsmmapi.special.models import PBSMMSpecial
+from pbsmmapi.season.models import Season
+from pbsmmapi.special.models import Special
 
 
-class PBSMMShow(PBSMMGenericShow):
+class Show(PBSMMGenericShow):
 
     ingest_seasons = models.BooleanField(
         _('Ingest Seasons'),
@@ -51,7 +51,7 @@ class PBSMMShow(PBSMMGenericShow):
     @staticmethod
     @db_task()
     def post_save(show_id):
-        show = PBSMMShow.objects.get(id=show_id)
+        show = Show.objects.get(id=show_id)
         if int(show.last_api_status or 200) != HTTPStatus.OK:
             return  # run only new object or had previous api call success
         show.process_assets(show.json['links'].get('assets'), show_id=show_id)
@@ -65,7 +65,7 @@ class PBSMMShow(PBSMMGenericShow):
             return
 
         def set_season(season: dict, _):
-            PBSMMSeason.objects.update_or_create(
+            Season.objects.update_or_create(
                 defaults=dict(
                     show_id=self.id,
                     ingest_episodes=self.ingest_episodes,
@@ -81,7 +81,7 @@ class PBSMMShow(PBSMMGenericShow):
             return
 
         def set_special(special: dict, _):
-            PBSMMSpecial.objects.update_or_create(
+            Special.objects.update_or_create(
                 defaults=dict(show_id=self.id, ingest_on_save=True),
                 object_id=special['id'],
             )
@@ -89,7 +89,7 @@ class PBSMMShow(PBSMMGenericShow):
         self.flip_api_pages(self.json['links'].get('specials'), set_special)
 
     def stop_ingestion_restart(self):
-        PBSMMShow.objects.filter(id=self.id).update(
+        Show.objects.filter(id=self.id).update(
             ingest_seasons=False,
             ingest_specials=False,
             ingest_episodes=False,

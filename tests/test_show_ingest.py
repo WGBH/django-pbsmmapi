@@ -10,8 +10,8 @@ except ImportError:
 
 from django.core.exceptions import ObjectDoesNotExist
 
-from pbsmmapi.episode.models import Asset
-from pbsmmapi.show.models import PBSMMShow
+from pbsmmapi.asset.models import Asset
+from pbsmmapi.show.models import Show
 from url_map import url_map
 
 default_data_set = url_map
@@ -57,9 +57,9 @@ class ShowIngestTestCase(unittest.TestCase):
     @mock.patch('pbsmmapi.api.api.requests.get', side_effect=mocked_requests_get)
     def setUp(self, mock_get):
         try:
-            PBSMMShow.objects.get(slug='nova')
+            Show.objects.get(slug='nova')
         except ObjectDoesNotExist:
-            nova = PBSMMShow()
+            nova = Show()
             nova.slug = 'nova'
             nova.ingest_on_save = True
             nova.ingest_seasons = True
@@ -75,7 +75,7 @@ class ShowIngestTestCase(unittest.TestCase):
             ingest_specials=False,
             ingest_episodes=False
     ):
-        nova = PBSMMShow.objects.get(slug='nova')
+        nova = Show.objects.get(slug='nova')
         nova.ingest_seasons = ingest_seasons
         nova.ingest_specials = ingest_specials
         nova.ingest_episodes = ingest_episodes
@@ -84,7 +84,7 @@ class ShowIngestTestCase(unittest.TestCase):
 
     @mock.patch('pbsmmapi.api.api.requests.get', side_effect=mocked_requests_get)
     def test_show_ingested(self, mock_get):
-        nova = PBSMMShow.objects.get(slug='nova')
+        nova = Show.objects.get(slug='nova')
         self.assertEqual(nova.object_id, UUID('adfb2f9d-f61e-4613-ac58-ab3bde582afb'))
         self.assertEqual(nova.get_absolute_url(), '/shows/nova/')
 

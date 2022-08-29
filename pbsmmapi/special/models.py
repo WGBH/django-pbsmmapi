@@ -8,7 +8,7 @@ from pbsmmapi.abstract.models import PBSMMGenericSpecial
 from pbsmmapi.api.api import PBSMM_SPECIAL_ENDPOINT
 
 
-class PBSMMSpecial(PBSMMGenericSpecial):
+class Special(PBSMMGenericSpecial):
 
     show_api_id = models.UUIDField(
         _('Show Object ID'),
@@ -16,7 +16,7 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         blank=True  # does this work?
     )
     show = models.ForeignKey(
-        'show.PBSMMShow',
+        'show.Show',
         related_name='specials',
         on_delete=models.CASCADE,
         null=True,
@@ -59,7 +59,7 @@ class PBSMMSpecial(PBSMMGenericSpecial):
     @staticmethod
     @db_task()
     def post_save(special_id):
-        special = PBSMMSpecial.objects.get(id=special_id)
+        special = Special.objects.get(id=special_id)
         endpoint = special.json['links'].get('assets')
         special.process_assets(endpoint, special_id=special_id)
         special.delete_stale_assets(special_id=special_id)
