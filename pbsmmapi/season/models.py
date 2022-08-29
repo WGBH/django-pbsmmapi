@@ -6,7 +6,7 @@ from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import PBSMMGenericSeason
 from pbsmmapi.api.api import PBSMM_SEASON_ENDPOINT
-from pbsmmapi.episode.models import PBSMMEpisode
+from pbsmmapi.episode.models import Episode
 
 
 class PBSMMSeason(PBSMMGenericSeason):
@@ -104,7 +104,7 @@ class PBSMMSeason(PBSMMGenericSeason):
             return
 
         def set_episode(episode: dict, _):
-            obj, created = PBSMMEpisode.objects.get_or_create(
+            obj, created = Episode.objects.get_or_create(
                 object_id=episode['id'],
             )
             obj.season_id = self.id

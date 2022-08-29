@@ -2,11 +2,11 @@ from django.contrib import admin
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
 from pbsmmapi.episode.forms import PBSMMEpisodeCreateForm
 from pbsmmapi.episode.forms import PBSMMEpisodeEditForm
-from pbsmmapi.episode.models import PBSMMEpisode
+from pbsmmapi.episode.models import Episode
 
 
 class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
-    model = PBSMMEpisode
+    model = Episode
     form = PBSMMEpisodeEditForm
     add_form = PBSMMEpisodeCreateForm
 
@@ -133,4 +133,4 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
         return self.readonly_fields
 
 
-admin.site.register(PBSMMEpisode, PBSMMEpisodeAdmin)
+admin.site.register(Episode, PBSMMEpisodeAdmin)

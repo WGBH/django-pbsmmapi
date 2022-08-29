@@ -8,7 +8,7 @@ from pbsmmapi.abstract.models import PBSMMGenericEpisode
 from pbsmmapi.api.api import PBSMM_EPISODE_ENDPOINT
 
 
-class PBSMMEpisode(PBSMMGenericEpisode):
+class Episode(PBSMMGenericEpisode):
     '''
     These are the fields that are unique to Episode records.
     '''
@@ -120,7 +120,7 @@ class PBSMMEpisode(PBSMMGenericEpisode):
     @staticmethod
     @db_task()
     def post_save(episode_id):
-        episode = PBSMMEpisode.objects.get(id=episode_id)
+        episode = Episode.objects.get(id=episode_id)
         episode.process_assets(
             episode.json['links'].get('assets'),
             episode_id=episode_id,
