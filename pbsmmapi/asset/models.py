@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
+import re
+
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
-from pbsmmapi.abstract.helpers import time_zone_aware_now
+from theseus_core.video import PBSVideo
 
+from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericAsset
 from pbsmmapi.asset.helpers import check_asset_availability
-from theseus.theseus_core.video import PBSVideo
-import re
 
 AVAILABILITY_GROUPS = (
     ('Station Members', 'station_members'),
@@ -257,28 +258,19 @@ class Asset(PBSMMGenericAsset):
             object_id=asset['id'],
         )[0]
 
-    # TODO add theseus_value
-    # return theseus_core.video.PBSVideo
-    # exclude embed field
-    # get video_id from API player_code
-
     def get_video_id_from_player_code(self):
         regex = r"org\/partnerplayer\/(.*)((?:\/\?))"
         part_of_player_code = re.search(regex, self.player_code)
         return part_of_player_code.group(1)
 
     def theseus_value(self):
-        pbsvideo = PBSVideo()
-        pbsvideo.transcript = None
-        pbsvideo.availability = self.availability
-        pbsvideo.contentType = None
-        pbsvideo.duration = self.duration
-        pbsvideo.placeholder_image = None
-        pbsvideo.media_manager_type = None
-        pbsvideo.description = self.description_long
-        pbsvideo.title = self.title 
-        pbsvideo.video_id = self.get_video_id_from_player_code()
-        return pbsvideo
+        return PBSVideo(
+            title=self.title,
+            availability=self.availability,
+            media_manager_type=self.object_type,
+            duration=self.duration,
+            video_id=self.get_video_id_from_player_code(),
+        )
 
     def __str__(self):
         return f'{self.pk} ' \
