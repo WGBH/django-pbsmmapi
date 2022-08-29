@@ -8,7 +8,7 @@ from huey.contrib.djhuey import db_task
 from pbsmmapi.abstract.models import PBSMMGenericShow
 from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
 from pbsmmapi.season.models import Season
-from pbsmmapi.special.models import PBSMMSpecial
+from pbsmmapi.special.models import Special
 
 
 class Show(PBSMMGenericShow):
@@ -81,7 +81,7 @@ class Show(PBSMMGenericShow):
             return
 
         def set_special(special: dict, _):
-            PBSMMSpecial.objects.update_or_create(
+            Special.objects.update_or_create(
                 defaults=dict(show_id=self.id, ingest_on_save=True),
                 object_id=special['id'],
             )

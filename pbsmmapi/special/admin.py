@@ -2,11 +2,11 @@ from django.contrib import admin
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
 from pbsmmapi.special.forms import PBSMMSpecialCreateForm
 from pbsmmapi.special.forms import PBSMMSpecialEditForm
-from pbsmmapi.special.models import PBSMMSpecial
+from pbsmmapi.special.models import Special
 
 
 class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
-    model = PBSMMSpecial
+    model = Special
     form = PBSMMSpecialEditForm
     add_form = PBSMMSpecialCreateForm
     list_filter = ('show__slug', )
@@ -132,4 +132,4 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
         return super().get_form(request, obj, **kwargs)
 
 
-admin.site.register(PBSMMSpecial, PBSMMSpecialAdmin)
+admin.site.register(Special, PBSMMSpecialAdmin)
