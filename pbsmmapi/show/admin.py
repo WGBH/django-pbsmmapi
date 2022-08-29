@@ -4,7 +4,7 @@ from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
 from pbsmmapi.asset.models import Asset
 from pbsmmapi.show.forms import PBSMMShowCreateForm
 from pbsmmapi.show.forms import PBSMMShowEditForm
-from pbsmmapi.show.models import PBSMMShow
+from pbsmmapi.show.models import Show
 
 
 class ShowAssetInline(admin.TabularInline):
@@ -33,7 +33,7 @@ class ShowAssetInline(admin.TabularInline):
 class PBSMMShowAdmin(PBSMMAbstractAdmin):
     form = PBSMMShowEditForm
     add_form = PBSMMShowCreateForm
-    model = PBSMMShow
+    model = Show
     list_display = (
         'pk',
         'slug',
@@ -269,4 +269,4 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
     format_specials_list.short_description = 'SPECIALS LIST'
 
 
-admin.site.register(PBSMMShow, PBSMMShowAdmin)
+admin.site.register(Show, PBSMMShowAdmin)

@@ -19,7 +19,7 @@ class Season(PBSMMGenericSeason):
         blank=True  # does this work?
     )
     show = models.ForeignKey(
-        'show.PBSMMShow',
+        'show.Show',
         related_name='seasons',
         on_delete=models.CASCADE,
         null=True,

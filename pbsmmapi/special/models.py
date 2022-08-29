@@ -16,7 +16,7 @@ class PBSMMSpecial(PBSMMGenericSpecial):
         blank=True  # does this work?
     )
     show = models.ForeignKey(
-        'show.PBSMMShow',
+        'show.Show',
         related_name='specials',
         on_delete=models.CASCADE,
         null=True,

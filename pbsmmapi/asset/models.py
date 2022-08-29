@@ -87,7 +87,7 @@ class Asset(PBSMMGenericAsset):
     )
 
     show = models.ForeignKey(
-        'show.PBSMMShow',
+        'show.Show',
         null=True,
         blank=True,
         related_name='assets',

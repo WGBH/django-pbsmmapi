@@ -1,11 +1,11 @@
 from django.forms import ModelForm
 
-from pbsmmapi.show.models import PBSMMShow
+from pbsmmapi.show.models import Show
 
 
 class PBSMMShowCreateForm(ModelForm):
     class Meta:
-        model = PBSMMShow
+        model = Show
         fields = (
             'slug',
             'title',
@@ -17,5 +17,5 @@ class PBSMMShowCreateForm(ModelForm):
 
 class PBSMMShowEditForm(ModelForm):
     class Meta:
-        model = PBSMMShow
+        model = Show
         exclude = []
