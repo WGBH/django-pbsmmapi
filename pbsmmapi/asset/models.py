@@ -79,7 +79,7 @@ class Asset(PBSMMGenericAsset):
     )
 
     season = models.ForeignKey(
-        'season.PBSMMSeason',
+        'season.Season',
         null=True,
         blank=True,
         related_name='assets',

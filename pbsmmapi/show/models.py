@@ -7,7 +7,7 @@ from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import PBSMMGenericShow
 from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
-from pbsmmapi.season.models import PBSMMSeason
+from pbsmmapi.season.models import Season
 from pbsmmapi.special.models import PBSMMSpecial
 
 
@@ -65,7 +65,7 @@ class PBSMMShow(PBSMMGenericShow):
             return
 
         def set_season(season: dict, _):
-            PBSMMSeason.objects.update_or_create(
+            Season.objects.update_or_create(
                 defaults=dict(
                     show_id=self.id,
                     ingest_episodes=self.ingest_episodes,

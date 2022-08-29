@@ -25,7 +25,7 @@ class Episode(PBSMMGenericEpisode):
     )
     # THIS IS THE PARENTAL SEASON
     season = models.ForeignKey(
-        'season.PBSMMSeason',
+        'season.Season',
         related_name='episodes',
         on_delete=models.CASCADE,
         null=True,

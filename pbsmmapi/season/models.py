@@ -9,10 +9,7 @@ from pbsmmapi.api.api import PBSMM_SEASON_ENDPOINT
 from pbsmmapi.episode.models import Episode
 
 
-class PBSMMSeason(PBSMMGenericSeason):
-    '''
-    These are the fields that are unique to PBSMMSeason
-    '''
+class Season(PBSMMGenericSeason):
     ordinal = models.PositiveIntegerField(_('Ordinal'), null=True, blank=True)
 
     # This is the parental Show
@@ -92,7 +89,7 @@ class PBSMMSeason(PBSMMGenericSeason):
         episode for this Season.
         Also, always ingest the Assets associated with this Season.
         '''
-        season = PBSMMSeason.objects.get(id=season_id)
+        season = Season.objects.get(id=season_id)
         links = season.json.get('links', dict())
         season.process_episodes(links.get('episodes'))
         season.process_assets(links.get('assets'), season_id=season_id)
@@ -114,7 +111,7 @@ class PBSMMSeason(PBSMMGenericSeason):
         self.flip_api_pages(endpoint, set_episode)
 
     def stop_ingestion_restart(self):
-        PBSMMSeason.objects.filter(id=self.id).update(
+        Season.objects.filter(id=self.id).update(
             ingest_episodes=False,
         )
 
