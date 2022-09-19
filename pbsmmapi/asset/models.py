@@ -257,7 +257,7 @@ class Asset(PBSMMGenericAsset):
         return PBSVideo(
             title=self.title,
             availability=self.availability,
-            media_manager_type=self.object_type,
+            asset_type=self.object_type,
             duration=self.duration,
             video_id=self.get_video_id_from_player_code(),
         )
