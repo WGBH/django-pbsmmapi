@@ -9,93 +9,96 @@ from pbsmmapi.api.api import PBSMM_EPISODE_ENDPOINT
 
 
 class Episode(PBSMMGenericEpisode):
-    '''
+    """
     These are the fields that are unique to Episode records.
-    '''
+    """
 
     encored_on = models.DateTimeField(
-        _('Encored On'),
+        _("Encored On"),
         blank=True,
         null=True,
     )
     ordinal = models.PositiveIntegerField(
-        _('Ordinal'),
+        _("Ordinal"),
         blank=True,
         null=True,
     )
     # THIS IS THE PARENTAL SEASON
     season = models.ForeignKey(
-        'season.Season',
-        related_name='episodes',
+        "season.Season",
+        related_name="episodes",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
     )
     season_api_id = models.UUIDField(
-        _('Season Object ID'),
+        _("Season Object ID"),
         null=True,
         blank=True,  # does this work?
     )
 
     @property
     def object_model_type(self):
-        '''
+        """
         This just returns object "type"
-        '''
-        return 'episode'
+        """
+        return "episode"
 
     @property
     def segment(self):
-        '''
+        """
         Return individual segments of a single episode.
-        '''
+        """
         try:
-            return self.json.get('data').get('attributes').get('segment')
+            return self.json.get("data").get("attributes").get("segment")
         except AttributeError:
             return None
 
     @property
     def full_episode_code(self):
-        '''
+        """
         This just formats the Episode as:
             show-XXYY where XX is the season and YY is the ordinal, e.g.,:  roadshow-2305
             for Roadshow, Season 23, Episode 5.
 
             Useful in lists of episodes that cross Seasons/Shows.
-        '''
+        """
         if self.season and self.season.show and self.season.ordinal:
-            return f'{self.season.show.slug}-{self.season.ordinal:02d}-{self.ordinal:02d}'
-        return f'{self.pk}: (episode {self.ordinal})'
+            return (
+                f"{self.season.show.slug}-{self.season.ordinal:02d}-{self.ordinal:02d}"
+            )
+        return f"{self.pk}: (episode {self.ordinal})"
 
     def short_episode_code(self):
-        '''
+        """
         This is just the Episode "code" without the Show slug, e.g.,  0523 for
         the 23rd episode of Season 5
-        '''
-        return f'{self.season.ordinal:02d}{self.ordinal:02d}'
+        """
+        return f"{self.season.ordinal:02d}{self.ordinal:02d}"
 
-    short_episode_code.short_description = 'Ep #'
+    short_episode_code.short_description = "Ep #"
 
     @property
     def nola_code(self):
-        if self.nola is None or self.nola == '':
+        if self.nola is None or self.nola == "":
             return None
-        if self.season.show.nola is None or self.season.show.nola == '':
+        if self.season.show.nola is None or self.season.show.nola == "":
             return None
-        return f'{self.season.show.nola}{self.nola}'
+        return f"{self.season.show.nola}{self.nola}"
 
     def create_table_line(self):
-        '''
+        """
         This just formats a line in a Table of Episodes.
         Used on a Season's admin page and a Show's admin page.
-        '''
+        """
         out = "<tr>"
         out += "\t<td></td>"
         out += "\n\t<td>%02d%02d:</td>" % (self.season.ordinal, self.ordinal)
-        out += "\n\t<td><a href=\"/admin/episode/pbsmmepisode/%d/change/\"><b>%s</b></td>" % (
-            self.id, self.title
+        out += (
+            '\n\t<td><a href="/admin/episode/pbsmmepisode/%d/change/"><b>%s</b></td>'
+            % (self.id, self.title)
         )
-        out += "\n\t<td><a href=\"%s\" target=\"_new\">API</a></td>" % self.api_endpoint
+        out += '\n\t<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
         out += "\n\t<td>%d</td>" % self.assets.count()
         out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
@@ -105,9 +108,9 @@ class Episode(PBSMMGenericEpisode):
         return self.title
 
     class Meta:
-        verbose_name = 'PBS MM Episode'
-        verbose_name_plural = 'PBS MM Episodes'
-        db_table = 'pbsmm_episode'
+        verbose_name = "PBS MM Episode"
+        verbose_name_plural = "PBS MM Episodes"
+        db_table = "pbsmm_episode"
 
     def save(self, *args, **kwargs):
         self.pre_save()
@@ -122,7 +125,7 @@ class Episode(PBSMMGenericEpisode):
     def post_save(episode_id):
         episode = Episode.objects.get(id=episode_id)
         episode.process_assets(
-            episode.json['links'].get('assets'),
+            episode.json["links"].get("assets"),
             episode_id=episode_id,
         )
         episode.delete_stale_assets(episode_id=episode_id)

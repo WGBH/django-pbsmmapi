@@ -1,5 +1,5 @@
 def check_pagination(json):
-    '''
+    """
     This take the data from a PBSMM API returned record and looks to see if
     there is more content on additional pages.
 
@@ -12,10 +12,10 @@ def check_pagination(json):
 
     It's used in all of the ingest methods (since thankfully, the JSON
     structure is the same for all object types with regards to pagination).
-    '''
-    if 'links' in json.keys():
-        links = json['links']
-        if 'next' in links.keys():
-            if links['next'] is not None:
-                return (True, links['next'])
+    """
+    if "links" in json.keys():
+        links = json["links"]
+        if "next" in links.keys():
+            if links["next"] is not None:
+                return (True, links["next"])
     return (False, None)

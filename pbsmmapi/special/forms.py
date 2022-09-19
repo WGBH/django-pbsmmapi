@@ -6,7 +6,7 @@ from pbsmmapi.special.models import Special
 class PBSMMSpecialCreateForm(ModelForm):
     class Meta:
         model = Special
-        fields = ('slug', 'show')
+        fields = ("slug", "show")
 
 
 class PBSMMSpecialEditForm(ModelForm):

@@ -9,104 +9,109 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
     model = Special
     form = PBSMMSpecialEditForm
     add_form = PBSMMSpecialCreateForm
-    list_filter = ('show__slug', )
+    list_filter = ("show__slug",)
 
     list_display = (
-        'pk',
-        'title_sortable',
-        'show',
-        'premiered_on',
-        'date_last_api_update',
-        'last_api_status_color',
+        "pk",
+        "title_sortable",
+        "show",
+        "premiered_on",
+        "date_last_api_update",
+        "last_api_status_color",
     )
-    list_display_links = ('pk', 'title_sortable')
+    list_display_links = ("pk", "title_sortable")
     # Why so many readonly_fields?  Because we don't want to override what's
     # coming from the API, but we do want to be able to view it in the context
     # of the Django system.
     #
     # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
-        'date_created',
-        'date_last_api_update',
-        'last_api_status',
-        'api_endpoint_link',
-        'last_api_status_color',
-        'title',
-        'title_sortable',
-        'description_long',
-        'description_short',
-        'updated_at',
-        'premiered_on',
-        'links',
-        'language',
-        'nola',
-        'assemble_asset_table',
+        "date_created",
+        "date_last_api_update",
+        "last_api_status",
+        "api_endpoint_link",
+        "last_api_status_color",
+        "title",
+        "title_sortable",
+        "description_long",
+        "description_short",
+        "updated_at",
+        "premiered_on",
+        "links",
+        "language",
+        "nola",
+        "assemble_asset_table",
     ]
 
     # If we're adding a record - no sense in seeing all the things that aren't
     # there yet, since only these TWO fields are editable anyway...
-    add_fieldsets = ((None, {
-        'fields': ('slug', 'show'),
-    }), )
+    add_fieldsets = (
+        (
+            None,
+            {
+                "fields": ("slug", "show"),
+            },
+        ),
+    )
 
     fieldsets = (
         (
             None,
             {
-                'fields': (
-                    'ingest_on_save',
+                "fields": (
+                    "ingest_on_save",
                     (
-                        'date_created',
-                        'date_last_api_update',
-                        'updated_at',
-                        'last_api_status_color',
+                        "date_created",
+                        "date_last_api_update",
+                        "updated_at",
+                        "last_api_status_color",
                     ),
-                    'object_id',
+                    "object_id",
                 ),
             },
         ),
         (
-            'Title, Slug, Link',
+            "Title, Slug, Link",
             {
-                'fields': (
-                    'title',
-                    'title_sortable',
-                    'slug',
-                    'api_endpoint_link',
+                "fields": (
+                    "title",
+                    "title_sortable",
+                    "slug",
+                    "api_endpoint_link",
                 ),
             },
         ),
         (
-            'Assets',
+            "Assets",
             {
-                'fields': ('assemble_asset_table', ),
+                "fields": ("assemble_asset_table",),
             },
         ),
         (
-            'Description and Texts',
+            "Description and Texts",
             {
-                'classes': ('collapse', ),
-                'fields': (
-                    'description_long',
-                    'description_short',
+                "classes": ("collapse",),
+                "fields": (
+                    "description_long",
+                    "description_short",
                 ),
             },
         ),
         (
-            'Special Metadata',
+            "Special Metadata",
             {
-                'classes': ('collapse', ),
-                'fields': (
-                    ('premiered_on', 'nola'),
-                    'language',
+                "classes": ("collapse",),
+                "fields": (
+                    ("premiered_on", "nola"),
+                    "language",
                 ),
             },
         ),
         (
-            'Other',
+            "Other",
             {
-                'classes': ('collapse', ),
-                'fields': ('links', ),
+                "classes": ("collapse",),
+                "fields": ("links",),
             },
         ),
     )
@@ -124,8 +129,8 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
         if obj is None:
             kwargs.update(
                 {
-                    'form': self.add_form,
-                    'fields': admin.utils.flatten_fieldsets(self.add_fieldsets),
+                    "form": self.add_form,
+                    "fields": admin.utils.flatten_fieldsets(self.add_fieldsets),
                 }
             )
         defaults.update(kwargs)

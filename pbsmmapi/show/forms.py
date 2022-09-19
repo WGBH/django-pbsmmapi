@@ -7,11 +7,11 @@ class PBSMMShowCreateForm(ModelForm):
     class Meta:
         model = Show
         fields = (
-            'slug',
-            'title',
-            'ingest_seasons',
-            'ingest_specials',
-            'ingest_episodes',
+            "slug",
+            "title",
+            "ingest_seasons",
+            "ingest_specials",
+            "ingest_episodes",
         )
 
 

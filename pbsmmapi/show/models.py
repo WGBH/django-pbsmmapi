@@ -12,28 +12,27 @@ from pbsmmapi.special.models import Special
 
 
 class Show(PBSMMGenericShow):
-
     ingest_seasons = models.BooleanField(
-        _('Ingest Seasons'),
+        _("Ingest Seasons"),
         default=False,
-        help_text='Also ingest all Seasons',
+        help_text="Also ingest all Seasons",
     )
     ingest_specials = models.BooleanField(
-        _('Ingest Specials'),
+        _("Ingest Specials"),
         default=False,
-        help_text='Also ingest all Specials',
+        help_text="Also ingest all Specials",
     )
     ingest_episodes = models.BooleanField(
-        _('Ingest Episodes'),
+        _("Ingest Episodes"),
         default=False,
-        help_text='Also ingest all Episodes (for each Season)',
+        help_text="Also ingest all Episodes (for each Season)",
     )
 
     @property
     def object_model_type(self):
         # This handles the correspondence to the "type" field in the PBSMM JSON
         # object
-        return 'show'
+        return "show"
 
     def save(self, *args, **kwargs):
         self.pre_save()
@@ -44,9 +43,9 @@ class Show(PBSMMGenericShow):
         attrs = self.process(PBSMM_SHOW_ENDPOINT)
         if not attrs:
             return
-        self.ga_page = attrs.get('tracking_ga_page')
-        self.ga_event = attrs.get('tracking_ga_event')
-        self.episode_count = attrs.get('episodes_count')
+        self.ga_page = attrs.get("tracking_ga_page")
+        self.ga_event = attrs.get("tracking_ga_event")
+        self.episode_count = attrs.get("episodes_count")
 
     @staticmethod
     @db_task()
@@ -54,7 +53,7 @@ class Show(PBSMMGenericShow):
         show = Show.objects.get(id=show_id)
         if int(show.last_api_status or 200) != HTTPStatus.OK:
             return  # run only new object or had previous api call success
-        show.process_assets(show.json['links'].get('assets'), show_id=show_id)
+        show.process_assets(show.json["links"].get("assets"), show_id=show_id)
         show.process_seasons()
         show.process_specials()
         show.delete_stale_assets(show_id=show_id)
@@ -71,10 +70,10 @@ class Show(PBSMMGenericShow):
                     ingest_episodes=self.ingest_episodes,
                     show_api_id=self.object_id,
                 ),
-                object_id=season['id'],
+                object_id=season["id"],
             )
 
-        self.flip_api_pages(self.json['links'].get('seasons'), set_season)
+        self.flip_api_pages(self.json["links"].get("seasons"), set_season)
 
     def process_specials(self):
         if not self.ingest_specials:
@@ -83,10 +82,10 @@ class Show(PBSMMGenericShow):
         def set_special(special: dict, _):
             Special.objects.update_or_create(
                 defaults=dict(show_id=self.id, ingest_on_save=True),
-                object_id=special['id'],
+                object_id=special["id"],
             )
 
-        self.flip_api_pages(self.json['links'].get('specials'), set_special)
+        self.flip_api_pages(self.json["links"].get("specials"), set_special)
 
     def stop_ingestion_restart(self):
         Show.objects.filter(id=self.id).update(
@@ -101,6 +100,6 @@ class Show(PBSMMGenericShow):
         return "ID %d: unknown" % self.id
 
     class Meta:
-        verbose_name = 'PBS MM Show'
-        verbose_name_plural = 'PBS MM Shows'
-        db_table = 'pbsmm_show'
+        verbose_name = "PBS MM Show"
+        verbose_name_plural = "PBS MM Shows"
+        db_table = "pbsmm_show"
