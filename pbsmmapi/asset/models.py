@@ -10,7 +10,7 @@ from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericAsset
 from pbsmmapi.asset.helpers import check_asset_availability
 
-from theseus_core.video import AssetAvailablity
+from theseus_core.video import AssetAvailability
 from theseus_core.video import PBSVideo
 
 AVAILABILITY_GROUPS = (
@@ -262,8 +262,8 @@ class Asset(PBSMMGenericAsset):
 
     @overload
     def theseus_value(
-        self, return_type: Literal["asset_availablity"]
-    ) -> AssetAvailablity:
+        self, return_type: Literal["asset_availability"]
+    ) -> AssetAvailability:
         ...
 
     def theseus_value(self, return_type: str = "pbsvideo"):
@@ -276,8 +276,8 @@ class Asset(PBSMMGenericAsset):
                     duration=self.duration,
                     video_id=self.get_video_id_from_player_code(),
                 )
-            case "asset_availablity":
-                return AssetAvailablity(
+            case "asset_availability":
+                return AssetAvailability(
                     asset_type=self.object_type,
                     availability=self.availability,
                 )

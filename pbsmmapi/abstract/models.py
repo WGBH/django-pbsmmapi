@@ -10,7 +10,7 @@ from pbsmmapi.abstract.helpers import fix_non_aware_datetime
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.api.helpers import check_pagination
 
-from theseus_core.video import AssetAvailablity
+from theseus_core.video import AssetAvailability
 
 
 class AssetAvailablitiesMixin:
@@ -19,9 +19,9 @@ class AssetAvailablitiesMixin:
         asset_types: list[
             Literal["full_length"] | Literal["preview"] | Literal["clip"]
         ] = ["full_length", "preview"],
-    ) -> list[AssetAvailablity]:
+    ) -> list[AssetAvailability]:
         return [
-            asset.theseus_value(return_type="asset_availablity")
+            asset.theseus_value(return_type="asset_availability")
             for asset in self.assets.filter(object_type__in=asset_types)
         ]
 
