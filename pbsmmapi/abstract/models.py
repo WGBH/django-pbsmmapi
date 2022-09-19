@@ -14,7 +14,7 @@ from theseus_core.video import AssetAvailability
 
 
 class AssetAvailablitiesMixin:
-    def get_asset_availablities(
+    def get_asset_availabilities(
         self,
         asset_types: list[
             Literal["full_length"] | Literal["preview"] | Literal["clip"]
