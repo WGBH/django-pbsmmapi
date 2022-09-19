@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from http import HTTPStatus
+from typing import Literal
 
 from django.db import models
 from django.utils.safestring import mark_safe
@@ -8,6 +9,21 @@ from django.utils.translation import gettext_lazy as _
 from pbsmmapi.abstract.helpers import fix_non_aware_datetime
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.api.helpers import check_pagination
+
+from theseus_core.video import AssetAvailablity
+
+
+class AssetAvailablitiesMixin:
+    def get_asset_availablities(
+        self,
+        asset_types: list[
+            Literal["full_length"] | Literal["preview"] | Literal["clip"]
+        ] = ["full_length", "preview"],
+    ) -> list[AssetAvailablity]:
+        return [
+            asset.theseus_value(return_type="asset_availablity")
+            for asset in self.assets.filter(object_type__in=asset_types)
+        ]
 
 
 class GenericObjectManagement(models.Model):
@@ -584,6 +600,7 @@ class PBSMMGenericShow(
     PBSMMAudience,
     PBSMMBroadcastDates,
     PBSMMLanguage,
+    AssetAvailablitiesMixin,
     Ingest,
 ):
     class Meta:
@@ -598,13 +615,20 @@ class PBSMMGenericEpisode(
     PBSMMBroadcastDates,
     PBSMMNOLA,
     PBSMMLinks,
+    AssetAvailablitiesMixin,
     Ingest,
 ):
     class Meta:
         abstract = True
 
 
-class PBSMMGenericSeason(PBSMMGenericObject, PBSMMLinks, PBSMMImage, Ingest):
+class PBSMMGenericSeason(
+    PBSMMGenericObject,
+    PBSMMLinks,
+    PBSMMImage,
+    AssetAvailablitiesMixin,
+    Ingest,
+):
     class Meta:
         abstract = True
 
@@ -616,6 +640,7 @@ class PBSMMGenericSpecial(
     PBSMMBroadcastDates,
     PBSMMNOLA,
     PBSMMLinks,
+    AssetAvailablitiesMixin,
     Ingest,
 ):
     class Meta:
