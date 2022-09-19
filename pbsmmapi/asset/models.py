@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
+from typing import Literal
+from typing import overload
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -8,6 +10,7 @@ from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericAsset
 from pbsmmapi.asset.helpers import check_asset_availability
 
+from theseus_core.video import AssetAvailablity
 from theseus_core.video import PBSVideo
 
 AVAILABILITY_GROUPS = (
@@ -253,14 +256,31 @@ class Asset(PBSMMGenericAsset):
         part_of_player_code = re.search(regex, self.player_code)
         return part_of_player_code.group(1)
 
-    def theseus_value(self):
-        return PBSVideo(
-            title=self.title,
-            availability=self.availability,
-            asset_type=self.object_type,
-            duration=self.duration,
-            video_id=self.get_video_id_from_player_code(),
-        )
+    @overload
+    def theseus_value(self, return_type: Literal["pbsvideo"]) -> PBSVideo:
+        ...
+
+    @overload
+    def theseus_value(
+        self, return_type: Literal["asset_availablity"]
+    ) -> AssetAvailablity:
+        ...
+
+    def theseus_value(self, return_type: str = "pbsvideo"):
+        match return_type:
+            case "pbsvideo":
+                return PBSVideo(
+                    title=self.title,
+                    availability=self.availability,
+                    asset_type=self.object_type,
+                    duration=self.duration,
+                    video_id=self.get_video_id_from_player_code(),
+                )
+            case "asset_availablity":
+                return AssetAvailablity(
+                    asset_type=self.object_type,
+                    availability=self.availability,
+                )
 
     def __str__(self):
         return (
