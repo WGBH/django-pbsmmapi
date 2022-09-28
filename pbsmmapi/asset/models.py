@@ -47,8 +47,8 @@ class Asset(PBSMMGenericAsset):
         help_text="(in seconds)",
     )
 
-    object_type = models.CharField(  # This is 'clip', etc.
-        _("Object Type"),
+    asset_type = models.CharField(  # This is 'clip', etc.
+        _("Asset Type"),
         max_length=40,
         null=True,
         blank=True,
