@@ -272,13 +272,13 @@ class Asset(PBSMMGenericAsset):
                 return PBSVideo(
                     title=self.title,
                     availability=self.availability,
-                    asset_type=self.object_type,
+                    asset_type=self.asset_type,
                     duration=self.duration,
                     video_id=self.get_video_id_from_player_code(),
                 )
             case "asset_availability":
                 return AssetAvailability(
-                    asset_type=self.object_type,
+                    asset_type=self.asset_type,
                     availability=self.availability,
                 )
 

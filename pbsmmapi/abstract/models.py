@@ -22,7 +22,7 @@ class AssetAvailablitiesMixin:
     ) -> list[AssetAvailability]:
         return [
             asset.theseus_value(return_type="asset_availability")
-            for asset in self.assets.filter(object_type__in=asset_types)
+            for asset in self.assets.filter(asset_type__in=asset_types)
         ]
 
 
