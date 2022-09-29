@@ -54,7 +54,7 @@ def get_abstract_asset_table(object_list, parent_type):
             item.id,
             item.title,
         )
-        out += "\n\t<td>%s</td>" % item.object_type
+        out += "\n\t<td>%s</td>" % item.asset_type
         out += "\n\t<td>%s</td>" % item.formatted_duration
         out += "\n\t<td>%s</td>" % item.asset_publicly_available()
         out += '\n\t<td><a href="%s" target="_new">API</a></td>' % item.api_endpoint

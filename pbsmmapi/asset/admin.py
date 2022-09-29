@@ -27,7 +27,7 @@ class PBSMMAbstractAssetAdmin(admin.ModelAdmin):
         "language",
         "last_api_status_color",
         "links",
-        "object_type",
+        "asset_type",
         "platforms",
         "player_code",
         "player_code_preview",
@@ -95,7 +95,7 @@ class PBSMMAbstractAssetAdmin(admin.ModelAdmin):
             {
                 "classes": ("collapse",),
                 "fields": (
-                    ("object_type", "duration"),
+                    ("asset_type", "duration"),
                     ("can_embed_player", "is_excluded_from_dfp"),
                     "availability",
                     "content_rating",
