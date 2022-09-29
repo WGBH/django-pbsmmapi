@@ -1,38 +1,10 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
+
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
-from pbsmmapi.asset.models import Asset
 from pbsmmapi.show.forms import PBSMMShowCreateForm
 from pbsmmapi.show.forms import PBSMMShowEditForm
 from pbsmmapi.show.models import Show
-
-
-class ShowAssetInline(admin.TabularInline):
-    model = Asset
-    fieldsets = (
-        (
-            None,
-            {
-                "fields": (
-                    (
-                        "id",
-                        "title",
-                        "object_type",
-                        "formatted_duration",
-                        "asset_publicly_available",
-                    ),
-                ),
-            },
-        ),
-    )
-    readonly_fields = [
-        "id",
-        "title",
-        "object_type",
-        "formatted_duration",
-        "asset_publicly_available",
-    ]
-    extra = 0
 
 
 class PBSMMShowAdmin(PBSMMAbstractAdmin):
