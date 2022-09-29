@@ -239,6 +239,7 @@ class Asset(PBSMMGenericAsset):
             object_id=asset["id"],
             api_endpoint=links.get("self"),
             availability=attrs.get("availabilities"),
+            asset_type=attrs.get("object_type"),
             date_last_api_update=time_zone_aware_now(),
             ingest_on_save=True,
             json=asset,
