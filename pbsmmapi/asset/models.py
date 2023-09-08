@@ -252,7 +252,7 @@ class Asset(PBSMMGenericAsset):
             windows=None,
             **kwargs,
         )
-        return Asset.objects.update_or_create(
+        Asset.objects.update_or_create(
             defaults=fields,
             object_id=asset["id"],
         )[0]
