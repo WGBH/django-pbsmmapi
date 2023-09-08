@@ -2,8 +2,8 @@
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-
 from huey.contrib.djhuey import db_task
+
 from pbsmmapi.abstract.models import PBSMMGenericEpisode
 from pbsmmapi.api.api import PBSMM_EPISODE_ENDPOINT
 
@@ -58,7 +58,8 @@ class Episode(PBSMMGenericEpisode):
     def full_episode_code(self):
         """
         This just formats the Episode as:
-            show-XXYY where XX is the season and YY is the ordinal, e.g.,:  roadshow-2305
+            show-XXYY where XX is the season and YY is the ordinal,
+            e.g.,: roadshow-2305
             for Roadshow, Season 23, Episode 5.
 
             Useful in lists of episodes that cross Seasons/Shows.

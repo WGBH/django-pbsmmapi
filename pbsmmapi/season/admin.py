@@ -1,8 +1,11 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
+
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
-from pbsmmapi.season.forms import PBSMMSeasonCreateForm
-from pbsmmapi.season.forms import PBSMMSeasonEditForm
+from pbsmmapi.season.forms import (
+    PBSMMSeasonCreateForm,
+    PBSMMSeasonEditForm,
+)
 from pbsmmapi.season.models import Season
 
 

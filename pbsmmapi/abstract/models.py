@@ -5,12 +5,11 @@ from typing import Literal
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+from theseus_core.video import AssetAvailability
 
 from pbsmmapi.abstract.helpers import fix_non_aware_datetime
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.api.helpers import check_pagination
-
-from theseus_core.video import AssetAvailability
 
 
 class AssetAvailablitiesMixin:
@@ -499,8 +498,9 @@ class Ingest(models.Model):
         kwargs: extra params send to Asset object
         """
         # prevent circular import
-        from pbsmmapi.asset.models import \
-            Asset  # pylint: disable=import-outside-toplevel
+        from pbsmmapi.asset.models import (  # pylint: disable=import-outside-toplevel
+            Asset,
+        )
 
         def set_asset(asset: dict, status: int):
             self.scraped_object_ids.append(asset["id"])
@@ -536,8 +536,9 @@ class Ingest(models.Model):
         >>> self.delete_stale_assets()
         (1, {'pbsmmapi.Asset': 1})
         """
-        from pbsmmapi.asset.models import \
-            Asset  # pylint: disable=import-outside-toplevel
+        from pbsmmapi.asset.models import (  # pylint: disable=import-outside-toplevel
+            Asset,
+        )
 
         return (
             Asset.objects.filter(**filters)

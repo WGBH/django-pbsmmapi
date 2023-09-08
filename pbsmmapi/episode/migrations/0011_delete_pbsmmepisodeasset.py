@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('episode', '0011_remove_pbsmmepisodeasset_chapters_and_more'),
-        ('asset', '0002_move_assets_data'),
+        ("episode", "0011_remove_pbsmmepisodeasset_chapters_and_more"),
+        ("asset", "0002_move_assets_data"),
     ]
 
     operations = [
         migrations.DeleteModel(
-            name='PBSMMEpisodeAsset',
+            name="PBSMMEpisodeAsset",
         ),
     ]

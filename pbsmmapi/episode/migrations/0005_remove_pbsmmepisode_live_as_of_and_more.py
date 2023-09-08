@@ -4,18 +4,17 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('episode', '0004_auto_20190430_1949'),
+        ("episode", "0004_auto_20190430_1949"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='pbsmmepisode',
-            name='live_as_of',
+            model_name="pbsmmepisode",
+            name="live_as_of",
         ),
         migrations.RemoveField(
-            model_name='pbsmmepisode',
-            name='publish_status',
+            model_name="pbsmmepisode",
+            name="publish_status",
         ),
     ]

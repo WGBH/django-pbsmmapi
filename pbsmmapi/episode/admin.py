@@ -1,7 +1,10 @@
 from django.contrib import admin
+
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
-from pbsmmapi.episode.forms import PBSMMEpisodeCreateForm
-from pbsmmapi.episode.forms import PBSMMEpisodeEditForm
+from pbsmmapi.episode.forms import (
+    PBSMMEpisodeCreateForm,
+    PBSMMEpisodeEditForm,
+)
 from pbsmmapi.episode.models import Episode
 
 

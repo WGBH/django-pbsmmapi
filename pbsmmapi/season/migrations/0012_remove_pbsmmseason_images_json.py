@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('season', '0011_delete_pbsmmseasonasset'),
+        ("season", "0011_delete_pbsmmseasonasset"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='pbsmmseason',
-            name='images_json',
+            model_name="pbsmmseason",
+            name="images_json",
         ),
     ]

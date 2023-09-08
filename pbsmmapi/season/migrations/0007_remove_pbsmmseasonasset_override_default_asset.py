@@ -4,14 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('season', '0006_remove_pbsmmseason_live_as_of_and_more'),
+        ("season", "0006_remove_pbsmmseason_live_as_of_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='pbsmmseasonasset',
-            name='override_default_asset',
+            model_name="pbsmmseasonasset",
+            name="override_default_asset",
         ),
     ]

@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
 import re
-from typing import Literal
-from typing import overload
+from typing import (
+    Literal,
+    overload,
+)
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
+from theseus_core.video import (
+    AssetAvailability,
+    PBSVideo,
+)
+
 from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericAsset
 from pbsmmapi.asset.helpers import check_asset_availability
-
-from theseus_core.video import AssetAvailability
-from theseus_core.video import PBSVideo
 
 AVAILABILITY_GROUPS = (
     ("Station Members", "station_members"),
@@ -122,7 +126,8 @@ class Asset(PBSMMGenericAsset):
     def topics(self):
         """
         Return a list of topics if the asset have it.
-        According to PBS this isn't really used - legacy for some third parties - skipping
+        According to PBS this isn't really used
+            - legacy for some third parties - skipping
         However, Antiques Roadshow appears to be one of them.
         """
         try:

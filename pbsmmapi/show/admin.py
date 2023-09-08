@@ -2,8 +2,10 @@ from django.contrib import admin
 from django.utils.safestring import mark_safe
 
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
-from pbsmmapi.show.forms import PBSMMShowCreateForm
-from pbsmmapi.show.forms import PBSMMShowEditForm
+from pbsmmapi.show.forms import (
+    PBSMMShowCreateForm,
+    PBSMMShowEditForm,
+)
 from pbsmmapi.show.models import Show
 
 

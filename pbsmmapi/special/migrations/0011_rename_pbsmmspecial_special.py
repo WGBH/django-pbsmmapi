@@ -4,16 +4,15 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('asset', '0004_alter_asset_date_last_api_update'),
-        ('show', '0009_rename_pbsmmshow_show'),
-        ('special', '0010_alter_pbsmmspecial_date_last_api_update'),
+        ("asset", "0004_alter_asset_date_last_api_update"),
+        ("show", "0009_rename_pbsmmshow_show"),
+        ("special", "0010_alter_pbsmmspecial_date_last_api_update"),
     ]
 
     operations = [
         migrations.RenameModel(
-            old_name='PBSMMSpecial',
-            new_name='Special',
+            old_name="PBSMMSpecial",
+            new_name="Special",
         ),
     ]

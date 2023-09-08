@@ -43,7 +43,8 @@ def get_abstract_asset_table(object_list, parent_type):
     out = '<table width="100%" border=2>'
     out += (
         '\n<tr style="background-color:'
-        ' #999;l"><th>Title</th><th>Type</th><th>Duration</th><th>Avail?</th><th>API</th></tr>'
+        ' #999;l"><th>Title</th><th>Type</th>'
+        "<th>Duration</th><th>Avail?</th><th>API</th></tr>"
     )
     for item in object_list:
         row_color = "#ffffff;"

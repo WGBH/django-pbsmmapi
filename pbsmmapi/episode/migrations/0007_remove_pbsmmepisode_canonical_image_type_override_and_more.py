@@ -4,18 +4,17 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('episode', '0006_remove_pbsmmepisodeasset_override_default_asset'),
+        ("episode", "0006_remove_pbsmmepisodeasset_override_default_asset"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='pbsmmepisode',
-            name='canonical_image_type_override',
+            model_name="pbsmmepisode",
+            name="canonical_image_type_override",
         ),
         migrations.RemoveField(
-            model_name='pbsmmepisode',
-            name='images',
+            model_name="pbsmmepisode",
+            name="images",
         ),
     ]

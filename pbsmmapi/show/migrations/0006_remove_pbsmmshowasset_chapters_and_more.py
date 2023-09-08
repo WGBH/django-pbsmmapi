@@ -4,26 +4,25 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('show', '0005_pbsmmshow_images_json_pbsmmshowasset_images_json_and_more'),
+        ("show", "0005_pbsmmshow_images_json_pbsmmshowasset_images_json_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='pbsmmshowasset',
-            name='chapters',
+            model_name="pbsmmshowasset",
+            name="chapters",
         ),
         migrations.RemoveField(
-            model_name='pbsmmshowasset',
-            name='content_rating',
+            model_name="pbsmmshowasset",
+            name="content_rating",
         ),
         migrations.RemoveField(
-            model_name='pbsmmshowasset',
-            name='content_rating_description',
+            model_name="pbsmmshowasset",
+            name="content_rating_description",
         ),
         migrations.RemoveField(
-            model_name='pbsmmshowasset',
-            name='topics',
+            model_name="pbsmmshowasset",
+            name="topics",
         ),
     ]

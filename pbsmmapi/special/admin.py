@@ -1,7 +1,10 @@
 from django.contrib import admin
+
 from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
-from pbsmmapi.special.forms import PBSMMSpecialCreateForm
-from pbsmmapi.special.forms import PBSMMSpecialEditForm
+from pbsmmapi.special.forms import (
+    PBSMMSpecialCreateForm,
+    PBSMMSpecialEditForm,
+)
 from pbsmmapi.special.models import Special
 
 
