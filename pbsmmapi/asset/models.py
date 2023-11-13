@@ -263,14 +263,12 @@ class Asset(PBSMMGenericAsset):
         return part_of_player_code.group(1)
 
     @overload
-    def theseus_value(self, return_type: Literal["pbsvideo"]) -> PBSVideo:
-        ...
+    def theseus_value(self, return_type: Literal["pbsvideo"]) -> PBSVideo: ...
 
     @overload
     def theseus_value(
         self, return_type: Literal["asset_availability"]
-    ) -> AssetAvailability:
-        ...
+    ) -> AssetAvailability: ...
 
     def theseus_value(self, return_type: str = "pbsvideo"):
         match return_type:
