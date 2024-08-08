@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 import json
 import unittest
 from uuid import UUID
@@ -10,10 +11,10 @@ except ImportError:
     import mock
 
 from django.core.exceptions import ObjectDoesNotExist
+from url_map import url_map
 
 from pbsmmapi.asset.models import Asset
 from pbsmmapi.show.models import Show
-from url_map import url_map
 
 default_data_set = url_map
 assets_deleted_data_set = url_map.copy()
