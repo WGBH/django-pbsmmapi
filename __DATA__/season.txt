@@ -12,4 +12,3 @@ DT      updated_at
 FK --> show
 
 []      links
-

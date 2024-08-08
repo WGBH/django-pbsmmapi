@@ -16,9 +16,8 @@ DT      updated_at
 
 S       nola
 CV      language
-    
+
 O       Season
 [O]     links
 
 O       Show
-
