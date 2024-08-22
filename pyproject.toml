@@ -42,6 +42,8 @@ django-stubs = "*"
 black = "*"
 ruff = "*"
 devtools = "*"
+coverage = "*"
+mock = "*"
 pre-commit = "*"
 
 [build-system]
