@@ -195,41 +195,5 @@ class PBSMMFranchiseAdmin(PBSMMAbstractAdmin):
 
     format_shows_list.short_description = "SHOW LIST"
 
-    def format_specials_list(self, obj):
-        # It turns out that some shows, e.g., The Open Mind, have an INSANE
-        # number of specials. In this case, just return the Top 50
-        out = ""
-        specials_list = obj.specials.order_by("-premiered_on")
-        if specials_list.count() > 100:
-            out = "<p>There are %s specials.</p>" % "{:,}".format(specials_list.count())
-            out += "<p>Here are the most recent 50 (by premiere date).</p>"
-            admin_filter_slug = "/admin/special/pbsmmspecial/?show_slug=%s" % obj.slug
-            out += '<p>You can access the entire list at <a href="%s">%s</a>.' % (
-                admin_filter_slug,
-                admin_filter_slug,
-            )
-            specials_list_to_show = specials_list[:50]
-        else:
-            specials_list_to_show = specials_list
-
-        out += (
-            '<table width="100%" border=2>\n'
-            + '<tr style="background-color: #999;">'
-            + "<th>Special Title</th>"
-            + "<th>API Link</th>"
-            + "<th># Assets</th>"
-            + "<th>Last Updated</th>"
-            + "<th>API Status"
-            + "<th>Public</th>"
-            + "</tr>"
-        )
-        for special in specials_list_to_show:
-            out += special.create_table_line()
-
-        out += "</table>"
-        return mark_safe(out)
-
-    format_specials_list.short_description = "SPECIALS LIST"
-
 
 admin.site.register(Franchise, PBSMMFranchiseAdmin)

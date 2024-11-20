@@ -109,7 +109,7 @@ class Show(PBSMMGenericShow):
         out = '<tr style="background-color: #uuu;">'
         out += (
             '<td colspan="3"><a'
-            ' href="/admin/show/pbsmmshow/%d/change/"><b>%s</b></a></td>'
+            ' href="/admin/show/show/%d/change/"><b>%s</b></a></td>'
             % (self.id, this_title)
         )
         out += '<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
