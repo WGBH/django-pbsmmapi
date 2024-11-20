@@ -24,6 +24,6 @@ repos:
       name: isort (pyi)
       types: [pyi]
 - repo: https://github.com/astral-sh/ruff-pre-commit
-  rev: v0.6.9
+  rev: v0.7.4
   hooks:
     - id: ruff

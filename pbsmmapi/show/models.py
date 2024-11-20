@@ -2,6 +2,7 @@
 from http import HTTPStatus
 
 from django.db import models
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
@@ -26,6 +27,15 @@ class Show(PBSMMGenericShow):
         _("Ingest Episodes"),
         default=False,
         help_text="Also ingest all Episodes (for each Season)",
+    )
+    # This is the parental Franchise
+    franchise_api_id = models.UUIDField(_("Franchise Object ID"), null=True, blank=True)
+    franchise = models.ForeignKey(
+        "franchise.Franchise",
+        related_name="shows",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
     )
 
     @property
@@ -93,6 +103,20 @@ class Show(PBSMMGenericShow):
             ingest_specials=False,
             ingest_episodes=False,
         )
+
+    def create_table_line(self):
+        this_title = "Show: %s" % self.title
+        out = '<tr style="background-color: #uuu;">'
+        out += (
+            '<td colspan="3"><a'
+            ' href="/admin/show/show/%d/change/"><b>%s</b></a></td>'
+            % (self.id, this_title)
+        )
+        out += '<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
+        out += "\n\t<td>%d</td>" % self.assets.count()
+        out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
+        out += "\n\t<td>%s</td>" % self.last_api_status_color()
+        return mark_safe(out)
 
     def __str__(self):
         if self.title:

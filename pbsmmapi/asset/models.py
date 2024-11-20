@@ -112,6 +112,14 @@ class Asset(PBSMMGenericAsset):
         on_delete=models.SET_NULL,
     )
 
+    franchise = models.ForeignKey(
+        "franchise.Franchise",
+        null=True,
+        blank=True,
+        related_name="assets",
+        on_delete=models.SET_NULL,
+    )
+
     # Properties and methods
     @property
     def object_model_type(self):

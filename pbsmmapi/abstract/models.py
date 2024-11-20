@@ -670,6 +670,8 @@ class PBSMMGenericFranchise(
     PBSMMGoogleTracking,
     PBSMMGenre,
     PBSMMPlayerMetadata,
+    AssetAvailablitiesMixin,
+    Ingest,
 ):
     # There is no can_embed_player field - again, laziness (see above)
     class Meta:
