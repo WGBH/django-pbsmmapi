@@ -57,7 +57,12 @@ class PBSMMFranchiseAdmin(PBSMMAbstractAdmin):
             {
                 "fields": (
                     "slug",
-                    ("ingest_shows", "ingest_seasons", "ingest_episodes", "ingest_specials"),
+                    (
+                        "ingest_shows",
+                        "ingest_seasons",
+                        "ingest_episodes",
+                        "ingest_specials",
+                    ),
                 ),
             },
         ),

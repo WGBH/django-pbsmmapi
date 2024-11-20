@@ -56,7 +56,9 @@ class Franchise(PBSMMGenericFranchise):
         if int(franchise.last_api_status or 200) != HTTPStatus.OK:
             return  # run only new object or had previous api call success
 
-        franchise.process_assets(franchise.json["links"].get("assets"), franchise_id=franchise_id)
+        franchise.process_assets(
+            franchise.json["links"].get("assets"), franchise_id=franchise_id
+        )
         franchise.process_shows()
         franchise.delete_stale_assets(franchise_id=franchise_id)
 

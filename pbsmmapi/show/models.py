@@ -29,9 +29,7 @@ class Show(PBSMMGenericShow):
         help_text="Also ingest all Episodes (for each Season)",
     )
     # This is the parental Franchise
-    franchise_api_id = models.UUIDField(
-        _("Franchise Object ID"), null=True, blank=True
-    )
+    franchise_api_id = models.UUIDField(_("Franchise Object ID"), null=True, blank=True)
     franchise = models.ForeignKey(
         "franchise.Franchise",
         related_name="shows",
