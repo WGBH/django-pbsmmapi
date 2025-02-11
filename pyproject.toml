@@ -1,54 +1,59 @@
-[tool.poetry]
-name='django-pbsmmapi'
-version='1.0.0'
-description="Django models that import content from the PBS MediaManager API"
-readme='README.md'
-license='MIT License, see LICENSE'
-authors=['Bob Donahue']
-packages = [
-    { include = "pbsmmapi" }
+[project]
+name = "django-pbsmmapi"
+version = "1.0.0"
+description = "Django models that import content from the PBS MediaManager API"
+authors = [{ name = "Bob Donahue" }]
+requires-python = ">=3.10,<4.0"
+readme = "README.md"
+license = "MIT"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Framework :: Django :: 4.0",
+    "Framework :: Django :: 4.1",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
 ]
-classifiers=[
-    'Development Status :: 5 - Production/Stable',
-    'Environment :: Web Environment',
-    'Framework :: Django',
-    'Framework :: Django :: 4.0',
-    'Framework :: Django :: 4.1',
-    'Intended Audience :: Developers',
-    'License :: OSI Approved :: MIT License',
-    'Natural Language :: English',
-    'Operating System :: OS Independent',
-    'Topic :: Internet :: WWW/HTTP',
-    'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+dependencies = [
+    "django",
+    "requests",
+    "python-dateutil",
+    "pytz",
 ]
 
-[tool.poetry.dependencies]
-python = ">=3.10,<4.0"
-django = "*"
-requests = "*"
-python-dateutil = "*"
-pytz = "*"
+[dependency-groups]
+dev = [
+    "autoimport",
+    "flake8",
+    "ipython",
+    "isort",
+    "pylint",
+    "pylint-django",
+    "pytest",
+    "reorder-python-imports",
+    "django-stubs",
+    "black",
+    "ruff",
+    "devtools",
+    "coverage",
+    "mock",
+    "pre-commit",
+]
 
-[tool.poetry.group.dev.dependencies]
-autoimport = "*"
-flake8 = "*"
-ipython = "*"
-isort = "*"
-pylint = "*"
-pylint-django = "*"
-pytest = "*"
-reorder-python-imports = "*"
-django-stubs = "*"
-black = "*"
-ruff = "*"
-devtools = "*"
-coverage = "*"
-mock = "*"
-pre-commit = "*"
+[tool.hatch.build.targets.sdist]
+include = ["pbsmmapi"]
+
+[tool.hatch.build.targets.wheel]
+include = ["pbsmmapi"]
 
 [build-system]
-requires = ["poetry_core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
 [tool.black]
 preview = true
