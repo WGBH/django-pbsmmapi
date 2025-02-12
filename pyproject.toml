@@ -12,6 +12,9 @@ classifiers = [
     "Framework :: Django",
     "Framework :: Django :: 4.0",
     "Framework :: Django :: 4.1",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
@@ -20,7 +23,7 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
 ]
 dependencies = [
-    "django",
+    "django>=4.0",
     "requests",
     "python-dateutil",
     "pytz",
@@ -28,21 +31,16 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "autoimport",
-    "flake8",
-    "ipython",
+    "pre-commit",
     "isort",
-    "pylint",
-    "pylint-django",
-    "pytest",
-    "reorder-python-imports",
-    "django-stubs",
     "black",
     "ruff",
-    "devtools",
+    "django-stubs",
     "coverage",
+    "pytest",
     "mock",
-    "pre-commit",
+    "ipython",
+    "devtools",
 ]
 
 [tool.hatch.build.targets.sdist]
