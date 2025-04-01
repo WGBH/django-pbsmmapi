@@ -40,3 +40,25 @@ jobs:
           extra_args: --all-files --verbose
         env:
           SKIP: no-commit-to-branch
+
+  release:
+    runs-on: ubuntu-latest
+    environment: release
+
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        # Installing pip is required for the pre-commit action:
+        run: |
+          uv sync
+
+      - name: Build library
+        run: uv build
