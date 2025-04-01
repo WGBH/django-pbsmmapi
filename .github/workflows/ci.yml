@@ -52,8 +52,13 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: |
-          uv sync
+        run: uv sync
 
       - name: Build library
         run: uv build
+
+      - name: Upload package to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
