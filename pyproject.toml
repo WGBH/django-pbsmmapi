@@ -1,6 +1,6 @@
 [project]
 name = "django-pbsmmapi"
-version = "1.0.0"
+dynamic = ['version']
 description = "Django models that import content from the PBS MediaManager API"
 authors = [{ name = "Bob Donahue" }]
 requires-python = ">=3.10,<4.0"
@@ -42,6 +42,9 @@ dev = [
     "ipython",
     "devtools",
 ]
+
+[tool.hatch.version]
+path = "pbsmmapi/__init__.py"
 
 [tool.hatch.build.targets.sdist]
 include = ["pbsmmapi"]
