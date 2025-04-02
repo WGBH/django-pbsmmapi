@@ -27,6 +27,7 @@ dependencies = [
     "requests",
     "python-dateutil",
     "pytz",
+    "huey>=2.5.3",
 ]
 
 [dependency-groups]
