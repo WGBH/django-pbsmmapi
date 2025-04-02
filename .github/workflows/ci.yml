@@ -4,9 +4,9 @@ on:
   push:
     branches:
       - main
-      - v1_release_prep
     tags:
       - '**'
+  pull_request: {}
 
 env:
   COLUMNS: 150
