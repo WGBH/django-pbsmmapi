@@ -1,203 +1,128 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-
-from uuid import UUID
+from http import HTTPStatus
 
 from django.db import models
-from django.dispatch import receiver
-from django.utils.translation import ugettext_lazy as _
-from django.urls import reverse
+from django.utils.safestring import mark_safe
+from django.utils.translation import gettext_lazy as _
+from huey.contrib.djhuey import db_task
 
-from ..abstract.gatekeeper import can_object_page_be_shown
-from ..abstract.helpers import time_zone_aware_now
-from ..abstract.models import PBSMMGenericShow
-
-from ..api.api import get_PBSMM_record
-from ..api.helpers import check_pagination
-
-from ..asset.ingest_asset import process_asset_record
-from ..asset.models import PBSMMAbstractAsset
-
-from .ingest_show import process_show_record
-from .ingest_children import process_seasons, process_specials
-
-PBSMM_SHOW_ENDPOINT = 'https://media.services.pbs.org/api/v1/shows/'
+from pbsmmapi.abstract.models import PBSMMGenericShow
+from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
+from pbsmmapi.season.models import Season
+from pbsmmapi.special.models import Special
 
 
-class PBSMMAbstractShow(PBSMMGenericShow):
-
+class Show(PBSMMGenericShow):
     ingest_seasons = models.BooleanField(
-        _('Ingest Seasons'),
+        _("Ingest Seasons"),
         default=False,
-        help_text='Also ingest all Seasons',
+        help_text="Also ingest all Seasons",
     )
     ingest_specials = models.BooleanField(
-        _('Ingest Specials'),
+        _("Ingest Specials"),
         default=False,
-        help_text='Also ingest all Specials',
+        help_text="Also ingest all Specials",
     )
     ingest_episodes = models.BooleanField(
-        _('Ingest Episodes'),
+        _("Ingest Episodes"),
         default=False,
-        help_text='Also ingest all Episodes (for each Season)',
+        help_text="Also ingest all Episodes (for each Season)",
+    )
+    # This is the parental Franchise
+    franchise_api_id = models.UUIDField(_("Franchise Object ID"), null=True, blank=True)
+    franchise = models.ForeignKey(
+        "franchise.Franchise",
+        related_name="shows",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
     )
 
-    class Meta:
-        verbose_name = 'PBS MM Show'
-        verbose_name_plural = 'PBS MM Shows'
-        db_table = 'pbsmm_show'
-        abstract = True
+    @property
+    def object_model_type(self):
+        # This handles the correspondence to the "type" field in the PBSMM JSON
+        # object
+        return "show"
 
-    def get_absolute_url(self):
-        return reverse('show-detail', args=[self.slug])
+    def save(self, *args, **kwargs):
+        self.pre_save()
+        super().save(*args, **kwargs)
+        self.post_save(self.id)
 
-    def __unicode__(self):
+    def pre_save(self):
+        attrs = self.process(PBSMM_SHOW_ENDPOINT)
+        if not attrs:
+            return
+        self.ga_page = attrs.get("tracking_ga_page")
+        self.ga_event = attrs.get("tracking_ga_event")
+        self.episode_count = attrs.get("episodes_count")
+
+    @staticmethod
+    @db_task()
+    def post_save(show_id):
+        show = Show.objects.get(id=show_id)
+        if int(show.last_api_status or 200) != HTTPStatus.OK:
+            return  # run only new object or had previous api call success
+        show.process_assets(show.json["links"].get("assets"), show_id=show_id)
+        show.process_seasons()
+        show.process_specials()
+        show.delete_stale_assets(show_id=show_id)
+        show.stop_ingestion_restart()
+
+    def process_seasons(self):
+        if not self.ingest_seasons:
+            return
+
+        def set_season(season: dict, _):
+            Season.objects.update_or_create(
+                defaults=dict(
+                    show_id=self.id,
+                    ingest_episodes=self.ingest_episodes,
+                    show_api_id=self.object_id,
+                ),
+                object_id=season["id"],
+            )
+
+        self.flip_api_pages(self.json["links"].get("seasons"), set_season)
+
+    def process_specials(self):
+        if not self.ingest_specials:
+            return
+
+        def set_special(special: dict, _):
+            Special.objects.update_or_create(
+                defaults=dict(show_id=self.id, ingest_on_save=True),
+                object_id=special["id"],
+            )
+
+        self.flip_api_pages(self.json["links"].get("specials"), set_special)
+
+    def stop_ingestion_restart(self):
+        Show.objects.filter(id=self.id).update(
+            ingest_seasons=False,
+            ingest_specials=False,
+            ingest_episodes=False,
+        )
+
+    def create_table_line(self):
+        this_title = "Show: %s" % self.title
+        out = '<tr style="background-color: #uuu;">'
+        out += (
+            '<td colspan="3"><a'
+            ' href="/admin/show/show/%d/change/"><b>%s</b></a></td>'
+            % (self.id, this_title)
+        )
+        out += '<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
+        out += "\n\t<td>%d</td>" % self.assets.count()
+        out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
+        out += "\n\t<td>%s</td>" % self.last_api_status_color()
+        return mark_safe(out)
+
+    def __str__(self):
         if self.title:
             return self.title
         return "ID %d: unknown" % self.id
 
-    def __object_model_type(self):
-        # This handles the correspondence to the "type" field in the PBSMM JSON
-        # object
-        return 'show'
-
-    object_model_type = property(__object_model_type)
-
-    def __available_to_public(self):
-        return can_object_page_be_shown(None, self)
-
-    available_to_public = property(__available_to_public)
-
-
-class PBSMMShow(PBSMMAbstractShow):
-    pass
-
-
-class PBSMMShowAsset(PBSMMAbstractAsset):
-    show = models.ForeignKey(
-        PBSMMShow,
-        related_name='assets',
-        on_delete=models.CASCADE,  # required for Django 2.0
-    )
-
     class Meta:
-        verbose_name = 'PBS MM Show - Asset'
-        verbose_name_plural = 'PBS MM Shows - Assets'
-        db_table = 'pbsmm_show_asset'
-
-    def __unicode__(self):
-        return "%s: %s" % (self.show, self.title)
-
-
-def process_show_assets(endpoint, this_show):
-    keep_going = True
-    scraped_object_ids = []
-    while keep_going:
-        (status, json) = get_PBSMM_record(endpoint)
-        data = json['data']
-
-        for item in data:
-            object_id = item.get('id')
-            scraped_object_ids.append(UUID(object_id))
-
-            try:
-                instance = PBSMMShowAsset.objects.get(object_id=object_id)
-            except PBSMMShowAsset.DoesNotExist:
-                instance = PBSMMShowAsset()
-
-            instance = process_asset_record(item, instance, origin='show')
-
-            # For now - borrow from the parent object
-            instance.last_api_status = status
-            instance.date_last_api_update = time_zone_aware_now()
-
-            instance.show = this_show
-            instance.ingest_on_save = True
-
-            # This needs to be here because otherwise it never updates...
-            instance.save()
-
-        (keep_going, endpoint) = check_pagination(json)
-
-    for asset in PBSMMShowAsset.objects.filter(show=this_show):
-        if asset.object_id not in scraped_object_ids:
-            asset.delete()
-
-
-################################
-# PBS MediaManager API interface
-################################
-
-# The interface/access is done with a 'pre_save' receiver based on the value of 'ingest_on_save'
-
-# That way, one can force a reingestion from the Admin OR one can do it from a management script
-# by simply getting the record, setting ingest_on_save on the record, and calling save().
-
-
-@receiver(models.signals.pre_save, sender=PBSMMShow)
-def scrape_PBSMMAPI(sender, instance, **kwargs):
-    if instance.__class__ is not PBSMMShow:
-        return
-
-    # If this is a new record, then someone has started it in the Admin using
-    # a PBSMM UUID.   Depending on which, the retrieval endpoint is slightly different, so this sets
-    # the appropriate URL to access.
-    if instance.pk and instance.slug and str(instance.slug).strip():
-        # Object is being edited
-        if not instance.ingest_on_save:
-            return  # do nothing - can't get an ID to look up!
-
-    else:  # object is being added
-        if not instance.slug:
-            return  # do nothing - can't get an ID to look up!
-
-    url = "{}{}/".format(PBSMM_SHOW_ENDPOINT, instance.slug)
-
-    # OK - get the record from the API
-    (status, json) = get_PBSMM_record(url)
-
-    instance.last_api_status = status
-    # Update this record's time stamp (the API has its own)
-    instance.date_last_api_update = time_zone_aware_now()
-
-    # If we didn't get a record, abort (there's no sense crying over spilled
-    # bits)
-    if status != 200:
-        return
-
-    # Process the record (code is in ingest.py)
-    instance = process_show_record(json, instance)
-
-    # continue saving, but turn off the ingest_on_save flag
-    instance.ingest_on_save = False  # otherwise we could end up in an infinite loop!
-
-    # We're done here - continue with the save() operation
-    return
-
-
-@receiver(models.signals.post_save, sender=PBSMMShow)
-def handle_child_objects(sender, instance, *args, **kwargs):
-
-    if instance.last_api_status != 200:
-        return
-    this_json = instance.json
-
-    # ALWAYS GET CHILD ASSETS
-    assets_endpoint = this_json['links'].get('assets')
-    if assets_endpoint:
-        process_show_assets(assets_endpoint, instance)
-
-    if instance.ingest_seasons:
-        seasons_endpoint = this_json['links'].get('seasons')
-        if seasons_endpoint:
-            process_seasons(seasons_endpoint, instance)
-
-    if instance.ingest_specials:
-        specials_endpoint = this_json['links'].get('specials')
-        if specials_endpoint:
-            process_specials(specials_endpoint, instance)
-
-    # This is a tricky way to unset ingest_seasons without calling save()
-    rec = PBSMMShow.objects.filter(pk=instance.id)
-    rec.update(ingest_seasons=False, ingest_specials=False, ingest_episodes=False)
-    return
+        verbose_name = "PBS MM Show"
+        verbose_name_plural = "PBS MM Shows"
+        db_table = "pbsmm_show"

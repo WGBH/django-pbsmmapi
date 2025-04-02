@@ -1,5 +1,6 @@
 from django import forms
-from .models import PBSMMEpisode
+
+from pbsmmapi.episode.models import Episode
 
 
 class PBSMMEpisodeCreateForm(forms.ModelForm):
@@ -8,13 +9,13 @@ class PBSMMEpisodeCreateForm(forms.ModelForm):
     Usually Episodes are "created" when ingesting a parental Season
     (or a grand-parental Show).
     """
+
     class Meta:
-        model = PBSMMEpisode
-        fields = ('slug', 'season')
+        model = Episode
+        fields = ("slug", "season")
 
 
 class PBSMMEpisodeEditForm(forms.ModelForm):
-
     class Meta:
-        model = PBSMMEpisode
+        model = Episode
         exclude = []

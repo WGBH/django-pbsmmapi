@@ -1,93 +1,115 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from .forms import PBSMMSeasonCreateForm, PBSMMSeasonEditForm
-from .models import PBSMMSeason, PBSMMSeasonAsset
-from ..abstract.admin import PBSMMAbstractAdmin
-from ..asset.admin import PBSMMAbstractAssetAdmin
+from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
+from pbsmmapi.season.forms import (
+    PBSMMSeasonCreateForm,
+    PBSMMSeasonEditForm,
+)
+from pbsmmapi.season.models import Season
 
 
 class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
     form = PBSMMSeasonEditForm
     add_form = PBSMMSeasonCreateForm
-    model = PBSMMSeason
+    model = Season
     list_display = (
-        'pk', 'printable_title', 'show', 'ordinal', 'date_last_api_update',
-        'last_api_status_color', 'show_publish_status'
+        "pk",
+        "printable_title",
+        "show",
+        "ordinal",
+        "date_last_api_update",
+        "last_api_status_color",
     )
-    list_display_links = ('pk', 'printable_title')
-    list_filter = ('show__title_sortable', )
-    # Why so many readonly_fields?  Because we don't want to override what's coming from the API, but we do
-    # want to be able to view it in the context of the Django system.
+    list_display_links = ("pk", "printable_title")
+    list_filter = ("show__title_sortable",)
+    # Why so many readonly_fields?  Because we don't want to override what's
+    # coming from the API, but we do want to be able to view it in the context
+    # of the Django system.
     #
-    # Most things here are fields, some are method output and some are
-    # properties.
+    # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
-        'api_endpoint', 'api_endpoint_link', 'assemble_asset_table', 'canonical_image',
-        'canonical_image_tag', 'date_created', 'date_last_api_update', 'description_long',
-        'description_short', 'format_episode_list', 'images', 'last_api_status',
-        'last_api_status_color', 'links', 'ordinal', 'pretty_image_list', 'show_api_id',
-        'show_publish_status', 'title', 'title_sortable', 'updated_at'
+        "api_endpoint",
+        "api_endpoint_link",
+        "assemble_asset_table",
+        "date_created",
+        "date_last_api_update",
+        "description_long",
+        "description_short",
+        "format_episode_list",
+        "images",
+        "last_api_status",
+        "last_api_status_color",
+        "links",
+        "ordinal",
+        "pretty_image_list",
+        "show_api_id",
+        "title",
+        "title_sortable",
+        "updated_at",
     ]
 
-    add_fieldsets = ((None, {
-        'fields': ('object_id', 'show', 'ingest_episodes'),
-    }), )
+    add_fieldsets = (
+        (
+            None,
+            {
+                "fields": ("object_id", "show", "ingest_episodes"),
+            },
+        ),
+    )
 
     fieldsets = (
         (
             None,
             {
-                'fields': (
-                    ('ingest_on_save', 'ingest_episodes'),
+                "fields": (
+                    ("ingest_on_save", "ingest_episodes"),
                     (
-                        'date_created',
-                        'date_last_api_update',
-                        'updated_at',
-                        'last_api_status',
-                        'last_api_status_color',
+                        "date_created",
+                        "date_last_api_update",
+                        "updated_at",
+                        "last_api_status",
+                        "last_api_status_color",
                     ),
-                    'api_endpoint_link',
+                    "api_endpoint_link",
                 ),
             },
         ),
         (
-            'Episodes',
-            {'fields': ('format_episode_list', )},
+            "Episodes",
+            {"fields": ("format_episode_list",)},
         ),
         (
-            'Season Metadata',
-            {'fields': ('ordinal', 'show_api_id')},
+            "Season Metadata",
+            {"fields": ("ordinal", "show_api_id")},
         ),
         (
-            'Assets',
-            {'fields': ('assemble_asset_table', )},
+            "Assets",
+            {"fields": ("assemble_asset_table",)},
         ),
         (
-            'Description and Texts',
+            "Description and Texts",
             {
-                'classes': ('collapse', ),
-                'fields': (
-                    'description_long',
-                    'description_short',
+                "classes": ("collapse",),
+                "fields": (
+                    "description_long",
+                    "description_short",
                 ),
             },
         ),
         (
-            'Images',
+            "Images",
             {
-                'classes': ('collapse', ),
-                'fields': (
-                    'images',
-                    'pretty_image_list',
-                    'canonical_image_type_override',
-                    'canonical_image_tag',
+                "classes": ("collapse",),
+                "fields": (
+                    "images",
+                    "pretty_image_list",
                 ),
             },
         ),
         (
-            'Other',
-            {'classes': ('collapse', ), 'fields': ('links', )},
+            "Other",
+            {"classes": ("collapse",), "fields": ("links",)},
         ),
     )
 
@@ -96,7 +118,7 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
     def get_fieldsets(self, request, obj=None):
         if not obj:
             return self.add_fieldsets
-        return super(PBSMMSeasonAdmin, self).get_fieldsets(request, obj)
+        return super().get_fieldsets(request, obj)
 
     # Apply the chosen fieldsets tuple to the viewed form
     def get_form(self, request, obj=None, **kwargs):
@@ -104,46 +126,33 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
         if obj is None:
             kwargs.update(
                 {
-                    'form': self.add_form,
-                    'fields': admin.utils.flatten_fieldsets(self.add_fieldsets),
+                    "form": self.add_form,
+                    "fields": admin.utils.flatten_fieldsets(self.add_fieldsets),
                 }
             )
         defaults.update(kwargs)
-        return super(PBSMMSeasonAdmin, self).get_form(request, obj, **kwargs)
+        return super().get_form(request, obj, **kwargs)
 
     def format_episode_list(self, obj):
+        out = (
+            '<table width="100%">\n'
+            + "<tr>"
+            + '<th colspan="3">Episodes</th>'
+            + "<th>API Link</th>"
+            + "<th># Assets</th>"
+            + "<th>Last Updated</th>"
+            + "<th>API Status"
+            + "<th>Public</th>"
+            + "</tr>"
+        )
 
-        out = '<table width=\"100%\">\n' + \
-            '<tr>' +\
-            '<th colspan=\"3\">Episodes</th>' + \
-            '<th>API Link</th>' + \
-            '<th># Assets</th>' + \
-            '<th>Last Updated</th>' + \
-            '<th>API Status' + \
-            '<th>Public</th>' + \
-            '</tr>'
-
-        episode_list = obj.episodes.order_by('ordinal')
+        episode_list = obj.episodes.order_by("ordinal")
         for episode in episode_list:
             out += episode.create_table_line()
-        out += '</table>'
+        out += "</table>"
         return mark_safe(out)
 
-    format_episode_list.short_description = 'EPISODE LIST'
+    format_episode_list.short_description = "EPISODE LIST"
 
 
-class PBSMMSeasonAssetAdmin(PBSMMAbstractAssetAdmin):
-    model = PBSMMSeasonAsset
-    list_display = (
-        'pk', 'object_id', 'season_title', 'object_type', 'legacy_tp_media_id',
-        'asset_publicly_available', 'title_sortable', 'duration'
-    )
-
-    def season_title(self, obj):
-        return obj.season.title
-
-    season_title.short_description = 'Season'
-
-
-admin.site.register(PBSMMSeason, PBSMMSeasonAdmin)
-admin.site.register(PBSMMSeasonAsset, PBSMMSeasonAssetAdmin)
+admin.site.register(Season, PBSMMSeasonAdmin)

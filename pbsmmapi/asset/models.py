@@ -1,170 +1,191 @@
-# -*- coding: utf-8 -*-
-from __future__ import unicode_literals
-import json
+import re
+from typing import (
+    Literal,
+    overload,
+)
 
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
-from ..abstract.models import PBSMMGenericAsset
+from django.utils.translation import gettext_lazy as _
+from huey.contrib.djhuey import db_task
 
-from .helpers import check_asset_availability
+# TODO we are importing from private package here
+from theseus_core.video import (
+    AssetAvailability,
+    PBSVideo,
+)
+
+from pbsmmapi.abstract.helpers import time_zone_aware_now
+from pbsmmapi.abstract.models import PBSMMGenericAsset
+from pbsmmapi.asset.helpers import check_asset_availability
 
 AVAILABILITY_GROUPS = (
-    ('Station Members', 'station_members'), ('All Members', 'all_members'),
-    ('Public', 'public')
+    ("Station Members", "station_members"),
+    ("All Members", "all_members"),
+    ("Public", "public"),
 )
 
-# remember the closing slash
-PBSMM_ASSET_ENDPOINT = 'https://media.services.pbs.org/api/v1/assets/'
-PBSMM_LEGACY_ASSET_ENDPOINT = 'https://media.services.pbs.org/api/v1/assets/legacy/?tp_media_id='
-
-YES_NO = (
-    (1, 'Yes'),
-    (0, 'No'),
-)
+PBSMM_BASE_URL = "https://media.services.pbs.org/"
+PBSMM_ASSET_ENDPOINT = f"{PBSMM_BASE_URL}api/v1/assets/"
+PBSMM_LEGACY_ASSET_ENDPOINT = f"{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id="
 
 
-class PBSMMAbstractAsset(PBSMMGenericAsset):
-    """
-    These are fields unique to Assets.
-    Each object model has a *-Asset table, e.g., PBSMMEpisode has PBSMMEpisodeAsset,
-    PBSMMShow has PBSShowAsset, etc.
-
-    Aside from the FK reference to the parent, each of these *-Asset models are identical in structure.
-    """
-    # These fields are unique to Asset
+class Asset(PBSMMGenericAsset):
     legacy_tp_media_id = models.BigIntegerField(
-        _('COVE ID'),
+        _("COVE ID"),
         null=True,
         blank=True,
         unique=True,
-        help_text='(Legacy TP Media ID)',
+        help_text="(Legacy TP Media ID)",
     )
 
-    availability = models.TextField(
-        _('Availability'),
+    availability = models.JSONField(
+        _("Availability"),
         null=True,
         blank=True,
-        help_text='JSON serialized Field',
+        help_text="JSON serialized Field",
     )
 
     duration = models.IntegerField(
-        _('Duration'),
+        _("Duration"),
         null=True,
         blank=True,
         help_text="(in seconds)",
     )
 
-    object_type = models.CharField(  # This is 'clip', etc.
-        _('Object Type'),
+    asset_type = models.CharField(  # This is 'clip', etc.
+        _("Asset Type"),
         max_length=40,
-        null=True, blank=True,
+        null=True,
+        blank=True,
     )
 
     # CAPTIONS
     has_captions = models.BooleanField(
-        _('Has Captions'),
+        _("Has Captions"),
         default=False,
     )
 
-    # TAGS, Topics
-    tags = models.TextField(
-        _('Tags'),
-        null=True,
-        blank=True,
-        help_text='JSON serialized field',
-    )
-    topics = models.TextField(
-        _('Topics'),
-        null=True,
-        blank=True,
-        help_text='JSON serialized field',
-    )
-
-    # PLAYER FIELDS
-    player_code = models.TextField(
-        _('Player Code'),
-        null=True,
-        blank=True,
-    )
-
-    # CHAPTERS
-    chapters = models.TextField(
-        _('Chapters'),
+    tags = models.JSONField(
+        _("Tags"),
         null=True,
         blank=True,
         help_text="JSON serialized field",
     )
 
-    content_rating = models.CharField(
-        _('Content Rating'),
-        max_length=100,
+    # PLAYER FIELDS
+    player_code = models.TextField(
+        _("Player Code"),
         null=True,
         blank=True,
     )
 
-    content_rating_description = models.TextField(
-        _('Content Rating Description'),
+    # Relationships
+
+    episode = models.ForeignKey(
+        "episode.Episode",
         null=True,
         blank=True,
+        related_name="assets",
+        on_delete=models.SET_NULL,
     )
 
-    # This is a custom field that lies outside of the API.
-    # It alloes the content producer to define WHICH Asset is shown on the parental object's Detail page.
-    # Since the PBSMM API does not know how to distinguish mutliple "clips" from one another, this is necessary
-    # to show a Promo vs. a Short Form video, etc.
-    #
-    # ... thanks PBS.
-
-    override_default_asset = models.PositiveIntegerField(
-        _('Override Default Asset'), null=False, choices=YES_NO, default=0
+    season = models.ForeignKey(
+        "season.Season",
+        null=True,
+        blank=True,
+        related_name="assets",
+        on_delete=models.SET_NULL,
     )
 
-    class Meta:
-        abstract = True
+    show = models.ForeignKey(
+        "show.Show",
+        null=True,
+        blank=True,
+        related_name="assets",
+        on_delete=models.SET_NULL,
+    )
 
-    ###
+    special = models.ForeignKey(
+        "special.Special",
+        null=True,
+        blank=True,
+        related_name="assets",
+        on_delete=models.SET_NULL,
+    )
+
+    franchise = models.ForeignKey(
+        "franchise.Franchise",
+        null=True,
+        blank=True,
+        related_name="assets",
+        on_delete=models.SET_NULL,
+    )
+
     # Properties and methods
-    ###
-
-    def __unicode__(self):
-        return "%d | %s (%d) | %s" % (
-            self.pk, self.object_id, self.legacy_tp_media_id, self.title
-        )
-
-    def __object_model_type(self):
+    @property
+    def object_model_type(self):
         """
-        This handles the correspondence to the "type" field in the PBSMM JSON object.
-        Basically this just makes it easy to identify whether an object is an asset or not.
+        This handles the correspondence to the "type" field in the PBSMM JSON
+        object. Basically this just makes it easy to identify whether an object
+        is an asset or not.
         """
-        return 'asset'
+        return "asset"
 
-    object_model_type = property(__object_model_type)
+    @property
+    def topics(self):
+        """
+        Return a list of topics if the asset have it.
+        According to PBS this isn't really used
+            - legacy for some third parties - skipping
+        However, Antiques Roadshow appears to be one of them.
+        """
+        try:
+            return self.json.get("attributes").get("topics")
+        except AttributeError:
+            return []
+
+    @property
+    def content_rating(self):
+        """
+        What audience this asset is intended for. eg: TV-Y
+        """
+        try:
+            return self.json.get("attributes").get("content_rating")
+        except AttributeError:
+            return None
+
+    @property
+    def content_rating_description(self):
+        """
+        Verbose description of the content rating. eg: General Audience
+        """
+        try:
+            return self.json.get("attributes").get("content_rating_description")
+        except AttributeError:
+            return None
 
     def asset_publicly_available(self):
         """
-        This is mostly for tables listing Assets in the Admin detail page for ancestral objects:
-        e.g., an Episode's page in the Admin has a list of the episode's assets, and this provides
-        a simple column to show availability in that list.
+        This is mostly for tables listing Assets in the Admin detail page for
+        ancestral objects: e.g., an Episode's page in the Admin has a list of
+        the episode's assets, and this provides a simple column to show
+        availability in that list.
         """
         if self.availability:
-            a = json.loads(self.availability)
-            p = a.get('public', None)
-            if p:
-                return check_asset_availability(start=p['start'], end=p['end'])[0]
+            public_window = self.availability.get("public", None)
+            if public_window:
+                return check_asset_availability(
+                    start=public_window["start"],
+                    end=public_window["end"],
+                )[0]
         return None
 
-    asset_publicly_available.short_description = 'Pub. Avail.'
+    asset_publicly_available.short_description = "Pub. Avail."
     asset_publicly_available.boolean = True
 
-    def __is_asset_publicly_available(self):
-        """
-        Am I available to the public?  True/False.
-        """
-        return self.asset_publicly_available
-
-    is_asset_publicly_available = property(__is_asset_publicly_available)
-
-    def __duration_hms(self):
+    @property
+    def duration_hms(self):
+        # TODO rewrite this
         """
         Show the asset's duration as #h ##m ##s.
         """
@@ -172,29 +193,29 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
             d = self.duration
             hours = d // 3600
             if hours > 0:
-                hstr = '%dh' % hours
+                hstr = "%dh" % hours
             else:
-                hstr = ''
+                hstr = ""
             d %= 3600
             minutes = d // 60
             if hours > 0:
-                mstr = '%02dm' % minutes
+                mstr = "%02dm" % minutes
             else:
                 if minutes > 0:
-                    mstr = '%2dm' % minutes
+                    mstr = "%2dm" % minutes
                 else:
-                    mstr = ''
+                    mstr = ""
             seconds = d % 60
             if minutes > 0:
-                sstr = '%02ds' % seconds
+                sstr = "%02ds" % seconds
             else:
-                sstr = '%ds' % seconds
-            return ' '.join((hstr, mstr, sstr))
-        return ''
+                sstr = "%ds" % seconds
+            return " ".join((hstr, mstr, sstr))
+        return ""
 
-    duration_hms = property(__duration_hms)
-
-    def __formatted_duration(self):
+    @property
+    def formatted_duration(self):
+        # TODO rewrite this
         """
         Show the Asset's duration as ##:##:##
         """
@@ -205,16 +226,76 @@ class PBSMMAbstractAsset(PBSMMGenericAsset):
             minutes = seconds // 60
             seconds %= 60
             return "%d:%02d:%02d" % (hours, minutes, seconds)
-        return ''
+        return ""
 
-    formatted_duration = property(__formatted_duration)
+    class Meta:
+        verbose_name = "PBS MM Asset"
+        verbose_name_plural = "PBS MM Assets"
+        db_table = "pbsmm_asset"
 
-    def __is_default(self):
+    @staticmethod
+    @db_task()
+    def set(asset: dict, **kwargs):
         """
-        Return True/False if the Asset is the "default" Asset for it's parent.
+        Update or creates an asset
         """
-        if self.override_default_asset:
-            return True
-        return False
+        attrs = asset["attributes"]
+        links = asset.get("links", dict())
 
-    is_default = property(__is_default)
+        def make_fields():
+            for f in (f.name for f in Asset._meta.get_fields()):
+                value = attrs.get(f)
+                if value is not None:
+                    yield f, value
+
+        fields = dict(make_fields())
+        fields.update(
+            object_id=asset["id"],
+            api_endpoint=links.get("self"),
+            availability=attrs.get("availabilities"),
+            asset_type=attrs.get("object_type"),
+            date_last_api_update=time_zone_aware_now(),
+            ingest_on_save=True,
+            json=asset,
+            links=links or None,
+            windows=None,
+            **kwargs,
+        )
+        Asset.objects.update_or_create(
+            defaults=fields,
+            object_id=asset["id"],
+        )[0]
+
+    def get_video_id_from_player_code(self):
+        regex = r"org\/partnerplayer\/(.*)((?:\/\?))"
+        part_of_player_code = re.search(regex, self.player_code)
+        return part_of_player_code.group(1)
+
+    @overload
+    def theseus_value(self, return_type: Literal["pbsvideo"]) -> PBSVideo: ...
+
+    @overload
+    def theseus_value(
+        self, return_type: Literal["asset_availability"]
+    ) -> AssetAvailability: ...
+
+    def theseus_value(self, return_type: str = "pbsvideo"):
+        match return_type:
+            case "pbsvideo":
+                return PBSVideo(
+                    title=self.title,
+                    availability=self.availability,
+                    asset_type=self.asset_type,
+                    duration=self.duration,
+                    video_id=self.get_video_id_from_player_code(),
+                )
+            case "asset_availability":
+                return AssetAvailability(
+                    asset_type=self.asset_type,
+                    availability=self.availability,
+                )
+
+    def __str__(self):
+        return (
+            f"{self.pk} | {self.object_id} ({self.legacy_tp_media_id}) | {self.title}"
+        )
