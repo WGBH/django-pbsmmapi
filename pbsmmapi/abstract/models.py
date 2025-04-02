@@ -4,6 +4,8 @@ from typing import Literal
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+
+# TODO we are importing from private package here
 from theseus_core.video import AssetAvailability
 
 from pbsmmapi.abstract.helpers import fix_non_aware_datetime
