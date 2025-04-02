@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from http import HTTPStatus
 from typing import Literal
 
@@ -235,8 +234,8 @@ class PBSMMImage(models.Model):
             for image in image_list:
                 out += "\n<tr>"
                 out += f'<td><a href="{image["image"]}" target="_new">'
-                out += f'{image["profile"]}</a></td>'
-                out += f'<td>{image["updated_at"]}</td>'
+                out += f"{image['profile']}</a></td>"
+                out += f"<td>{image['updated_at']}</td>"
                 out += "</tr>"
             out += "</table>"
             return mark_safe(out)
