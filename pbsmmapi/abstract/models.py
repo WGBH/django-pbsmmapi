@@ -1,10 +1,11 @@
-# -*- coding: utf-8 -*-
 from http import HTTPStatus
 from typing import Literal
 
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
+
+# TODO we are importing from private package here
 from theseus_core.video import AssetAvailability
 
 from pbsmmapi.abstract.helpers import fix_non_aware_datetime
@@ -235,8 +236,8 @@ class PBSMMImage(models.Model):
             for image in image_list:
                 out += "\n<tr>"
                 out += f'<td><a href="{image["image"]}" target="_new">'
-                out += f'{image["profile"]}</a></td>'
-                out += f'<td>{image["updated_at"]}</td>'
+                out += f"{image['profile']}</a></td>"
+                out += f"<td>{image['updated_at']}</td>"
                 out += "</tr>"
             out += "</table>"
             return mark_safe(out)

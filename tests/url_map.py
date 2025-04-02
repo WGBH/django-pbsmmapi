@@ -1604,7 +1604,9 @@ url_map = {
     "https://media.services.pbs.org/api/v1/seasons/7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef/assets/": (
         "test_fixtures/nova_seasons_7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef_assets.json"
     ),
-    "https://media.services.pbs.org/api/v1/seasons/7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef/assets/?page=2": "test_fixtures/nova_seasons_7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef_assets_page_2.json",
+    "https://media.services.pbs.org/api/v1/seasons/7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef/assets/?page=2": (
+        "test_fixtures/nova_seasons_7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef_assets_page_2.json"
+    ),
     "https://media.services.pbs.org/api/v1/seasons/7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef/episodes/": (
         "test_fixtures/nova_seasons_7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef_episodes.json"
     ),
@@ -1614,7 +1616,9 @@ url_map = {
     "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/assets/": (
         "test_fixtures/nova_seasons_7f613b59-588b-4ec5-bcb1-a3d595b2579c_assets.json"
     ),
-    "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/assets/?page=2": "test_fixtures/nova_seasons_7f613b59-588b-4ec5-bcb1-a3d595b2579c_assets_page_2.json",
+    "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/assets/?page=2": (
+        "test_fixtures/nova_seasons_7f613b59-588b-4ec5-bcb1-a3d595b2579c_assets_page_2.json"
+    ),
     "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/episodes/": (
         "test_fixtures/nova_seasons_7f613b59-588b-4ec5-bcb1-a3d595b2579c_episodes.json"
     ),
@@ -1711,20 +1715,36 @@ url_map = {
     "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/": (
         "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_assets.json"
     ),
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?page=2": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_assets_page_2.json",
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?page=3": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_assets_page_3.json",
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?page=2": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_assets_page_2.json"
+    ),
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?page=3": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_assets_page_3.json"
+    ),
     "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/seasons/": (
         "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_seasons.json"
     ),
     "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/": (
         "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials.json"
     ),
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=2": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_2.json",
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=3": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_3.json",
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=4": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_4.json",
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=5": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_5.json",
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=6": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_6.json",
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=7": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_7.json",
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=2": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_2.json"
+    ),
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=3": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_3.json"
+    ),
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=4": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_4.json"
+    ),
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=5": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_5.json"
+    ),
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=6": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_6.json"
+    ),
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=7": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_7.json"
+    ),
     "https://media.services.pbs.org/api/v1/shows/nova/": (
         "test_fixtures/nova_shows_nova.json"
     ),

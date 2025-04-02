@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import re
 from typing import (
     Literal,
@@ -8,6 +7,8 @@ from typing import (
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
+
+# TODO we are importing from private package here
 from theseus_core.video import (
     AssetAvailability,
     PBSVideo,
