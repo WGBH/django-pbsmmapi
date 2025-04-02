@@ -40,10 +40,29 @@ jobs:
         env:
           SKIP: no-commit-to-branch
 
+  check:
+    if: always()
+
+    outputs:
+      result: ${{ steps.all-green.outputs.result }}
+
+    needs:
+      - lint
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ensure all checks pass
+        uses: re-actors/alls-green@release/v1
+        id: all-green
+        with:
+          jobs: ${{ toJSON(needs) }}
+
   release:
+    needs: [check]
+    if: needs.check.outputs.result == 'success'
     runs-on: ubuntu-latest
     environment: release
-
     permissions:
       id-token: write
 
