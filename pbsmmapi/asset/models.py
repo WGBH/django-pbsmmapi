@@ -1,18 +1,8 @@
 import re
-from typing import (
-    Literal,
-    overload,
-)
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
-
-# TODO we are importing from private package here
-from theseus_core.video import (
-    AssetAvailability,
-    PBSVideo,
-)
 
 from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericAsset
@@ -270,30 +260,6 @@ class Asset(PBSMMGenericAsset):
         regex = r"org\/partnerplayer\/(.*)((?:\/\?))"
         part_of_player_code = re.search(regex, self.player_code)
         return part_of_player_code.group(1)
-
-    @overload
-    def theseus_value(self, return_type: Literal["pbsvideo"]) -> PBSVideo: ...
-
-    @overload
-    def theseus_value(
-        self, return_type: Literal["asset_availability"]
-    ) -> AssetAvailability: ...
-
-    def theseus_value(self, return_type: str = "pbsvideo"):
-        match return_type:
-            case "pbsvideo":
-                return PBSVideo(
-                    title=self.title,
-                    availability=self.availability,
-                    asset_type=self.asset_type,
-                    duration=self.duration,
-                    video_id=self.get_video_id_from_player_code(),
-                )
-            case "asset_availability":
-                return AssetAvailability(
-                    asset_type=self.asset_type,
-                    availability=self.availability,
-                )
 
     def __str__(self):
         return (

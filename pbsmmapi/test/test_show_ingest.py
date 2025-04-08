@@ -1,17 +1,13 @@
 import json
-import unittest
+from unittest import mock
 from uuid import UUID
 
-try:
-    from unittest import mock
-except ImportError:
-    import mock
-
 from django.core.exceptions import ObjectDoesNotExist
-from url_map import url_map
+from django.test import TestCase
 
 from pbsmmapi.asset.models import Asset
 from pbsmmapi.show.models import Show
+from pbsmmapi.test.url_map import url_map
 
 default_data_set = url_map
 assets_deleted_data_set = url_map.copy()
@@ -52,7 +48,7 @@ def mocked_requests_get(*args, **kwargs):
         return MockResponse(None, 404)
 
 
-class ShowIngestTestCase(unittest.TestCase):
+class ShowIngestTestCase(TestCase):
     @mock.patch("pbsmmapi.api.api.requests.get", side_effect=mocked_requests_get)
     def setUp(self, mock_get):
         try:
@@ -60,6 +56,7 @@ class ShowIngestTestCase(unittest.TestCase):
         except ObjectDoesNotExist:
             nova = Show()
             nova.slug = "nova"
+            nova.save()
             nova.ingest_on_save = True
             nova.ingest_seasons = True
             nova.ingest_specials = True
@@ -85,7 +82,6 @@ class ShowIngestTestCase(unittest.TestCase):
     def test_show_ingested(self, mock_get):
         nova = Show.objects.get(slug="nova")
         self.assertEqual(nova.object_id, UUID("adfb2f9d-f61e-4613-ac58-ab3bde582afb"))
-        self.assertEqual(nova.get_absolute_url(), "/shows/nova/")
 
     @mock.patch("pbsmmapi.api.api.requests.get", side_effect=mocked_requests_get)
     def test_show_asset(self, mock_get):

@@ -5,11 +5,8 @@ from django.db import (
     models,
 )
 
-import pbsmmapi.abstract.models
-
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = []
@@ -238,6 +235,5 @@ class Migration(migrations.Migration):
                 "verbose_name_plural": "PBS MM Franchises",
                 "db_table": "pbsmm_franchise",
             },
-            bases=(pbsmmapi.abstract.models.AssetAvailablitiesMixin, models.Model),
         ),
     ]
