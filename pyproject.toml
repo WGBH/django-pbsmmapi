@@ -39,7 +39,6 @@ dev = [
     "django-stubs",
     "coverage",
     "pytest",
-    "mock",
     "ipython",
     "devtools",
 ]
