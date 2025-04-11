@@ -124,8 +124,11 @@ class Episode(PBSMMGenericEpisode):
     @db_task()
     def post_save(episode_id):
         episode = Episode.objects.get(id=episode_id)
+        endpoint = None
+        if assets := episode.json["links"].get("assets"):
+            endpoint = f"{assets}?platform-slug=partnerplayer"
         episode.process_assets(
-            episode.json["links"].get("assets"),
+            endpoint,
             episode_id=episode_id,
         )
         episode.delete_stale_assets(episode_id=episode_id)

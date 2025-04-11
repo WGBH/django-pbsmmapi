@@ -78,7 +78,10 @@ class Franchise(PBSMMGenericFranchise):
                 object_id=show["id"],
             )
 
-        self.flip_api_pages(self.json["links"].get("shows"), set_show)
+        endpoint = None
+        if shows := self.json["links"].get("shows"):
+            endpoint = f"{shows}?platform-slug=partnerplayer"
+        self.flip_api_pages(endpoint, set_show)
 
     def stop_ingestion_restart(self):
         Franchise.objects.filter(id=self.id).update(

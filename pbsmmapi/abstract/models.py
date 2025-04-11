@@ -409,11 +409,13 @@ class Ingest(models.Model):
         super().__init__(*args, **kwargs)
         self.scraped_object_ids = []
 
-    def process(self, endpoint):
+    def process(self, endpoint, query_param=None):
         identifier = str(self.object_id or "").strip() or self.slug
         if not identifier and not self.ingest_on_save:
             return  # stop processing if we don't have clearance
-        status, json = get_PBSMM_record(f"{endpoint}{identifier}/")
+        if query_param is None:
+            query_param = ""
+        status, json = get_PBSMM_record(f"{endpoint}{identifier}/{query_param}")
         self.object_id = json.get("id", json["data"]["id"])
         self.last_api_status = status
         if status != HTTPStatus.OK:

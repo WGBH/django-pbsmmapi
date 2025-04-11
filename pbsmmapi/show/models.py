@@ -49,7 +49,7 @@ class Show(PBSMMGenericShow):
         self.post_save(self.id)
 
     def pre_save(self):
-        attrs = self.process(PBSMM_SHOW_ENDPOINT)
+        attrs = self.process(PBSMM_SHOW_ENDPOINT, "?platform-slug=partnerplayer")
         if not attrs:
             return
         self.ga_page = attrs.get("tracking_ga_page")
@@ -62,7 +62,10 @@ class Show(PBSMMGenericShow):
         show = Show.objects.get(id=show_id)
         if int(show.last_api_status or 200) != HTTPStatus.OK:
             return  # run only new object or had previous api call success
-        show.process_assets(show.json["links"].get("assets"), show_id=show_id)
+        endpoint = None
+        if assets := show.json["links"].get("assets"):
+            endpoint = f"{assets}?platform-slug=partnerplayer"
+        show.process_assets(endpoint, show_id=show_id)
         show.process_seasons()
         show.process_specials()
         show.delete_stale_assets(show_id=show_id)
@@ -94,7 +97,10 @@ class Show(PBSMMGenericShow):
                 object_id=special["id"],
             )
 
-        self.flip_api_pages(self.json["links"].get("specials"), set_special)
+        self.flip_api_pages(
+            f'{self.json["links"].get("specials")}?platform-slug=partnerplayer',
+            set_special,
+        )
 
     def stop_ingestion_restart(self):
         Show.objects.filter(id=self.id).update(
