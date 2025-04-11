@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -14,7 +13,9 @@ class Season(PBSMMGenericSeason):
 
     # This is the parental Show
     show_api_id = models.UUIDField(
-        _("Show Object ID"), null=True, blank=True  # does this work?
+        _("Show Object ID"),
+        null=True,
+        blank=True,  # does this work?
     )
     show = models.ForeignKey(
         "show.Show",

@@ -1,28 +1,12 @@
-# -*- coding: utf-8 -*-
 from http import HTTPStatus
-from typing import Literal
 
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
-from theseus_core.video import AssetAvailability
 
 from pbsmmapi.abstract.helpers import fix_non_aware_datetime
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.api.helpers import check_pagination
-
-
-class AssetAvailablitiesMixin:
-    def get_asset_availabilities(
-        self,
-        asset_types: list[
-            Literal["full_length"] | Literal["preview"] | Literal["clip"]
-        ] = ["full_length", "preview"],
-    ) -> list[AssetAvailability]:
-        return [
-            asset.theseus_value(return_type="asset_availability")
-            for asset in self.assets.filter(asset_type__in=asset_types)
-        ]
 
 
 class GenericObjectManagement(models.Model):
@@ -235,8 +219,8 @@ class PBSMMImage(models.Model):
             for image in image_list:
                 out += "\n<tr>"
                 out += f'<td><a href="{image["image"]}" target="_new">'
-                out += f'{image["profile"]}</a></td>'
-                out += f'<td>{image["updated_at"]}</td>'
+                out += f"{image['profile']}</a></td>"
+                out += f"<td>{image['updated_at']}</td>"
                 out += "</tr>"
             out += "</table>"
             return mark_safe(out)
@@ -603,7 +587,6 @@ class PBSMMGenericShow(
     PBSMMAudience,
     PBSMMBroadcastDates,
     PBSMMLanguage,
-    AssetAvailablitiesMixin,
     Ingest,
 ):
     class Meta:
@@ -618,7 +601,6 @@ class PBSMMGenericEpisode(
     PBSMMBroadcastDates,
     PBSMMNOLA,
     PBSMMLinks,
-    AssetAvailablitiesMixin,
     Ingest,
 ):
     class Meta:
@@ -629,7 +611,6 @@ class PBSMMGenericSeason(
     PBSMMGenericObject,
     PBSMMLinks,
     PBSMMImage,
-    AssetAvailablitiesMixin,
     Ingest,
 ):
     class Meta:
@@ -643,7 +624,6 @@ class PBSMMGenericSpecial(
     PBSMMBroadcastDates,
     PBSMMNOLA,
     PBSMMLinks,
-    AssetAvailablitiesMixin,
     Ingest,
 ):
     class Meta:
@@ -672,7 +652,6 @@ class PBSMMGenericFranchise(
     PBSMMGoogleTracking,
     PBSMMGenre,
     PBSMMPlayerMetadata,
-    AssetAvailablitiesMixin,
     Ingest,
 ):
     # There is no can_embed_player field - again, laziness (see above)

@@ -1604,7 +1604,9 @@ url_map = {
     "https://media.services.pbs.org/api/v1/seasons/7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef/assets/": (
         "test_fixtures/nova_seasons_7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef_assets.json"
     ),
-    "https://media.services.pbs.org/api/v1/seasons/7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef/assets/?page=2": "test_fixtures/nova_seasons_7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef_assets_page_2.json",
+    "https://media.services.pbs.org/api/v1/seasons/7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef/assets/?page=2": (
+        "test_fixtures/nova_seasons_7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef_assets_page_2.json"
+    ),
     "https://media.services.pbs.org/api/v1/seasons/7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef/episodes/": (
         "test_fixtures/nova_seasons_7bf1be39-29a9-4d1e-8fbd-d0b284bd54ef_episodes.json"
     ),
@@ -1614,7 +1616,9 @@ url_map = {
     "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/assets/": (
         "test_fixtures/nova_seasons_7f613b59-588b-4ec5-bcb1-a3d595b2579c_assets.json"
     ),
-    "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/assets/?page=2": "test_fixtures/nova_seasons_7f613b59-588b-4ec5-bcb1-a3d595b2579c_assets_page_2.json",
+    "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/assets/?page=2": (
+        "test_fixtures/nova_seasons_7f613b59-588b-4ec5-bcb1-a3d595b2579c_assets_page_2.json"
+    ),
     "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/episodes/": (
         "test_fixtures/nova_seasons_7f613b59-588b-4ec5-bcb1-a3d595b2579c_episodes.json"
     ),
@@ -1711,21 +1715,40 @@ url_map = {
     "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/": (
         "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_assets.json"
     ),
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?page=2": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_assets_page_2.json",
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?page=3": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_assets_page_3.json",
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?page=2": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_assets_page_2.json"
+    ),
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?page=3": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_assets_page_3.json"
+    ),
     "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/seasons/": (
         "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_seasons.json"
     ),
     "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/": (
         "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials.json"
     ),
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=2": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_2.json",
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=3": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_3.json",
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=4": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_4.json",
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=5": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_5.json",
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=6": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_6.json",
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=7": "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_7.json",
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=2": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_2.json"
+    ),
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=3": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_3.json"
+    ),
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=4": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_4.json"
+    ),
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=5": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_5.json"
+    ),
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=6": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_6.json"
+    ),
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/specials/?page=7": (
+        "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_specials_page_7.json"
+    ),
     "https://media.services.pbs.org/api/v1/shows/nova/": (
+        "test_fixtures/nova_shows_nova.json"
+    ),
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/": (
         "test_fixtures/nova_shows_nova.json"
     ),
     "https://media.services.pbs.org/api/v1/specials/0154d740-9f2a-467e-9e0c-b47340b24b2b/assets/": (
@@ -2687,5 +2710,485 @@ url_map = {
     ),
     "https://media.services.pbs.org/api/v1/specials/school-future-spanish-version-tu3i4f/": (
         "test_fixtures/nova_specials_school-future-spanish-version-tu3i4f.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/2eb690f2-ebc4-41f6-9558-6962d8e43c48/": (
+        "test_fixtures/nova_specials_school-future-spanish-version-tu3i4f.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/ebe4ffd5-8a6e-4767-b2bd-99ec474c9c0f/": (
+        "test_fixtures/nova_specials_nova-ancient-life.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/f9966769-080d-4614-b8dc-68b590d76508/": (
+        "test_fixtures/nova_specials_nova-manhattan-schist.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/2f74a17c-9495-4db6-b254-6b8fb5111cd3/": (
+        "test_fixtures/nova_specials_nova-cloudlab_megastorm_05.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/0a94a0de-c290-45c8-ad9e-cf2e30d9a84d/": (
+        "test_fixtures/nova_specials_nova-corkscrew-robot.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/24ca245b-56ae-42d5-941d-beb10e1cdcb7/": (
+        "test_fixtures/nova_specials_nova-shape-memory-alloys.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/8562124f-7ece-43c9-81a6-a387634ccfce/": (
+        "test_fixtures/nova_specials_nova-lethal-seas-excerpt-2.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d7c5a990-6ade-438d-b1da-297f5479800d/": (
+        "test_fixtures/nova_specials_nova-hagfish-defense.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d8191e16-92b2-4547-afb9-b9d2bf28b92a/": (
+        "test_fixtures/nova_specials_nova-traveling-salesman.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d847057f-c3cf-46aa-9915-0714b3de367c/": (
+        "test_fixtures/nova_specials_nova-rock-time-capsules.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/55ca77ee-2e41-439a-b978-4a5074da7828/": (
+        "test_fixtures/nova_specials_nova-grand-canyon-1.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/fad2d21b-57d9-4c41-ab78-4882f0299ec7/": (
+        "test_fixtures/nova_specials_nova-graphene.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/c3ec85bd-4993-4df9-a5cc-e42f76d0a973/": (
+        "test_fixtures/nova_specials_nova-dna-patch.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/fcca6ddb-154c-44ca-ab5d-01f67277085b/": (
+        "test_fixtures/nova_specials_nova-millions-years-captured-chalk.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/92b89c9f-92fb-47eb-b6d8-d19d098d4757/": (
+        "test_fixtures/nova_specials_nova-pizza-transistor.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/54377db9-8db8-41db-9b63-c737aad3f37c/": (
+        "test_fixtures/nova_specials_nova-therapeutic-hypothermia.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/778747d9-b537-45db-bb1b-0a1122380a99/": (
+        "test_fixtures/nova_specials_nova-oobleck.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/0d823a5d-3877-4cea-9640-a1265ae50811/": (
+        "test_fixtures/nova_specials_nova-dogs-sense-time.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/dfbb1e57-9565-4961-aac8-892672acde2e/": (
+        "test_fixtures/nova_specials_nova-volcanoes-sand.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/78f3796a-b23d-44c5-bd79-b6dca930ce9e/": (
+        "test_fixtures/nova_specials_nova-lethal-seas-excerpt-3.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/07c0a48c-31f5-4958-a07e-38b792495024/": (
+        "test_fixtures/nova_specials_nova-levitation.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/f0434359-3fd4-45ac-afbc-88a455866238/": (
+        "test_fixtures/nova_specials_nova-secrets-sun.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/79ad0ebf-bbb9-4b43-a1f5-35f3bf6f6996/": (
+        "test_fixtures/nova_specials_nova-how-batteries-work.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/0791185c-e109-4749-822f-b4b08893daa1/": (
+        "test_fixtures/nova_specials_nova-pitcher-plant.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/ba41fd3b-e184-441b-bfa4-b839867f6479/": (
+        "test_fixtures/nova_specials_nova-gooseberry-falls-4.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/7da5ad94-60e8-4cd6-af56-ee56b7e4681e/": (
+        "test_fixtures/nova_specials_nova-cloudlab_megastorm_04.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/4eb15462-2fb3-48d4-9575-461dcb5935d1/": (
+        "test_fixtures/nova_specials_nova-why-so-many-cloud-types.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/02191b55-7ba2-459a-b28b-789d1e3958ee/": (
+        "test_fixtures/nova_specials_nova-new-yorks-mountains.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/de44ebfc-33e0-4e84-85ff-fa3ef42801dc/": (
+        "test_fixtures/nova_specials_nova-virus-battery.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d84dc74d-a83f-40be-8aa4-112462d72b2f/": (
+        "test_fixtures/nova_specials_nova-plants-white.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/c4e5df49-fd41-4865-a0ad-4bcf29bebec4/": (
+        "test_fixtures/nova_specials_nova-lethal-seas-excerpt-4.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/ddfd618c-c439-496a-a54a-ddef95897ad4/": (
+        "test_fixtures/nova_specials_nova-soft-story-buildings.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/af628aae-822c-4645-b604-8a1d79b05467/": (
+        "test_fixtures/nova_specials_nova-how-1918-flu-infected-people.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/5eaa804a-c3fa-4d7f-914f-d9b8d9038f8e/": (
+        "test_fixtures/nova_specials_nova-arctic-dinosaurs.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/13d9ced2-c44e-48f5-9cd5-8a4081ecc8cf/": (
+        "test_fixtures/nova_specials_nova-secrets-sky-tombs.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/17b9c9b9-583c-4142-897f-a85f330b2b6d/": (
+        "test_fixtures/nova_specials_nova-five-steps-volcanic-rock.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/729c184b-aee9-4aac-ba0f-95b28fe0c58f/": (
+        "test_fixtures/nova_specials_nova-lithuanian-escape-tunnel-revealed.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/12deb199-291b-4fd3-bd1d-9628e0dff55c/": (
+        "test_fixtures/nova_specials_nova-exuma-cays-bahamas.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/67b00fb1-d8b2-45c1-bda8-2d769d2e89b7/": (
+        "test_fixtures/nova_specials_nova-sandstone-top-canyon.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d24ee258-1f72-43c1-a0a1-a999c164c336/": (
+        "test_fixtures/nova_specials_nova-invisibility-cloak.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/4586f099-1a0b-4185-9739-57747a0d8a26/": (
+        "test_fixtures/nova_specials_nova-severe-storms.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/131e940c-7e92-48a4-978a-e3980dfbe9f5/": (
+        "test_fixtures/nova_specials_nova-electromagnetic-spectrum.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/5ec06047-0739-42fb-a740-72a84645f479/": (
+        "test_fixtures/nova_specials_nova-sandy-raw-1-2.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/a3410528-7f72-47e8-b28d-6861693b9309/": (
+        "test_fixtures/nova_specials_front-row-seat-saturn.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/ece036e1-b0b9-4304-9d11-9540e7fc7308/": (
+        "test_fixtures/nova_specials_nova-solving-storage-problem.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/446fb0ee-473f-4f4f-a0e7-fd989f8771fe/": (
+        "test_fixtures/nova_specials_nova-making-north-america-human.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d9db949c-4612-4294-905e-3588d13945b0/": (
+        "test_fixtures/nova_specials_nova-forgotten-genius-1.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/0c26b465-97e1-4291-8108-e9a0c7ca75d1/": (
+        "test_fixtures/nova_specials_nova-monument-rocks-2.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/8c70f25e-e1dc-4519-ba1a-e11d3daabba5/": (
+        "test_fixtures/nova_specials_nova-battle-jacket.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/76e6ff43-52bf-4ddb-b5e5-1b7663715a5b/": (
+        "test_fixtures/nova_specials_nova-slow-goldfish.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/cff70bcf-f9bb-4d8b-8c34-27c8255111ac/": (
+        "test_fixtures/nova_specials_nova-cloudlab_megastorm_03.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/e0962275-5d67-445b-8a82-f3ab67166b04/": (
+        "test_fixtures/nova_specials_nova-gooseberry-falls-3.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/2de0eda2-e871-4a2c-8681-c8683b685ec7/": (
+        "test_fixtures/nova_specials_nova-manhattan-skyline.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/c29b1dfb-6337-469f-9b58-45fbca73a234/": (
+        "test_fixtures/nova_specials_nova-animal-mummies-pro.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/eaea5cfb-959d-42c2-b76c-84c1d4c8524f/": (
+        "test_fixtures/nova_specials_nova-bird-wings.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/06102148-d2e0-4fff-8229-92311cdb764c/": (
+        "test_fixtures/nova_specials_nova-making-granite-volcanic-rock.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/a327f369-66b4-4d02-b95f-53dea35dc137/": (
+        "test_fixtures/nova_specials_nova-flatfish-larvae.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/34e05c7c-a17c-44c0-bbff-2deb99bf25c1/": (
+        "test_fixtures/nova_specials_nova-non-newtonian-gel.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/0b0d37b3-54f6-430e-b26a-bdd22556e536/": (
+        "test_fixtures/nova_specials_nova-killacycle.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/cce6415b-7652-4698-98f6-578c000e18ab/": (
+        "test_fixtures/nova_specials_nova-earthquake-test.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d9b4c2fe-e90f-4773-bf9e-fd7859e7e8a6/": (
+        "test_fixtures/nova_specials_nova-shrinking-chips.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/febf92a9-6e34-4381-92a5-3c594a38d9d0/": (
+        "test_fixtures/nova_specials_nova-swarm-algorithm.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/529f2920-e3ed-40e7-b4b4-9e02d9ec273a/": (
+        "test_fixtures/nova_specials_nova-grand-canyons-oldest-rocks.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/882c1063-6e1f-4621-a589-55c16515293d/": (
+        "test_fixtures/nova_specials_nova-animal-robot-1.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/db3894ce-7866-4366-9ae9-9a624d828e86/": (
+        "test_fixtures/nova_specials_nova-microneedle.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/af71253c-c17b-4bc7-acfc-1a125301945d/": (
+        "test_fixtures/nova_specials_nova-clouds-and-weather.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/c7bee059-bd23-4696-9e71-1440ef44713b/": (
+        "test_fixtures/nova_specials_nova-hydrofoil.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/4f4ab67f-6973-4f63-b656-209e246101d5/": (
+        "test_fixtures/nova_specials_nova-putting-energy-use.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/a7ca8d44-fe1b-4e69-8e33-3d96a82e1742/": (
+        "test_fixtures/nova_specials_nova-chemotherapy-goes-small.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/65b7f798-91f4-4615-950e-44d19e50e2a9/": (
+        "test_fixtures/nova_specials_nova-gooseberry-falls-2.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d102b8e4-644a-4ee4-b541-bf8c588eb834/": (
+        "test_fixtures/nova_specials_nova-cloudlab_megastorm_02.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/22adb0cd-5e0d-42ab-a0f4-c7cdd5a3796e/": (
+        "test_fixtures/nova_specials_nova-slips.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/431e0413-458a-489e-a237-388cbe4ba818/": (
+        "test_fixtures/nova_specials_nova-massive-volcanic-eruption.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/ef69d35d-897a-4714-b07a-1e59907a4f60/": (
+        "test_fixtures/nova_specials_nova-dolphin-mirror.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/35b592f3-6c16-464a-b79f-70f95f9b6d11/": (
+        "test_fixtures/nova_specials_nova-hell-creek-formation.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/18194f4b-d240-4901-aa13-fd134c1ecc4d/": (
+        "test_fixtures/nova_specials_nova-sail-wing.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/734ffa78-9cb9-4e4d-b97a-878f7e0d1ad1/": (
+        "test_fixtures/nova_specials_nova-hagfish.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/ecc8ad99-99db-4467-8517-4358ce8864a7/": (
+        "test_fixtures/nova_specials_nova-solar-leaves.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/49385b03-fe56-4e66-86bb-20254797114b/": (
+        "test_fixtures/nova_specials_nova-dinosaur-fossils.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/f59936d1-0d82-476e-869b-f71addd36031/": (
+        "test_fixtures/nova_specials_nova-promise-solar-power.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/7968656b-dc5d-4645-9897-90afa3017d5c/": (
+        "test_fixtures/nova_specials_nova-superconductor.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/6ed9f9b2-b30f-4fd8-9680-af97840bfd03/": (
+        "test_fixtures/nova_specials_nova-eye-robot.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/6779b9eb-8ea6-49c2-a7d0-46079718f0c9/": (
+        "test_fixtures/nova_specials_nova-crow-tool-excerpt.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d1188b16-c7e6-4873-a33b-634dad6108f1/": (
+        "test_fixtures/nova_specials_nova-climate-wild-card.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/ad1a3c8f-83b9-4433-a021-3605ae5faad9/": (
+        "test_fixtures/nova_specials_nova-how-solar-cells-work.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/b828eb4b-1ce6-4c4d-9198-41dfcb4e00d8/": (
+        "test_fixtures/nova_specials_nova-sneak-peek-making-stuff-faster.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d51996a7-af60-4f5e-900d-9a6aa78cf833/": (
+        "test_fixtures/nova_specials_nova-flu-probabilities.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/fc98467e-69ca-4020-8b44-509bfb2e63bd/": (
+        "test_fixtures/nova_specials_nova-the-fabric-of-the-cosmos-what-is-space.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/4174207d-e27e-47c6-b69d-00e2f6621551/": (
+        "test_fixtures/nova_specials_nova-exuma-cays-4.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/0d9aee2d-5d94-4420-bebb-f21cdaeef497/": (
+        "test_fixtures/nova_specials_nova-treasures-metals-eiffel-tower.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/23ca6c24-d359-4cd7-8c68-1912570b98d3/": (
+        "test_fixtures/nova_specials_nova-therapeutic-hypothermia-3.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/a9aca7c4-4fd8-45d6-846e-d96242cba1e1/": (
+        "test_fixtures/nova_specials_nova-wheat-straw-plastic.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/8d38e870-fd6a-496e-bdcb-eb05f3a0053e/": (
+        "test_fixtures/nova_specials_nova-davids-race.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/c025d3ce-0a2e-482f-9aa9-c5b00e8152cf/": (
+        "test_fixtures/nova_specials_nova-king-gore.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/47fa69eb-9bbd-457b-b7de-172f04081d72/": (
+        "test_fixtures/nova_specials_nova-muons.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/663b20da-2bd6-4d6f-8637-c16ee5300533/": (
+        "test_fixtures/nova_specials_nova-verizon-megastorm.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/24286248-5ded-4fbd-893d-d3ce8ea3c539/": (
+        "test_fixtures/nova_specials_nova-rare-earth-elements.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/cc4767ea-1281-40ca-9433-ff3bcc920118/": (
+        "test_fixtures/nova_specials_nova-animal-robot-2.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/6cb8eed7-c0de-42f5-a558-f8a2b7697fe9/": (
+        "test_fixtures/nova_specials_nova-gooseberry-falls-1.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/e7e3648b-0d4e-4f38-8b35-d850b7be1e94/": (
+        "test_fixtures/nova_specials_nova-cloudlab_megastorm_01.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/f177a875-b98e-4fa7-990d-9bb38ec3cd7f/": (
+        "test_fixtures/nova_specials_nova-rnai-explained.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/fb58e2bf-dda6-4795-bd6a-c4621f30260b/": (
+        "test_fixtures/nova_specials_nova-chicken-feathers.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/5b2899f1-5e30-4a22-a2bf-b00008dd3b13/": (
+        "test_fixtures/nova_specials_nova-bee-toxin.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/e90efe5e-c37f-406f-9df1-966b496a1871/": (
+        "test_fixtures/nova_specials_nova-mother.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/ce5b492a-0bb3-4b8d-a7b1-5cad87159594/": (
+        "test_fixtures/nova_specials_nova-labyrinth-lava-map.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/ad1cc220-46f3-4fe2-86b6-96d9946c377a/": (
+        "test_fixtures/nova_specials_nova-newtons-dark-secrets-1.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/243b2ab7-967b-4255-87a7-e0e9c8a994f8/": (
+        "test_fixtures/nova_specials_nova-what-made-1918-flu-so-deadly.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/1d4aaef4-999e-44a7-8d5a-20c2acbe2ac7/": (
+        "test_fixtures/nova_specials_nova-fossilized-sand-dunes.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/e36e28e3-f002-41c7-843e-bb320a805b44/": (
+        "test_fixtures/nova_specials_nova-mount-kilauea.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/276ca2ed-4032-4942-90a4-cea1ab0d7435/": (
+        "test_fixtures/nova_specials_nova-monument-rocks-1.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/70ceb5bb-6130-4351-b262-ee60e4c9c8df/": (
+        "test_fixtures/nova_specials_nova-swarming-robots.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/6361c7f9-f601-4ab1-bdd7-1c5f4d2096df/": (
+        "test_fixtures/nova_specials_nova-formation-typhoon.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d6ce215e-2e67-4e7d-ab62-b7a70da24feb/": (
+        "test_fixtures/nova_specials_nova-modis-sensor.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/54befe20-2f21-446f-a853-31fc8085ca70/": (
+        "test_fixtures/nova_specials_nova-nova-2017-sizzle-reel.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/97b7c569-9990-4ffd-b94e-a9fa647fb99f/": (
+        "test_fixtures/nova_specials_nova-invisible-universe-revealed.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/f3b3b215-3564-4bf8-bce2-1e4766475605/": (
+        "test_fixtures/nova_specials_nova-fingripper.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/6b5b0e93-8984-42c6-bd74-ea0c6dec88fe/": (
+        "test_fixtures/nova_specials_nova-sneak-peek-making-stuff-wilder.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/07b60a5c-b918-462a-a52a-77b55e4fa502/": (
+        "test_fixtures/nova_specials_nova-silicon-transistors.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/0154d740-9f2a-467e-9e0c-b47340b24b2b/": (
+        "test_fixtures/nova_specials_nova-coriolis-effect.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/062c8bbc-9678-4bca-bed4-baba879ed250/": (
+        "test_fixtures/nova_specials_nova-steffens-plan.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/1ce6de9b-c2ca-4d45-8989-0ee4a8e1ca56/": (
+        "test_fixtures/nova_specials_nova-elephant-arm.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d7de0b32-94fe-4b50-a438-03c08b612770/": (
+        "test_fixtures/nova_specials_nova-nuclear-option.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/5fe0309c-5e67-450e-b8e3-146993c36db5/": (
+        "test_fixtures/nova_specials_nova-treasures-earth-gems.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/9c40366f-052f-4b25-a1e4-080d10d10d68/": (
+        "test_fixtures/nova_specials_nova-therapeutic-hypothermia-2.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/367b772c-7d0d-4a93-84c3-a86805978cb5/": (
+        "test_fixtures/nova_specials_nova-driving-dinosaur-diversity.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/5392561b-9e90-4110-ada0-e0b449ce82f4/": (
+        "test_fixtures/nova_specials_nova-grand-canyon-4.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/55d9e3cd-9ecf-4f56-ac14-17ddf5ba9c4e/": (
+        "test_fixtures/nova_specials_nova-life-saving-non-newtonian-fluids.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/27739df6-1511-47c1-b62f-8fbb106c6a2f/": (
+        "test_fixtures/nova_specials_nova-fossil-filled-limestone.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/ae3a79eb-b3d5-419f-a963-fc5eb82123b6/": (
+        "test_fixtures/nova_specials_nova-nova-full-episode-test.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/1f839811-9782-4040-9803-e3d3370a0466/": (
+        "test_fixtures/nova_specials_nova-chnops-ingredients-life.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/710e37f2-bff8-44a6-9a7c-ed178be6b182/": (
+        "test_fixtures/nova_specials_nova-rockies-20.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/db903aac-3b93-4c22-a8e2-def836def294/": (
+        "test_fixtures/nova_specials_nova-cloudlab_megastorm_07.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/f788e1f2-ab31-4518-8fe2-ce47b4b4bc79/": (
+        "test_fixtures/nova_specials_nova-robot-arm.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/15b5a9c7-2ade-4822-8fe9-af7440456faa/": (
+        "test_fixtures/nova_specials_nova-stromatolies-were-kings.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/05013326-5c13-4369-bf7c-d54b95e1ae10/": (
+        "test_fixtures/nova_specials_nova-mud-rock.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/ed8a6763-f4d9-4804-a2d5-7b58a87da5a3/": (
+        "test_fixtures/nova_specials_nova-treasures-earth-metals.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/b31c959d-d4ec-4ee9-a534-24236251ea46/": (
+        "test_fixtures/nova_specials_nova-sandy-raw-5-1.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/6221fa71-7205-4cb0-b9f3-fe3f4f06b629/": (
+        "test_fixtures/nova_specials_nova-dna-vaccine.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/58b44e96-e11c-4403-8dc7-bfe04025a1e0/": (
+        "test_fixtures/nova_specials_nova-grand-canyon-3.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/f8f6b6a1-a86f-4a4a-8300-e4e1cc70d589/": (
+        "test_fixtures/nova_specials_nova-lava-land.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/46630e9c-f3b5-49cc-9abb-e12d4ee4f58c/": (
+        "test_fixtures/nova_specials_nova-slime-clothes.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d330996e-b4a9-44b0-ae97-eadc4ed6894d/": (
+        "test_fixtures/nova_specials_nova-life-europa.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/9b3efb9e-e217-460d-aab2-ddef01e11699/": (
+        "test_fixtures/nova_specials_nova-tearing-north-america-apart.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/8c3c20ed-6e47-4abf-b327-ebfed61873ee/": (
+        "test_fixtures/nova_specials_nova-treasures-earth-power-pro.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/bd784b6e-18db-4027-995a-cb566463af38/": (
+        "test_fixtures/nova_specials_nova-shelley.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/ac3cfbb8-339d-4397-b7d1-3545a2ff58f0/": (
+        "test_fixtures/nova_specials_nova-david-drives.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/65885aaf-af5d-46d1-bc7d-0a24901aa69a/": (
+        "test_fixtures/nova_specials_nova-magnetic-oobleck.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d5e7cd6f-c410-4c00-9ca1-89c6bad5959b/": (
+        "test_fixtures/nova_specials_nova-lethal-seas-excerpt-1.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/f2e734dd-c9d3-47a4-8c6d-7cdf1acf9608/": (
+        "test_fixtures/nova_specials_nova-semi-precious-pebbles.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/09a11b2d-d8ba-4e04-96c7-a1e5e13184a2/": (
+        "test_fixtures/nova_specials_nova-therapeutic-hypothermia-4.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/d50d20ae-d285-47f0-84ce-991f35b7eb1d/": (
+        "test_fixtures/nova_specials_nova-grand-canyon-2.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/57a463e8-aad5-4a42-9e08-61a20b2a879c/": (
+        "test_fixtures/nova_specials_nova-fertilizing-amazon.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/9a8b3261-37a2-4cac-9e68-818ea349ef3d/": (
+        "test_fixtures/nova_specials_nova-jellyfish.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/b2b05c41-14a9-40a5-9379-3a37b52f0fc9/": (
+        "test_fixtures/nova_specials_nova-pangea.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/961aba67-8b4d-422d-9627-e20d6af68890/": (
+        "test_fixtures/nova_specials_nova-mammal-survivors.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/05218116-66ef-444e-a02b-d4a9e70c8a7d/": (
+        "test_fixtures/nova_specials_nova-cloudlab_megastorm_06.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/fb29114a-f79b-421f-989c-117167be9fd7/": (
+        "test_fixtures/nova_specials_nova-making-cloud.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/812c6e9c-7bc8-42d0-8ab4-a18d52e3726a/": (
+        "test_fixtures/nova_specials_nova-muon-detection.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/251e17eb-85b9-4c35-b7df-149ca33c6167/": (
+        "test_fixtures/nova_specials_nova-gm-plants.json"
+    ),
+    "https://media.services.pbs.org/api/v1/specials/b560095b-e63d-4cf0-a37f-6639af0b0999/": (
+        "test_fixtures/nova_specials_nova-mild-traumatic-brain-injury.json"
     ),
 }

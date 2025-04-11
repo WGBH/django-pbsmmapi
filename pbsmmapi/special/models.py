@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -42,7 +41,7 @@ class Special(PBSMMGenericSpecial):
         out += f'/change/"><B>{self.title}</b></a></td>'
         out += f'\n\t<td><a href="{self.api_endpoint}" target="_new">API</a></td>'
         out += f"\n\t<td>{self.assets.count()}</td>"
-        out += f'\n\t<td>{self.date_last_api_update.strftime("%x %X")}</td>'
+        out += f"\n\t<td>{self.date_last_api_update.strftime('%x %X')}</td>"
         out += f"\n\t<td>{self.last_api_status_color()}</td>"
         out += "\n</tr>"
         return mark_safe(out)
