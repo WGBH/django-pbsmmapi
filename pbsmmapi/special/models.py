@@ -59,7 +59,9 @@ class Special(PBSMMGenericSpecial):
     @db_task()
     def post_save(special_id):
         special = Special.objects.get(id=special_id)
-        endpoint = special.json["links"].get("assets")
+        endpoint = None
+        if assets := special.json["links"].get("assets"):
+            endpoint = f"{assets}?platform-slug=partnerplayer"
         special.process_assets(endpoint, special_id=special_id)
         special.delete_stale_assets(special_id=special_id)
 

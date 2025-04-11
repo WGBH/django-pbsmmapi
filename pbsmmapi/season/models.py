@@ -92,7 +92,10 @@ class Season(PBSMMGenericSeason):
         season = Season.objects.get(id=season_id)
         links = season.json.get("links", dict())
         season.process_episodes(links.get("episodes"))
-        season.process_assets(links.get("assets"), season_id=season_id)
+        endpoint = None
+        if assets := links.get("assets"):
+            endpoint = f"{assets}?platform-slug=partnerplayer"
+        season.process_assets(endpoint, season_id=season_id)
         season.stop_ingestion_restart()
         season.delete_stale_assets(season_id=season_id)
 
