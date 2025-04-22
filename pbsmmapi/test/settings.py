@@ -90,6 +90,7 @@ INSTALLED_APPS = [
     "pbsmmapi.show",
     "pbsmmapi.special",
     "pbsmmapi.franchise",
+    "pbsmmapi.changelog",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -97,6 +98,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.sitemaps",
     "django.contrib.staticfiles",
+    "huey.contrib.djhuey",
 ]
 
 
