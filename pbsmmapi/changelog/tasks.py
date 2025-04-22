@@ -47,7 +47,10 @@ def max_page_number(mm_response_data: dict):
     last: str = links.get("last", "")
     parsed = urlparse(last)
     query_params = parse_qs(parsed.query)
-    last_page = int(query_params["page"][0])
+    try:
+        last_page = int(query_params["page"][0])
+    except KeyError:
+        last_page = 0
 
     if last_page > MAX_QUERIES:
         return MAX_QUERIES + 1
@@ -72,6 +75,7 @@ def scrape_changelog():
         )
         base_url = f"{BASE_CHANGELOG_URL}&since={since}"
         _, mm_response_data = get_PBSMM_record(base_url)
+        print(base_url)
         upper_page_bound = max_page_number(mm_response_data)
         for i in range(1, upper_page_bound):
             url = f"{base_url}&page={i}"
