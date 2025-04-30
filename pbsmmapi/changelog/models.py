@@ -3,6 +3,15 @@ from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 
+class PBSMMObjectType(models.TextChoices):
+    ASSET = "asset", _("Asset")
+    EPISODE = "episode", _("Episode")
+    FRANCHISE = "franchise", _("Franchise")
+    SEASON = "season", _("Season")
+    SHOW = "show", _("Show")
+    SPECIAL = "special", _("Special")
+
+
 class ChangeLogEntry(models.Model):
     # TODO these fields should act as a generic FK.
     # note: MM API changelog returns data for objects without
@@ -16,6 +25,7 @@ class ChangeLogEntry(models.Model):
         max_length=200,
         null=True,
         blank=True,
+        choices=PBSMMObjectType.choices,
     )
     content_id = models.UUIDField(
         _("Object ID"),
@@ -35,10 +45,31 @@ class ChangeLogEntry(models.Model):
     def link(self) -> str | None:
         return self.api_data.get("links", dict()).get("self", None)
 
+    def save(self, *args, **kwargs):
+        # TODO: we will need to override the save method so we do not commit to the DB entries we don't have access to
+        return super().save(*args, **kwargs)
+
+    def create(self):
+        # TODO: Model = apps.get_model(self.object_type.value, self.object_type.label) for lookup
+        # TODO: will need to adjust the save methods for PBSMM object classes so post_save() is not always called
+        # TODO: Asset objects are created with set, will need to be handled separately
+        raise NotImplementedError
+
+    def update(self):
+        # TODO Model = apps.get_model(self.object_type.value, self.object_type.label) for lookup
+        # TODO: api_data only contains the fields that are updated without the associated values, will need something similar to Ingest process() that can also work for Asset
+        # TODO: the updated field for an object may sometimes be "assets", probably nothing has to be done in that case
+        raise NotImplementedError
+
     def process(self):
-        # TODO based on action and content type, trigger ingest or deletion of
-        # our local object. Flip self.processed to True when complete.
-        pass
+        if self.action is None:
+            self.processed = True
+            self.save()
+            return
+        result = getattr(self, self.action)()
+        self.processed = True
+        self.save()
+        return result
 
     class Meta:
         ordering = ["timestamp"]
