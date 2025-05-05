@@ -1,3 +1,4 @@
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
@@ -48,6 +49,16 @@ class ChangeLogEntry(models.Model):
     def save(self, *args, **kwargs):
         # TODO: we will need to override the save method so we do not commit to the DB entries we don't have access to
         return super().save(*args, **kwargs)
+
+    def get_model_class(self):
+        try:
+            ct = ContentType.objects.get(
+                app_label=self.object_type,
+                model=self.object_type,
+            )
+            return ct.model_class()
+        except ContentType.DoesNotExist:
+            return None
 
     def create(self):
         # TODO: Model = apps.get_model(self.object_type.value, self.object_type.label) for lookup
