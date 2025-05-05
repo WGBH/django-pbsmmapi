@@ -16,9 +16,8 @@ from huey.contrib.djhuey import (
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.changelog.models import ChangeLogEntry
 
-# TODO consider filtering by useful content types:
-# type=asset&type=episode&type=franchise&type=season&type=show&type=special
-BASE_CHANGELOG_URL = "https://media.services.pbs.org/api/v1/changelog/?sort=timestamp"
+BASE_CHANGELOG_URL = "https://media.services.pbs.org/api/v1/changelog/?sort=timestamp&type=asset&type=episode&type=franchise&type=season&type=show&type=special"
+
 DT_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 MAX_QUERIES = 400
 
