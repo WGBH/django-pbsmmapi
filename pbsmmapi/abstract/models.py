@@ -396,6 +396,24 @@ class PBSMMHashtag(models.Model):
         abstract = True
 
 
+class GenericProvisional(models.Model):
+    provisional = models.BooleanField(
+        _("Provisional"),
+        default=False,
+    )
+
+    @classmethod
+    def realize(cls, api_data: dict):
+        """
+        Class method to be called from the ChangeLogEntry object's process method
+        Data will be passed from the ChangeLogEntry to be used here to identify the instance for realization
+        """
+        raise NotImplementedError
+
+    class Meta:
+        abstract = True
+
+
 class Ingest(models.Model):
     def __init__(self, *args, **kwargs):
         self.ingest_on_save = None
