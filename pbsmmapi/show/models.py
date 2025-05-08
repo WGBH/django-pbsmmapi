@@ -5,13 +5,19 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
-from pbsmmapi.abstract.models import PBSMMGenericShow
-from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
+from pbsmmapi.abstract.models import (
+    GenericProvisional,
+    PBSMMGenericShow,
+)
+from pbsmmapi.api.api import (
+    get_PBSMM_record,
+    PBSMM_SHOW_ENDPOINT,
+)
 from pbsmmapi.season.models import Season
 from pbsmmapi.special.models import Special
 
 
-class Show(PBSMMGenericShow):
+class Show(GenericProvisional, PBSMMGenericShow):
     ingest_seasons = models.BooleanField(
         _("Ingest Seasons"),
         default=False,
@@ -36,6 +42,22 @@ class Show(PBSMMGenericShow):
         null=True,
         blank=True,
     )
+
+    @classmethod
+    def realize(cls, api_link: str):
+        status, json = get_PBSMM_record(api_link)
+        if status != HTTPStatus.OK:
+            return
+        try:
+            show = cls.objects.get(
+                title=json["data"]["attributes"]["title"],
+                provisional=True,
+            )
+            show.object_id = json["data"]["id"]
+            show.provisional = False
+            show.save()
+        except cls.DoesNotExist:
+            return
 
     @property
     def object_model_type(self):
