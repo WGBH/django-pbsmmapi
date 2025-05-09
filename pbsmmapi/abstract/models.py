@@ -33,7 +33,7 @@ class GenericObjectManagement(models.Model):
     )
     json = models.JSONField(
         _("JSON"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="This is the last JSON uploaded.",
     )
@@ -206,7 +206,7 @@ class PBSMMNOLA(models.Model):
 class PBSMMImage(models.Model):
     images = models.JSONField(
         _("Images"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON serialized field",
     )
@@ -261,7 +261,7 @@ class PBSMMPlayerMetadata(models.Model):
 class PBSMMLinks(models.Model):
     links = models.JSONField(
         _("Links"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON serialized field",
     )
@@ -273,7 +273,7 @@ class PBSMMLinks(models.Model):
 class PBSMMPlatforms(models.Model):
     platforms = models.JSONField(
         _("Platforms"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON serialized field",
     )
@@ -285,7 +285,7 @@ class PBSMMPlatforms(models.Model):
 class PBSMMWindows(models.Model):
     windows = models.JSONField(
         _("Windows"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON serialized field",
     )
@@ -298,7 +298,7 @@ class PBSMMGeo(models.Model):
     # countries --- hold off until needed
     geo_profile = models.JSONField(
         _("Geo Profile"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON serialized field",
     )
@@ -328,7 +328,7 @@ class PBSMMGoogleTracking(models.Model):
 class PBSMMGenre(models.Model):
     genre = models.JSONField(
         _("Genre"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON Serialized Field",
     )
@@ -375,7 +375,7 @@ class PBSMMLanguage(models.Model):
 class PBSMMAudience(models.Model):
     audience = models.JSONField(
         _("Audience"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON Serialized Field",
     )

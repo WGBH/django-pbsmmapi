@@ -30,7 +30,7 @@ class Asset(PBSMMGenericAsset):
 
     availability = models.JSONField(
         _("Availability"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON serialized Field",
     )
@@ -57,7 +57,7 @@ class Asset(PBSMMGenericAsset):
 
     tags = models.JSONField(
         _("Tags"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON serialized field",
     )
