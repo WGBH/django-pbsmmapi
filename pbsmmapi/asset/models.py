@@ -30,7 +30,7 @@ class Asset(PBSMMGenericAsset):
 
     availability = models.JSONField(
         _("Availability"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON serialized Field",
     )
@@ -57,7 +57,7 @@ class Asset(PBSMMGenericAsset):
 
     tags = models.JSONField(
         _("Tags"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON serialized field",
     )
@@ -247,8 +247,7 @@ class Asset(PBSMMGenericAsset):
             date_last_api_update=time_zone_aware_now(),
             ingest_on_save=True,
             json=asset,
-            links=links or None,
-            windows=None,
+            links=links,
             **kwargs,
         )
         Asset.objects.update_or_create(

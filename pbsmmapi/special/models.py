@@ -1,10 +1,15 @@
+from http import HTTPStatus
+
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import PBSMMGenericSpecial
-from pbsmmapi.api.api import PBSMM_SPECIAL_ENDPOINT
+from pbsmmapi.api.api import (
+    PBSMM_SPECIAL_ENDPOINT,
+    get_PBSMM_record,
+)
 
 
 class Special(PBSMMGenericSpecial):
@@ -20,6 +25,23 @@ class Special(PBSMMGenericSpecial):
         null=True,
         blank=True,
     )
+
+    @classmethod
+    def realize(cls, api_link: str):
+        status, json = get_PBSMM_record(api_link)
+        if status != HTTPStatus.OK:
+            return
+        try:
+            special = cls.objects.get(
+                show_api_id=json["data"]["attributes"]["show"]["id"],
+                title=json["data"]["attributes"]["title"],
+                provisional=True,
+            )
+            special.object_id = json["data"]["id"]
+            special.provisional = False
+            special.save()
+        except cls.DoesNotExist:
+            return
 
     @property
     def object_model_type(self):

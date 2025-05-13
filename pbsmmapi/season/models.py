@@ -1,10 +1,15 @@
+from http import HTTPStatus
+
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import PBSMMGenericSeason
-from pbsmmapi.api.api import PBSMM_SEASON_ENDPOINT
+from pbsmmapi.api.api import (
+    PBSMM_SEASON_ENDPOINT,
+    get_PBSMM_record,
+)
 from pbsmmapi.episode.models import Episode
 
 
@@ -46,6 +51,23 @@ class Season(PBSMMGenericSeason):
         out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
         return mark_safe(out)
+
+    @classmethod
+    def realize(cls, api_link: str):
+        status, json = get_PBSMM_record(api_link)
+        if status != HTTPStatus.OK:
+            return
+        try:
+            season = cls.objects.get(
+                show_api_id=json["data"]["attributes"]["show"]["id"],
+                ordinal=json["data"]["attributes"]["ordinal"],
+                provisional=True,
+            )
+            season.object_id = json["data"]["id"]
+            season.provisional = False
+            season.save()
+        except cls.DoesNotExist:
+            return
 
     @property
     def object_model_type(self):

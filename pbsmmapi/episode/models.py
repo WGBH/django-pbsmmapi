@@ -1,10 +1,15 @@
+from http import HTTPStatus
+
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import PBSMMGenericEpisode
-from pbsmmapi.api.api import PBSMM_EPISODE_ENDPOINT
+from pbsmmapi.api.api import (
+    PBSMM_EPISODE_ENDPOINT,
+    get_PBSMM_record,
+)
 
 
 class Episode(PBSMMGenericEpisode):
@@ -35,6 +40,23 @@ class Episode(PBSMMGenericEpisode):
         null=True,
         blank=True,  # does this work?
     )
+
+    @classmethod
+    def realize(cls, api_link: str):
+        status, json = get_PBSMM_record(api_link)
+        if status != HTTPStatus.OK:
+            return
+        try:
+            episode = cls.objects.get(
+                season_api_id=json["data"]["attributes"]["season"]["id"],
+                ordinal=json["data"]["attributes"]["ordinal"],
+                provisional=True,
+            )
+            episode.object_id = json["data"]["id"]
+            episode.provisional = False
+            episode.save()
+        except cls.DoesNotExist:
+            return
 
     @property
     def object_model_type(self):
