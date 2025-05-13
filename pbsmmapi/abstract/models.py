@@ -282,18 +282,6 @@ class PBSMMPlatforms(models.Model):
         abstract = True
 
 
-class PBSMMWindows(models.Model):
-    windows = models.JSONField(
-        _("Windows"),
-        default=dict,
-        blank=True,
-        help_text="JSON serialized field",
-    )
-
-    class Meta:
-        abstract = True
-
-
 class PBSMMGeo(models.Model):
     # countries --- hold off until needed
     geo_profile = models.JSONField(
@@ -577,7 +565,6 @@ class PBSMMGenericAsset(
     PBSMMLinks,
     PBSMMGeo,
     PBSMMPlatforms,
-    PBSMMWindows,
     PBSMMLanguage,
 ):
     class Meta:

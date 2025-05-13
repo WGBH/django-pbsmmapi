@@ -37,7 +37,6 @@ class PBSMMAbstractAssetAdmin(admin.ModelAdmin):
         "title_sortable",
         "topics",
         "updated_at",
-        "windows",
     ]
     search_fields = ("title",)
 
@@ -120,7 +119,7 @@ class PBSMMAbstractAssetAdmin(admin.ModelAdmin):
             "Additional Metadata",
             {
                 "classes": ("collapse",),
-                "fields": ("links", "geo_profile", "platforms", "windows"),
+                "fields": ("links", "geo_profile", "platforms"),
             },
         ),
     ]

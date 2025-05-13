@@ -247,8 +247,7 @@ class Asset(PBSMMGenericAsset):
             date_last_api_update=time_zone_aware_now(),
             ingest_on_save=True,
             json=asset,
-            links=links or None,
-            windows=None,
+            links=links,
             **kwargs,
         )
         Asset.objects.update_or_create(
