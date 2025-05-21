@@ -11,6 +11,8 @@ def scrape_media_manager_shows():
     for slug in show_slugs:
         try:
             show = Show.objects.get(slug=slug)
+            if show.seasons.count():  # already ingested
+                continue
         except Show.DoesNotExist:
             show = Show(slug=slug)
 
