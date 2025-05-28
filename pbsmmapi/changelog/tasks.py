@@ -23,24 +23,40 @@ MAX_QUERIES = 400
 
 
 @db_task(retries=3)
-def save_changelog_entries(url: str):
+def process_changelog_entries(overall_changelog_dict: dict):
+    for changelog_id, changelog_dict in overall_changelog_dict.items():
+        try:
+            ChangeLogEntry.objects.get(
+                content_id=changelog_id,
+                timestamp=changelog_dict["timestamp"],
+            )
+        except ChangeLogEntry.DoesNotExist:
+            changelog_entry = ChangeLogEntry.objects.create(
+                object_type=changelog_dict["type"],
+                content_id=changelog_id,
+                timestamp=changelog_dict["timestamp"],
+                api_data=changelog_dict["api_data"],
+            )
+            changelog_entry.process()
+
+
+@db_task(retries=3)
+def add_changelog_entries(url: str, overall_changelog_dict: dict):
+    """
+    Add either a new changelog ID event or update an existing one from the current scraping.
+    Since we need to hit the same MM API regardless of whether it's a create or update event,
+    we only need to have the correct MM object id with its latest changelog data.
+    """
     _, mm_response_data = get_PBSMM_record(url)
     changelog_dicts = mm_response_data["data"]
     for changelog_dict in changelog_dicts:
         timestamp = changelog_dict["attributes"]["timestamp"]
         date_time = datetime.fromisoformat(timestamp)
-        try:
-            ChangeLogEntry.objects.get(
-                content_id=changelog_dict["id"],
-                timestamp=date_time,
-            )
-        except ChangeLogEntry.DoesNotExist:
-            ChangeLogEntry.objects.create(
-                object_type=changelog_dict["type"],
-                content_id=changelog_dict["id"],
-                timestamp=date_time,
-                api_data=changelog_dict,
-            )
+        overall_changelog_dict[changelog_dict["id"]] = {
+            "object_type": changelog_dict["type"],
+            "timestamp": date_time,
+            "api_data": changelog_dict,
+        }
 
 
 def max_page_number(mm_response_data: dict):
@@ -61,11 +77,12 @@ def max_page_number(mm_response_data: dict):
 
 @db_periodic_task(crontab(minute="*/1"))
 def scrape_changelog():
+    overall_changelog_dict = {}
     if ChangeLogEntry.objects.exists() is False:
         # first time scraping, get first 400 pages
         for i in range(1, MAX_QUERIES):
             url = f"{BASE_CHANGELOG_URL}&page={i}"
-            save_changelog_entries(url)
+            add_changelog_entries(url, overall_changelog_dict)
     else:
         most_recent_entry = ChangeLogEntry.objects.last()
         # rewind 5 minutes to account for changelog entries added since
@@ -79,4 +96,5 @@ def scrape_changelog():
         upper_page_bound = max_page_number(mm_response_data)
         for i in range(1, upper_page_bound):
             url = f"{base_url}&page={i}"
-            save_changelog_entries(url)
+            add_changelog_entries(url, overall_changelog_dict)
+    process_changelog_entries(overall_changelog_dict)
