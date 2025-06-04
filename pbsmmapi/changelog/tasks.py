@@ -36,7 +36,7 @@ def save_changelog_entries(url: str):
             )
         except ChangeLogEntry.DoesNotExist:
             ChangeLogEntry.objects.create(
-                object_type=changelog_dict["type"],
+                resource_type=changelog_dict["type"],
                 content_id=changelog_dict["id"],
                 timestamp=date_time,
                 api_data=changelog_dict,
