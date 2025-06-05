@@ -32,7 +32,7 @@ def process_changelog_entries(overall_changelog_dict: dict):
             )
         except ChangeLogEntry.DoesNotExist:
             changelog_entry = ChangeLogEntry.objects.create(
-                object_type=changelog_dict["type"],
+                resource_type=changelog_dict["type"],
                 content_id=changelog_id,
                 timestamp=changelog_dict["timestamp"],
                 api_data=changelog_dict["api_data"],
@@ -53,7 +53,7 @@ def add_changelog_entries(url: str, overall_changelog_dict: dict):
         timestamp = changelog_dict["attributes"]["timestamp"]
         date_time = datetime.fromisoformat(timestamp)
         overall_changelog_dict[changelog_dict["id"]] = {
-            "object_type": changelog_dict["type"],
+            "type": changelog_dict["type"],
             "timestamp": date_time,
             "api_data": changelog_dict,
         }
