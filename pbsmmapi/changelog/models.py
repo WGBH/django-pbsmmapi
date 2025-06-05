@@ -4,7 +4,7 @@ from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 
 
-class PBSMMObjectType(models.TextChoices):
+class PBSMMResourceType(models.TextChoices):
     ASSET = "asset", _("Asset")
     EPISODE = "episode", _("Episode")
     FRANCHISE = "franchise", _("Franchise")
@@ -22,14 +22,14 @@ class ChangeLogEntry(models.Model):
     # is always present, we could potentially use the `api_endpoint`
     # field from the abstract PBSObjectMetadata class, assuming that
     # field is being populated
-    object_type = models.CharField(
+    resource_type = models.CharField(
         max_length=200,
         null=True,
         blank=True,
-        choices=PBSMMObjectType.choices,
+        choices=PBSMMResourceType.choices,
     )
     content_id = models.UUIDField(
-        _("Object ID"),
+        _("Content ID"),
         null=True,
     )
 
@@ -53,21 +53,21 @@ class ChangeLogEntry(models.Model):
     def get_model_class(self):
         try:
             ct = ContentType.objects.get(
-                app_label=self.object_type,
-                model=self.object_type,
+                app_label=self.resource_type,
+                model=self.resource_type,
             )
             return ct.model_class()
         except ContentType.DoesNotExist:
             return None
 
     def create(self):
-        # TODO: Model = apps.get_model(self.object_type.value, self.object_type.label) for lookup
+        # TODO: Model = apps.get_model(self.resource_type.value, self.resource_type.label) for lookup
         # TODO: will need to adjust the save methods for PBSMM object classes so post_save() is not always called
         # TODO: Asset objects are created with set, will need to be handled separately
         raise NotImplementedError
 
     def update(self):
-        # TODO Model = apps.get_model(self.object_type.value, self.object_type.label) for lookup
+        # TODO Model = apps.get_model(self.resource_type.value, self.resource_type.label) for lookup
         # TODO: api_data only contains the fields that are updated without the associated values, will need something similar to Ingest process() that can also work for Asset
         # TODO: the updated field for an object may sometimes be "assets", probably nothing has to be done in that case
         raise NotImplementedError
