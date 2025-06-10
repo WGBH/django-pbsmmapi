@@ -14,7 +14,7 @@ from huey.contrib.djhuey import (
 )
 
 from pbsmmapi.api.api import get_PBSMM_record
-from pbsmmapi.changelog.models import ChangeLogEntry
+from pbsmmapi.changelog.models import ChangeLog
 
 BASE_CHANGELOG_URL = "https://media.services.pbs.org/api/v1/changelog/?sort=timestamp&type=asset&type=episode&type=franchise&type=season&type=show&type=special"
 
@@ -27,20 +27,21 @@ def save_changelog_entries(url: str):
     _, mm_response_data = get_PBSMM_record(url)
     changelog_dicts = mm_response_data["data"]
     for changelog_dict in changelog_dicts:
-        timestamp = changelog_dict["attributes"]["timestamp"]
-        date_time = datetime.fromisoformat(timestamp)
         try:
-            ChangeLogEntry.objects.get(
+            log = ChangeLog.objects.get(
                 content_id=changelog_dict["id"],
-                timestamp=date_time,
-            )
-        except ChangeLogEntry.DoesNotExist:
-            ChangeLogEntry.objects.create(
                 resource_type=changelog_dict["type"],
-                content_id=changelog_dict["id"],
-                timestamp=date_time,
-                api_data=changelog_dict,
             )
+        except ChangeLog.DoesNotExist:
+            log = ChangeLog(
+                content_id=changelog_dict["id"],
+                resource_type=changelog_dict["type"],
+            )
+
+        timestamp = changelog_dict["attributes"].pop("timestamp")
+        if timestamp not in log.entries.keys():
+            log.entries[timestamp] = changelog_dict["attributes"]
+            log.save()
 
 
 def max_page_number(mm_response_data: dict):
@@ -61,20 +62,22 @@ def max_page_number(mm_response_data: dict):
 
 @db_periodic_task(crontab(minute="*/1"))
 def scrape_changelog():
-    if ChangeLogEntry.objects.exists() is False:
+    if ChangeLog.objects.exists() is False:
         # first time scraping, get first 400 pages
         for i in range(1, MAX_QUERIES):
             url = f"{BASE_CHANGELOG_URL}&page={i}"
             save_changelog_entries(url)
     else:
-        most_recent_entry = ChangeLogEntry.objects.last()
+        most_recent_entry = ChangeLog.objects.last()
+        assert most_recent_entry is not None
         # rewind 5 minutes to account for changelog entries added since
         # last crawl
         since = datetime.strftime(
-            most_recent_entry.timestamp - timedelta(minutes=5),
+            most_recent_entry.latest_timestamp - timedelta(minutes=5),
             DT_FORMAT,
         )
         base_url = f"{BASE_CHANGELOG_URL}&since={since}"
+
         _, mm_response_data = get_PBSMM_record(base_url)
         upper_page_bound = max_page_number(mm_response_data)
         for i in range(1, upper_page_bound):
