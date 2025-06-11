@@ -25,6 +25,7 @@ class ChangeLog(models.Model):
     content_id = models.UUIDField(
         _("Content ID"),
         null=True,
+        unique=True,
     )
 
     # dict where keys are timestamps and values are the remaining
@@ -39,7 +40,7 @@ class ChangeLog(models.Model):
     api_status = models.IntegerField(null=True)
 
     def save(self, *args, **kwargs):
-        self.latest_timestamp = max(self.entries.keys())
+        self.latest_timestamp = max(self.entries.keys(), default=None)
         super().save(*args, **kwargs)
 
     class Meta:
