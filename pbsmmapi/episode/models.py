@@ -5,14 +5,17 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
-from pbsmmapi.abstract.models import PBSMMGenericEpisode
+from pbsmmapi.abstract.models import (
+    GenericProvisional,
+    PBSMMGenericEpisode,
+)
 from pbsmmapi.api.api import (
     PBSMM_EPISODE_ENDPOINT,
     get_PBSMM_record,
 )
 
 
-class Episode(PBSMMGenericEpisode):
+class Episode(GenericProvisional, PBSMMGenericEpisode):
     """
     These are the fields that are unique to Episode records.
     """
