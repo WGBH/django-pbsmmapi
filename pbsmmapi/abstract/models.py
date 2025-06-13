@@ -422,10 +422,10 @@ class Ingest(models.Model):
         if query_param is None:
             query_param = ""
         status, json = get_PBSMM_record(f"{endpoint}{identifier}/{query_param}")
-        self.object_id = json.get("id", json["data"]["id"])
-        self.last_api_status = status
         if status != HTTPStatus.OK:
             return
+        self.object_id = json.get("id", json["data"]["id"])
+        self.last_api_status = status
         attrs = json.get("attributes", json["data"].get("attributes"))
         for field in self._meta.get_fields():
             value = attrs.get(field.name)

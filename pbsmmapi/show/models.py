@@ -33,6 +33,11 @@ class Show(GenericProvisional, PBSMMGenericShow):
         default=False,
         help_text="Also ingest all Episodes (for each Season)",
     )
+    season_ordinal = models.BooleanField(
+        _("Season Ordinal"),
+        default=True,
+        help_text="Use incrementing integer or current year when creating a Season",
+    )
     # This is the parental Franchise
     franchise_api_id = models.UUIDField(_("Franchise Object ID"), null=True, blank=True)
     franchise = models.ForeignKey(
