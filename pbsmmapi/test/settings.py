@@ -1,37 +1,29 @@
+import multiprocessing
 import os
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() == "true"
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 
-STATIC_ROOT = os.path.join(PROJECT_ROOT, "tests", "test-static")
-MEDIA_ROOT = os.path.join(PROJECT_ROOT, "tests", "test-media")
-MEDIA_URL = "/media/"
-
-TIME_ZONE = "Asia/Tokyo"
+USE_TZ = True
+TIME_ZONE = "America/New_York"
 
 DATABASES = {
     "default": {
-        "ENGINE": os.environ.get("DATABASE_ENGINE", "django.db.backends.sqlite3"),
-        "NAME": os.environ.get("DATABASE_NAME", ":memory:"),
-        "USER": os.environ.get("DATABASE_USER", ""),
-        "PASSWORD": os.environ.get("DATABASE_PASSWORD", ""),
-        "HOST": os.environ.get("DATABASE_HOST", ""),
-        "PORT": os.environ.get("DATABASE_PORT", ""),
-        "TEST": {"NAME": os.environ.get("DATABASE_NAME", "")},
-    }
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.environ["PGDATABASE"],
+        "USER": os.environ["PGUSER"],
+        "PASSWORD": os.environ["PGPASSWORD"],
+        "HOST": os.environ["PGHOST"],
+        "PORT": os.environ["PGPORT"],
+        "OPTIONS": {
+            "pool": True,
+        },
+    },
 }
-
 
 SECRET_KEY = "not needed"
 
 ROOT_URLCONF = "pbsmmapi.test.urls"
-
-STATIC_URL = "/static/"
-
-STATICFILES_FINDERS = (
-    "django.contrib.staticfiles.finders.FileSystemFinder",
-    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-)
 
 # Default storage settings
 # https://docs.djangoproject.com/en/stable/ref/settings/#std-setting-STORAGES
@@ -44,13 +36,16 @@ STORAGES = {
     },
 }
 
-if os.environ.get("STATICFILES_STORAGE", "") == "manifest":
-    STORAGES["staticfiles"][
-        "BACKEND"
-    ] = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
+STATIC_ROOT = os.path.join(PROJECT_ROOT, "tests", "test-static")
+STATIC_URL = "/static/"
 
+STATICFILES_FINDERS = (
+    "django.contrib.staticfiles.finders.FileSystemFinder",
+    "django.contrib.staticfiles.finders.AppDirectoriesFinder",
+)
 
-USE_TZ = True
+MEDIA_ROOT = os.path.join(PROJECT_ROOT, "tests", "test-media")
+MEDIA_URL = "/media/"
 
 LANGUAGE_CODE = "en"
 
@@ -67,7 +62,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "django.template.context_processors.request",
             ],
-            "debug": True,  # required in order to catch template errors
+            "debug": True,
         },
     },
 ]
@@ -97,24 +92,21 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.sitemaps",
     "django.contrib.staticfiles",
+    "huey.contrib.djhuey",
 ]
-
 
 CACHES = {
     "default": {
-        "BACKEND": "django.core.cache.backends.db.DatabaseCache",
-        "LOCATION": "cache",
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": "redis://127.0.0.1:6379",
     }
 }
 
-PASSWORD_HASHERS = (
-    "django.contrib.auth.hashers.MD5PasswordHasher",  # don't use the intentionally slow default password hasher
-)
+PASSWORD_HASHERS = ("django.contrib.auth.hashers.MD5PasswordHasher",)
 
 ALLOWED_HOSTS = [
     "localhost",
     "testserver",
-    "other.example.com",
     "127.0.0.1",
     "0.0.0.0",
 ]
@@ -124,23 +116,33 @@ EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 PBSMM_API_ID = os.getenv("PBSMM_API_ID")
 PBSMM_API_SECRET = os.getenv("PBSMM_API_SECRET")
 
+PBSMM_SHOW_SLUGS = []
+
 HUEY = {
-    "huey_class": "huey.MemoryHuey",  # Huey implementation to use.
-    # 'name': settings.DATABASES['default']['NAME'],  # Use db name for huey.
-    "results": True,  # Store return values of tasks.
-    "store_none": False,  # If a task returns None, do not save to results.
-    "immediate": True,
-    "utc": True,  # Use UTC for all times internally.
-    "blocking": True,  # Perform blocking pop rather than poll Redis.
+    "huey_class": "huey.RedisHuey",
+    "name": "mmhuey",
+    "results": True,
+    "store_none": False,
+    "immediate": False,
+    "utc": True,
+    "blocking": True,
+    "connection": {
+        "host": "localhost",
+        "port": 6379,
+        "db": 0,
+        "connection_pool": None,
+        "read_timeout": 1,
+        "url": None,
+    },
     "consumer": {
-        "workers": 1,
+        "workers": int(multiprocessing.cpu_count() / 2),
         "worker_type": "thread",
-        "initial_delay": 0.1,  # Smallest polling interval, same as -d.
-        "backoff": 1.15,  # Exponential backoff using this rate, -b.
-        "max_delay": 10.0,  # Max possible polling interval, -m.
-        "scheduler_interval": 1,  # Check schedule every second, -s.
-        "periodic": True,  # Enable crontab feature.
-        "check_worker_health": True,  # Enable worker health checks.
-        "health_check_interval": 1,  # Check worker health every second.
+        "initial_delay": 0.1,
+        "backoff": 1.15,
+        "max_delay": 10.0,
+        "scheduler_interval": 1,
+        "periodic": True,
+        "check_worker_health": True,
+        "health_check_interval": 1,
     },
 }

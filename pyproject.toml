@@ -41,6 +41,8 @@ dev = [
     "pytest",
     "ipython",
     "devtools",
+    "psycopg[pool]",
+    "testcontainers[redis,postgres]",
 ]
 
 [tool.hatch.version]
