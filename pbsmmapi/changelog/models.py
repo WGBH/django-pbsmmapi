@@ -1,6 +1,6 @@
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
-from django.utils.functional import cached_property
+from django.db.models.fields.json import KT
 from django.utils.translation import gettext_lazy as _
 
 
@@ -13,15 +13,8 @@ class PBSMMResourceType(models.TextChoices):
     SPECIAL = "special", _("Special")
 
 
-class ChangeLogEntry(models.Model):
-    # TODO these fields should act as a generic FK.
-    # note: MM API changelog returns data for objects without
-    # endpoints (which we can't save as discrete objects),
-    # as well as objects we do not currently ingest
-    # ("collection" and "remoteasset"). If the `link` property
-    # is always present, we could potentially use the `api_endpoint`
-    # field from the abstract PBSObjectMetadata class, assuming that
-    # field is being populated
+class ChangeLog(models.Model):
+    # Let's try one instance per resource type/CID
     resource_type = models.CharField(
         max_length=200,
         null=True,
@@ -31,24 +24,36 @@ class ChangeLogEntry(models.Model):
     content_id = models.UUIDField(
         _("Content ID"),
         null=True,
+        unique=True,
     )
 
-    timestamp = models.DateTimeField()
-    api_data = models.JSONField(null=True)
+    # dict where keys are timestamps and values are the remaining
+    # changelog entry attributes (action and updated_fields)
+    entries = models.JSONField(default=dict)
+    # to pick up ingest where we left off
+    latest_timestamp = models.DateTimeField(null=True)
 
-    processed = models.BooleanField(default=False)
+    ingested = models.BooleanField(default=False)
 
-    @cached_property
-    def action(self) -> str | None:
-        return self.api_data.get("attributes", dict()).get("action", None)
+    api_crawled = models.DateTimeField(null=True)
+    api_status = models.IntegerField(null=True)
+    api_data = models.JSONField(default=dict)
 
-    @cached_property
-    def link(self) -> str | None:
-        return self.api_data.get("links", dict()).get("self", None)
+    @property
+    def api_url(self):
+        return f"https://media.services.pbs.org/api/v1/{self.resource_type}s/{self.content_id}/"
 
     def save(self, *args, **kwargs):
-        # TODO: we will need to override the save method so we do not commit to the DB entries we don't have access to
-        return super().save(*args, **kwargs)
+        self.latest_timestamp = max(self.entries.keys(), default=None)
+        if self.get_instance() is not None:
+            self.ingested = True
+        super().save(*args, **kwargs)
+
+    def get_content_type(self):
+        return ContentType.objects.get(
+            app_label=self.resource_type,
+            model=self.resource_type,
+        )
 
     def get_model_class(self):
         try:
@@ -60,27 +65,125 @@ class ChangeLogEntry(models.Model):
         except ContentType.DoesNotExist:
             return None
 
-    def create(self):
-        # TODO: Model = apps.get_model(self.resource_type.value, self.resource_type.label) for lookup
-        # TODO: will need to adjust the save methods for PBSMM object classes so post_save() is not always called
-        # TODO: Asset objects are created with set, will need to be handled separately
-        raise NotImplementedError
+    def get_instance(self):
+        # try to get a previously saved instance
+        model = self.get_model_class()
+        assert model is not None
+        try:
+            return model.objects.get(object_id=self.content_id)
+        except model.DoesNotExist:
+            return None
 
-    def update(self):
-        # TODO Model = apps.get_model(self.resource_type.value, self.resource_type.label) for lookup
-        # TODO: api_data only contains the fields that are updated without the associated values, will need something similar to Ingest process() that can also work for Asset
-        # TODO: the updated field for an object may sometimes be "assets", probably nothing has to be done in that case
-        raise NotImplementedError
-
-    def process(self):
-        if self.action is None:
-            self.processed = True
-            self.save()
-            return
-        result = getattr(self, self.action)()
-        self.processed = True
-        self.save()
-        return result
+    def __str__(self):
+        return f"Changelog for {self.resource_type} {self.content_id}"
 
     class Meta:
-        ordering = ["timestamp"]
+        verbose_name = "PBS MM Changelog"
+        verbose_name_plural = "PBS MM Changelogs"
+        db_table = "pbsmm_changelog"
+        ordering = ["latest_timestamp"]
+
+
+class ShowChangeLogManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(resource_type="show")
+
+
+class ShowChangeLog(ChangeLog):
+    objects = ShowChangeLogManager()
+
+    class Meta:
+        proxy = True
+
+
+class SeasonChangeLogManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(resource_type="season")
+            .annotate(show_id=KT("api_data__data__attributes__show__id"))
+        )
+
+
+class SeasonChangeLog(ChangeLog):
+    objects = SeasonChangeLogManager()
+
+    class Meta:
+        proxy = True
+
+
+class EpisodeChangeLogManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(resource_type="episode")
+            .annotate(show_id=KT("api_data__data__attributes__show__id"))
+        )
+
+
+class EpisodeChangeLog(ChangeLog):
+    objects = EpisodeChangeLogManager()
+
+    class Meta:
+        proxy = True
+
+
+class SpecialChangeLogManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(resource_type="special")
+            .annotate(show_id=KT("api_data__data__attributes__show__id"))
+        )
+
+
+class SpecialChangeLog(ChangeLog):
+    objects = SpecialChangeLogManager()
+
+    class Meta:
+        proxy = True
+
+
+class AssetChangeLogManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .filter(resource_type="asset")
+            .annotate(
+                parent_type=KT("api_data__data__attributes__parent_tree__type"),
+                parent_id=KT("api_data__data__attributes__parent_tree__id"),
+            )
+        )
+
+
+class AssetChangeLog(ChangeLog):
+    objects = AssetChangeLogManager()
+
+    def get_parent_model_class(self):
+        try:
+            ct = ContentType.objects.get(
+                app_label=self.parent_type,
+                model=self.parent_type,
+            )
+            return ct.model_class()
+        except ContentType.DoesNotExist:
+            return None
+
+    def get_parent_instance(self):
+        # try to get a previously saved instance
+        model = self.get_parent_model_class()
+        assert model is not None
+        try:
+            return model.objects.get(object_id=self.parent_id)
+        except model.DoesNotExist:
+            return None
+
+    def __str__(self):
+        return f"AssetChangelog for {self.content_id} - parent {self.get_parent_instance()}"
+
+    class Meta:
+        proxy = True
