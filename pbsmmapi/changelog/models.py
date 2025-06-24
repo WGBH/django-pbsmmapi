@@ -78,6 +78,9 @@ class ChangeLog(models.Model):
         return f"Changelog for {self.resource_type} {self.content_id}"
 
     class Meta:
+        verbose_name = "PBS MM Changelog"
+        verbose_name_plural = "PBS MM Changelogs"
+        db_table = "pbsmm_changelog"
         ordering = ["latest_timestamp"]
 
 
