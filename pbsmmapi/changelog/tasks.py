@@ -171,9 +171,6 @@ def reingest_updated_objects():
     ):
         changelog = ChangeLog.objects.get(content_id=franchise.object_id)
         if changelog.latest_timestamp > franchise.date_last_api_update:
-            print("-" * 80)
-            print(f"updating {franchise}")
-            print("-" * 80)
             franchise.ingest_on_save = True
             franchise.ingest_shows = True
             franchise.save()
@@ -199,9 +196,6 @@ def reingest_updated_objects():
         for item in queryset:
             changelog = ChangeLog.objects.get(content_id=item.object_id)
             if changelog.latest_timestamp > item.date_last_api_update:
-                print("-" * 80)
-                print(f"updating {item}")
-                print("-" * 80)
                 item.ingest_on_save = True
                 item.save()
 
@@ -237,11 +231,6 @@ def get_changelog_data(limit: int):
                 F("latest_timestamp"),
             )
         )
-
-        print("-" * 80)
-        print(f"{logs.count()} 403/404 logs to update")
-        print(f"{logs.count() / MAX_QUERIES} minutes remaining")
-        print("-" * 80)
 
         if logs.count() > limit:
             logs = logs[:limit]
