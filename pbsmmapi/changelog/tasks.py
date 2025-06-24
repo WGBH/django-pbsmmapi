@@ -116,7 +116,7 @@ def max_page_number(mm_response_data: dict) -> int:
 
 @db_task(retries=3)
 def fetch_api_data(log: ChangeLog):
-    status, data = get_PBSMM_record(log.get_api_url())
+    status, data = get_PBSMM_record(log.api_url)
     log.api_status = status
     log.api_crawled = datetime.now(UTC)
     if status == 200:
@@ -129,7 +129,7 @@ def ingest_new_objects():
     for show in Show.objects.all():
         season_logs = SeasonChangeLog.objects.filter(
             show_id=show.object_id,
-            processed=False,
+            ingested=False,
         )
         for log in season_logs:
             if log.get_instance() is not None:
@@ -139,7 +139,7 @@ def ingest_new_objects():
 
         episode_logs = EpisodeChangeLog.objects.filter(
             show_id=show.object_id,
-            processed=False,
+            ingested=False,
         )
         for log in episode_logs:
             if log.get_instance() is not None:
@@ -149,7 +149,7 @@ def ingest_new_objects():
 
         special_logs = SpecialChangeLog.objects.filter(
             show_id=show.object_id,
-            processed=False,
+            ingested=False,
         )
         for log in special_logs:
             if log.get_instance() is not None:
@@ -215,7 +215,7 @@ def get_changelog_data(limit: int):
     # for changelogs without API data
     logs = ChangeLog.objects.filter(
         api_status__isnull=True,
-        processed=False,
+        ingested=False,
     )
 
     if logs.count() > limit:

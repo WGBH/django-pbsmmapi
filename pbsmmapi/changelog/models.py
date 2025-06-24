@@ -33,23 +33,20 @@ class ChangeLog(models.Model):
     # to pick up ingest where we left off
     latest_timestamp = models.DateTimeField(null=True)
 
-    # TODO rename to ingested
-    processed = models.BooleanField(default=False)
+    ingested = models.BooleanField(default=False)
 
     api_crawled = models.DateTimeField(null=True)
-
-    # TODO: replace field and get_api_url with property
-    api_url = models.URLField(null=True)
     api_status = models.IntegerField(null=True)
     api_data = models.JSONField(default=dict)
 
-    def get_api_url(self):
+    @property
+    def api_url(self):
         return f"https://media.services.pbs.org/api/v1/{self.resource_type}s/{self.content_id}/"
 
     def save(self, *args, **kwargs):
         self.latest_timestamp = max(self.entries.keys(), default=None)
         if self.get_instance() is not None:
-            self.processed = True
+            self.ingested = True
         super().save(*args, **kwargs)
 
     def get_content_type(self):
