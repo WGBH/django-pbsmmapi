@@ -5,7 +5,10 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
-from pbsmmapi.abstract.models import PBSMMGenericSeason
+from pbsmmapi.abstract.models import (
+    GenericProvisional,
+    PBSMMGenericSeason,
+)
 from pbsmmapi.api.api import (
     PBSMM_SEASON_ENDPOINT,
     get_PBSMM_record,
@@ -13,8 +16,12 @@ from pbsmmapi.api.api import (
 from pbsmmapi.episode.models import Episode
 
 
-class Season(PBSMMGenericSeason):
-    ordinal = models.PositiveIntegerField(_("Ordinal"), null=True, blank=True)
+class Season(GenericProvisional, PBSMMGenericSeason):
+    ordinal = models.PositiveIntegerField(
+        _("Ordinal"),
+        null=True,
+        blank=True,
+    )
 
     # This is the parental Show
     show_api_id = models.UUIDField(
