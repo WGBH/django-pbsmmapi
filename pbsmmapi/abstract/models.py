@@ -405,8 +405,8 @@ class GenericProvisional(models.Model):
     @classmethod
     def realize(cls, api_data: dict):
         """
-        Class method to be called from the ChangeLogEntry object's process method
-        Data will be passed from the ChangeLogEntry to be used here to identify the instance for realization
+        Class method to be called from the ChangeLog object's process method
+        Data will be passed from the ChangeLog to be used here to identify the instance for realization
         """
         raise NotImplementedError
 

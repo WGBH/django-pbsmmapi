@@ -98,7 +98,7 @@ class Show(PBSMMGenericShow):
             )
 
         self.flip_api_pages(
-            f'{self.json["links"].get("specials")}?platform-slug=partnerplayer',
+            f"{self.json['links'].get('specials')}?platform-slug=partnerplayer",
             set_special,
         )
 
