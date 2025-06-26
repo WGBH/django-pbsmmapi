@@ -1,4 +1,3 @@
-
 """
 This take the data from a PBSMM API returned record and looks to see if there is more content on additional pages.
 
@@ -14,9 +13,9 @@ regards to pagination).
 
 
 def check_pagination(json):
-    if 'links' in json.keys():
-        links = json['links']
-        if 'next' in links.keys():
-            if links['next'] is not None:
-                return (True, links['next'])
+    if "links" in json.keys():
+        links = json["links"]
+        if "next" in links.keys():
+            if links["next"] is not None:
+                return (True, links["next"])
     return (False, None)

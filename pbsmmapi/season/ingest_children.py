@@ -1,7 +1,7 @@
 from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
-from ..episode.models import PBSMMEpisode
 from ..episode.ingest_episode import process_episode_record
+from ..episode.models import PBSMMEpisode
 
 
 def process_episodes(endpoint, this_season):
@@ -18,10 +18,10 @@ def process_episodes(endpoint, this_season):
         # this is the "Seasons" endpoint for the show
         (status, json) = get_PBSMM_record(endpoint)
 
-        episode_list = json['data']
+        episode_list = json["data"]
 
         for item in episode_list:
-            object_id = item.get('id')
+            object_id = item.get("id")
 
             try:
                 instance = PBSMMEpisode.objects.get(object_id=object_id)

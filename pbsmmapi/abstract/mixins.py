@@ -1,13 +1,14 @@
 from datetime import datetime
 
-import pytz
 from django.db.models import Q
 from django.http import Http404
 from django.views.generic.base import ContextMixin
 from django.views.generic.detail import SingleObjectMixin
 from django.views.generic.list import MultipleObjectMixin
+import pytz
 
 from .gatekeeper import can_object_page_be_shown
+
 """
 These are the View mixins for PBSMM objects.
 
@@ -23,9 +24,10 @@ class GenericAuthenticationMixin(ContextMixin):
 
     Aren't mixins just freaking cool?
     """
+
     def get_context_data(self, **kwargs):
         context = super(GenericAuthenticationMixin, self).get_context_data(**kwargs)
-        context['is_logged_in'] = self.request.user.is_authenticated
+        context["is_logged_in"] = self.request.user.is_authenticated
         return context
 
 
@@ -38,6 +40,7 @@ class PBSMMObjectListMixin(MultipleObjectMixin, GenericAuthenticationMixin):
         their Show is available, etc.).   Those filters are applied AFTER these, and are
         called from the specific ListView class.
     """
+
     def get_queryset(self):
         qs = super(PBSMMObjectListMixin, self).get_queryset()
 
@@ -65,6 +68,7 @@ class PBSMMObjectDetailMixin(SingleObjectMixin, GenericAuthenticationMixin):
     (e.g., an Episode must have an availble Season; a Special must have an available Show).
     Those additional filters are applied AFTER these, and are called from the special DetailView class.
     """
+
     def get_object(self, queryset=None):
         obj = super(PBSMMObjectDetailMixin, self).get_object(queryset=queryset)
         user = self.request.user

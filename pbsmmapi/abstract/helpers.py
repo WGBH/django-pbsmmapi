@@ -1,5 +1,5 @@
-import json
 from datetime import datetime
+import json
 
 import pytz
 
@@ -44,7 +44,7 @@ def get_default_asset(obj):
             if x.is_asset_publicly_available():
                 return x
     # Try 2: get the first one marked "full length"
-    attempt_two = asset_list.filter(object_type='full_length')
+    attempt_two = asset_list.filter(object_type="full_length")
     if attempt_two:
         for x in attempt_two:
             if x.is_asset_publicly_available():
@@ -78,20 +78,20 @@ def get_canonical_image(image_list, image_type_override=None):
     """
     # What's the pattern to look for in the image list 'profile' value
     if image_type_override is None:
-        image_type = 'mezzanine'
+        image_type = "mezzanine"
     else:
         image_type = image_type_override
 
     # OK - what images are available?
     for img in image_list:
         # Best case scenario - I find the image I'm looking for
-        if image_type in img['profile']:
-            return img['image']
+        if image_type in img["profile"]:
+            return img["image"]
 
     if len(image_list) > 0:
         # If I got here then it didn't find the image_type that was requested
         # return the first image in the list
-        return image_list[0]['image']
+        return image_list[0]["image"]
 
     # This is my last chance!  Return the SITE_CANONICAL_IMAGE URL from the settings file.
     # I STILL NEED TO CODE THIS
@@ -107,11 +107,11 @@ def fix_non_aware_datetime(obj):
     """
     if obj is None:
         return None
-    if ':' not in obj:  # oops no time
-        obj += ' 00:00:00'
-    if '+' not in obj:  # no time zone - use UTC
-        if 'Z' not in obj:
-            obj += '+00:00'
+    if ":" not in obj:  # oops no time
+        obj += " 00:00:00"
+    if "+" not in obj:  # no time zone - use UTC
+        if "Z" not in obj:
+            obj += "+00:00"
     return obj
 
 

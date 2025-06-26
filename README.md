@@ -23,13 +23,13 @@ Documentation is in the "docs" directory.
                 'pbsmmapi.special',
         ]
 ```
-        
+
 2. Create your database.  *Be sure to support UTF-8 4-byte characters!*   In MySQL you can use:
 
 ```python
         CREATE DATABASE my_database CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
-    
+
 3. You'll need to change your settings DATABASES accordingly:
 
 ```python
@@ -52,14 +52,14 @@ Documentation is in the "docs" directory.
         PBSMM_API_ID='abcdefghijklmnop'
         PBSMM_API_SECRET= 'aAbBcCdDeEfFgGhHjJkKmMnNpPqQrRsS'
 ```
-    
+
 ## How it all works:
 
 ### Data Ingestion
 
 You ingest objects from PBS Media Manager by going to the Admin page for the object type.  Objects that have children can optionally import their children at the same time.
 
-A good place to start is with the Show Admin page. (`/admin/show/pbsmmshow/add/`).  
+A good place to start is with the Show Admin page. (`/admin/show/pbsmmshow/add/`).
 
     * If you enter the slug and click "Save" it will ingest that Show's record and nothing more.
     * If you click "Ingest Seasons" and then "Save" it will ingest the Show, **and** any Season records associated with it.
@@ -92,7 +92,7 @@ On each object's Admin listing page, there are several "bulk actions" available 
 | Action | `publish_status` | `live_as_of` date | Description |
 | --- | --- | --- | --- |
 | Reingest Selected Items | (same) | (same) | This essentially "updates" the record from PBSMM.  No status change is made. |
-| Take Item PERMANENTLY LIVE | 1 | (same) | Item "goes live", `live_as_of` date is ignored. | 
+| Take Item PERMANENTLY LIVE | 1 | (same) | Item "goes live", `live_as_of` date is ignored. |
 | Take Live as of Right Now | 0 | "now" | Item "goes live" by resetting `live_as_of` to "right now". |
 | CONDITIONALLY Online Using `live_as_of` Date | 0 | (same) | Item will go live automatically as of the `live_as_of` date. |
 | Take Item COMPLETELY OFFLINE | -1 | (same) | Item is taken off of the site. |
@@ -110,4 +110,3 @@ In order to build your site, you have to - at the least - create templates for e
     * `episode/episode.detail.html` and `episode/episode_list.html`
 
 There are "default" skeleton templates build into `django-pbsmm` which will show up if Django can't find your project's templates, but they are definitely not usable for a production environment.
-

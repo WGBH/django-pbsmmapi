@@ -1,75 +1,74 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from django.urls import reverse
 
 from ..abstract.helpers import time_zone_aware_now
 from ..abstract.models import PBSMMGenericSeason
-
 from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
-from ..asset.models import PBSMMAbstractAsset
 from ..asset.ingest_asset import process_asset_record
-
-from .ingest_season import process_season_record
+from ..asset.models import PBSMMAbstractAsset
 from .ingest_children import process_episodes
+from .ingest_season import process_season_record
 
-PBSMM_SEASON_ENDPOINT = 'https://media.services.pbs.org/api/v1/seasons/'
+PBSMM_SEASON_ENDPOINT = "https://media.services.pbs.org/api/v1/seasons/"
 
 
 class PBSMMSeason(PBSMMGenericSeason):
     """
     These are the fields that are unique to PBSMMSeason
     """
-    ordinal = models.PositiveIntegerField(_('Ordinal'), null=True, blank=True)
+
+    ordinal = models.PositiveIntegerField(_("Ordinal"), null=True, blank=True)
 
     # This is the parental Show
     show_api_id = models.UUIDField(
-        _('Show Object ID'),
-        null=True,
-        blank=True  # does this work?
+        _("Show Object ID"), null=True, blank=True  # does this work?
     )
     show = models.ForeignKey(
-        'show.PBSMMShow',
-        related_name='seasons',
+        "show.PBSMMShow",
+        related_name="seasons",
         on_delete=models.CASCADE,  # required for Django 2.0
         null=True,
-        blank=True  # added for AR5 support
+        blank=True,  # added for AR5 support
     )
 
     # This triggers cascading ingestion of child Episodes - set from the admin
     # before a save()
     ingest_episodes = models.BooleanField(
-        _('Ingest Episodes'),
+        _("Ingest Episodes"),
         default=False,
-        help_text='Also ingest all Episodes (for each Season)'
+        help_text="Also ingest all Episodes (for each Season)",
     )
 
     class Meta:
-        verbose_name = 'PBS MM Season'
-        verbose_name_plural = 'PBS MM Seasons'
+        verbose_name = "PBS MM Season"
+        verbose_name_plural = "PBS MM Seasons"
         # app_label = 'pbsmmapi'
-        db_table = 'pbsmm_season'
-        ordering = ['-ordinal']
+        db_table = "pbsmm_season"
+        ordering = ["-ordinal"]
 
     def get_absolute_url(self):
         """
         This enables the "Show on Site" link on the Admin page
         """
-        return reverse('season-detail', (), {'pk': self.pk})
+        return reverse("season-detail", (), {"pk": self.pk})
 
     def create_table_line(self):
         this_title = "Season %d: %s" % (self.ordinal, self.title)
-        out = "<tr style=\"background-color: #ddd;\">"
-        out += "<td colspan=\"3\"><a href=\"/admin/season/pbsmmseason/%d/change/\"><b>%s</b></a></td>" % (
-            self.id, this_title
+        out = '<tr style="background-color: #ddd;">'
+        out += (
+            '<td colspan="3"><a href="/admin/season/pbsmmseason/%d/change/"><b>%s</b></a></td>'
+            % (self.id, this_title)
         )
-        out += "<td><a href=\"%s\" target=\"_new\">API</a></td>" % self.api_endpoint
+        out += '<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
         out += "\n\t<td>%d</td>" % self.assets.count()
         out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
@@ -88,7 +87,7 @@ class PBSMMSeason(PBSMMGenericSeason):
         """
         # This handles the correspondence to the "type" field in the PBSMM JSON
         # object
-        return 'season'
+        return "season"
 
     object_model_type = property(__object_model_type)
 
@@ -98,8 +97,8 @@ class PBSMMSeason(PBSMMGenericSeason):
         if an explicit title is not set from the Show title and Episode ordinal.
         """
         if self.show:
-            return '%s Season %d' % (self.show.title, self.ordinal)
-        return 'Season %d' % self.ordinal
+            return "%s Season %d" % (self.show.title, self.ordinal)
+        return "Season %d" % self.ordinal
 
     printable_title = property(__printable_title)
 
@@ -107,14 +106,14 @@ class PBSMMSeason(PBSMMGenericSeason):
 class PBSMMSeasonAsset(PBSMMAbstractAsset):
     season = models.ForeignKey(
         PBSMMSeason,
-        related_name='assets',
+        related_name="assets",
         on_delete=models.CASCADE,  # required for Django 2.0
     )
 
     class Meta:
-        verbose_name = 'PBS MM Season Asset'
-        verbose_name_plural = 'PBS MM Seasons - Assets'
-        db_table = 'pbsmm_season_asset'
+        verbose_name = "PBS MM Season Asset"
+        verbose_name_plural = "PBS MM Seasons - Assets"
+        db_table = "pbsmm_season_asset"
 
     def __unicode__(self):
         return "%s: %s" % (self.season.title, self.title)
@@ -128,10 +127,10 @@ def process_season_assets(endpoint, this_season):
     scraped_object_ids = []
     while keep_going:
         (status, json) = get_PBSMM_record(endpoint)
-        asset_list = json['data']
+        asset_list = json["data"]
 
         for item in asset_list:
-            object_id = item.get('id')
+            object_id = item.get("id")
             scraped_object_ids.append(UUID(object_id))
 
             try:
@@ -139,7 +138,7 @@ def process_season_assets(endpoint, this_season):
             except PBSMMSeasonAsset.DoesNotExist:
                 instance = PBSMMSeasonAsset()
 
-            instance = process_asset_record(item, instance, origin='special')
+            instance = process_asset_record(item, instance, origin="special")
             instance.season = this_season
 
             # For now - borrow from the parent object
@@ -223,13 +222,13 @@ def handle_children(sender, instance, *args, **kwargs):
     if instance.ingest_episodes:
         # This is the FIRST endpoint - there might be more, depending on
         # pagination!
-        episodes_endpoint = instance.json['links'].get('episodes')
+        episodes_endpoint = instance.json["links"].get("episodes")
 
         if episodes_endpoint:
             process_episodes(episodes_endpoint, instance)
 
     # ALWAYS GET CHILD ASSETS
-    assets_endpoint = instance.json['links'].get('assets')
+    assets_endpoint = instance.json["links"].get("assets")
     if assets_endpoint:
         process_season_assets(assets_endpoint, instance)
 

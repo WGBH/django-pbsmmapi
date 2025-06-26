@@ -1,22 +1,26 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 import json
 
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
 
-#from django.contrib.postgres.fields import JSONField
+# from django.contrib.postgres.fields import JSONField
 from jsonfield import JSONField
 
-from .helpers import get_canonical_image, get_default_asset
 from ..abstract.gatekeeper import can_object_page_be_shown
 from ..abstract.helpers import is_in_the_future
+from .helpers import (
+    get_canonical_image,
+    get_default_asset,
+)
 
 PUBLISH_STATUS_LIST = (
-    (-1, 'NEVER Available'),
+    (-1, "NEVER Available"),
     (0, 'USE "Live as of Date"'),
-    (1, 'ALWAYS Available'),
+    (1, "ALWAYS Available"),
 )
 
 ######################### LOCAL ABSTRACT MODELS ############################
@@ -26,30 +30,30 @@ PUBLISH_STATUS_LIST = (
 
 class GenericObjectManagement(models.Model):
     date_created = models.DateTimeField(
-        _('Created On'),
+        _("Created On"),
         auto_now_add=True,
         help_text="Not set by API",
     )
     date_last_api_update = models.DateTimeField(
-        _('Last API Retrieval'),
+        _("Last API Retrieval"),
         help_text="Not set by API",
         null=True,
     )
     ingest_on_save = models.BooleanField(
-        _('Ingest on Save'),
+        _("Ingest on Save"),
         default=False,
-        help_text='If true, then will update values from the PBSMM API on save()'
+        help_text="If true, then will update values from the PBSMM API on save()",
     )
     last_api_status = models.PositiveIntegerField(
-        _('Last API Status'),
+        _("Last API Status"),
         null=True,
         blank=True,
     )
     json = JSONField(
-        _('JSON'),
+        _("JSON"),
         null=True,
         blank=True,
-        help_text='This is the last JSON uploaded.',
+        help_text="This is the last JSON uploaded.",
     )
 
     class Meta:
@@ -59,19 +63,19 @@ class GenericObjectManagement(models.Model):
         template = '<b><span style="color:#%s;">%d</span></b>'
         if self.last_api_status:
             if self.last_api_status == 200:
-                return mark_safe(template % ('0c0', self.last_api_status))
-            return mark_safe(template % ('f00', self.last_api_status))
+                return mark_safe(template % ("0c0", self.last_api_status))
+            return mark_safe(template % ("f00", self.last_api_status))
         return mark_safe(self.last_api_status)
 
-    last_api_status_color.short_description = 'Status'
+    last_api_status_color.short_description = "Status"
 
     def show_publish_status(self):
         if self.publish_status > 0:
             return mark_safe(
-                "<span style=\"color: #0c0;\"><b>ALWAYS</b></span> Available"
+                '<span style="color: #0c0;"><b>ALWAYS</b></span> Available'
             )
         if self.publish_status < 0:
-            return mark_safe("<span style=\"color: #c00;\"><B>NEVER</b></span> Available")
+            return mark_safe('<span style="color: #c00;"><B>NEVER</b></span> Available')
         # it EQUALS zero
         if self.live_as_of is None:
             return "Never Published"
@@ -81,15 +85,15 @@ class GenericObjectManagement(models.Model):
             return mark_safe("<b>Goes LIVE: %s</b>" % dstr)
 
         return mark_safe(
-            "<B>LIVE</B> <span style=\"color: #999;\">as of: %s</style>" % dstr
+            '<B>LIVE</B> <span style="color: #999;">as of: %s</style>' % dstr
         )
 
-    show_publish_status.short_description = 'Pub. Status'
+    show_publish_status.short_description = "Pub. Status"
 
 
 class GenericAccessControl(models.Model):
     publish_status = models.IntegerField(
-        _('Publish Status'), default=0, null=False, choices=PUBLISH_STATUS_LIST
+        _("Publish Status"), default=0, null=False, choices=PUBLISH_STATUS_LIST
     )
     ###
     # live_as_of starts out as NULL meaning "I am still being worked on" (if publish_status == 0)
@@ -100,10 +104,10 @@ class GenericAccessControl(models.Model):
     # This allows content producers to 'set it and forget it'.
     ###
     live_as_of = models.DateTimeField(
-        _('Live As Of'),
+        _("Live As Of"),
         null=True,
         blank=True,
-        help_text='You can Set this to a future date/time to schedule availability.'
+        help_text="You can Set this to a future date/time to schedule availability.",
     )
 
     class Meta:
@@ -120,18 +124,16 @@ class GenericAccessControl(models.Model):
 
 ######################### ABSTRACT MODELS FROM PBSMM FIELDS ##############
 class PBSMMObjectID(models.Model):
-    '''
+    """
     In most parallel universes, we'd use this as the PRIMARY KEY.
     However, given the periodic necessity of having to EDIT records or manipulate them in the database, the
     issue of having to juggle 32-length random characters instead of a nice integer ID would be a PITA.
 
     So I'm being "un-pure".  Sue me.   RAD 31-Jan-2018
-    '''
+    """
+
     object_id = models.UUIDField(
-        _('Object ID'),
-        unique=True,
-        null=True,
-        blank=True  # does this work?
+        _("Object ID"), unique=True, null=True, blank=True  # does this work?
     )
 
     class Meta:
@@ -139,41 +141,44 @@ class PBSMMObjectID(models.Model):
 
 
 class PBSObjectMetadata(models.Model):
-    '''Exists for all objects'''
+    """Exists for all objects"""
+
     api_endpoint = models.URLField(
-        _('Link to API Record'),
+        _("Link to API Record"),
         null=True,
         blank=True,
-        help_text='Endpoint to original record from the API'
+        help_text="Endpoint to original record from the API",
     )
 
     def api_endpoint_link(self):
-        '''This just makes the field clickable in the Admin (why cut and paste when you can click?)'''
+        """This just makes the field clickable in the Admin (why cut and paste when you can click?)"""
         return mark_safe(
             '<a href="%s" target="_new">%s</a>' % (self.api_endpoint, self.api_endpoint)
         )
 
-    api_endpoint_link.short_description = 'Link to API'
+    api_endpoint_link.short_description = "Link to API"
 
     class Meta:
         abstract = True
 
 
 class PBSMMObjectTitle(models.Model):
-    '''Exists for all objects'''
-    title = models.CharField(_('Title'), max_length=200, null=True, blank=True)
+    """Exists for all objects"""
+
+    title = models.CharField(_("Title"), max_length=200, null=True, blank=True)
 
     class Meta:
         abstract = True
 
 
 class PBSMMObjectSortableTitle(models.Model):
-    '''
+    """
     Exists for all objects EXCEPT Collection - so we have to separate it
     (I don't understand why the API just didn't create this across records...)
-    '''
+    """
+
     title_sortable = models.CharField(
-        _('Sortable Title'), max_length=200, null=True, blank=True
+        _("Sortable Title"), max_length=200, null=True, blank=True
     )
 
     class Meta:
@@ -181,12 +186,13 @@ class PBSMMObjectSortableTitle(models.Model):
 
 
 class PBSMMObjectSlug(models.Model):
-    '''
+    """
     These exist for all objects EXCEPT Season
     (see note/whine on PBSMMObjectSortableTitle)
-    '''
+    """
+
     slug = models.SlugField(
-        _('Slug'),
+        _("Slug"),
         unique=True,
         max_length=200,
     )
@@ -196,7 +202,8 @@ class PBSMMObjectSlug(models.Model):
 
 
 class PBSMMObjectTitleSortableTitle(PBSMMObjectTitle, PBSMMObjectSortableTitle):
-    '''Lump them together'''
+    """Lump them together"""
+
     class Meta:
         abstract = True
 
@@ -205,21 +212,23 @@ class PBSMMObjectTitleSortableTitle(PBSMMObjectTitle, PBSMMObjectSortableTitle):
 # FIELDS DEFINITELY ASSOCIATED WITH ALL OBJECTS (confirmed)
 #############################
 class PBSMMObjectDescription(models.Model):
-    '''These exist for all Objects'''
-    description_long = models.TextField(_('Long Description'))
-    description_short = models.TextField(_('Short Description'))
+    """These exist for all Objects"""
+
+    description_long = models.TextField(_("Long Description"))
+    description_short = models.TextField(_("Short Description"))
 
     class Meta:
         abstract = True
 
 
 class PBSMMObjectDates(models.Model):
-    '''This exists for all objects'''
+    """This exists for all objects"""
+
     updated_at = models.DateTimeField(
-        _('Updated At'),
+        _("Updated At"),
         null=True,
         blank=True,
-        help_text='API record modified date',
+        help_text="API record modified date",
     )
 
     class Meta:
@@ -235,15 +244,16 @@ class PBSMMObjectDates(models.Model):
 # FIELDS ASSOCIATED WITH BROADCAST OR PREMIERE (on whatever platform)
 ###############
 class PBSMMBroadcastDates(models.Model):
-    '''
+    """
     premiered_on exists for Episode, Franchise, Show, and Special but NOT Collection or Season
     encored_on ONLY exists for Episode
     so we might have to split them up
-    '''
-    premiered_on = models.DateTimeField(_('Premiered On'), null=True, blank=True)
+    """
+
+    premiered_on = models.DateTimeField(_("Premiered On"), null=True, blank=True)
 
     def __short_premiere_date(self):
-        return self.premiered_on.strftime('%x')
+        return self.premiered_on.strftime("%x")
 
     short_premiere_date = property(__short_premiere_date)
 
@@ -252,8 +262,9 @@ class PBSMMBroadcastDates(models.Model):
 
 
 class PBSMMNOLA(models.Model):
-    '''This exists for Episode, Franchise, and Special but NOT for Collection, Show, or Season'''
-    nola = models.CharField(_('NOLA Code'), max_length=8, null=True, blank=True)
+    """This exists for Episode, Franchise, and Special but NOT for Collection, Show, or Season"""
+
+    nola = models.CharField(_("NOLA Code"), max_length=8, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -264,15 +275,15 @@ class PBSMMNOLA(models.Model):
 # I have to decide whether I will abide by this nomenclature or not
 class PBSMMImage(models.Model):
     images = models.TextField(
-        _('Images'), null=True, blank=True, help_text='JSON serialized field'
+        _("Images"), null=True, blank=True, help_text="JSON serialized field"
     )
 
     canonical_image_type_override = models.CharField(
-        _('Canonical Image Type Override'),
+        _("Canonical Image Type Override"),
         max_length=80,
         null=True,
         blank=True,
-        help_text='Profile Image Type to use for Canonical Image'
+        help_text="Profile Image Type to use for Canonical Image",
     )
 
     class Meta:
@@ -294,42 +305,44 @@ class PBSMMImage(models.Model):
 
     def canonical_image_tag(self):
         if self.canonical_image and "http" in self.canonical_image:
-            title = "<a href=\"%s\" target=\"_blank\">%s</a><br/>" % (
-                self.canonical_image, self.canonical_image
+            title = '<a href="%s" target="_blank">%s</a><br/>' % (
+                self.canonical_image,
+                self.canonical_image,
             )
-            img = "<img src=\"%s\" width=\"400\">" % self.canonical_image
+            img = '<img src="%s" width="400">' % self.canonical_image
             return mark_safe(title + img)
         return None
 
-    canonical_image_tag.short_description = 'Canonical Image (display width=400px)'
+    canonical_image_tag.short_description = "Canonical Image (display width=400px)"
 
     def pretty_image_list(self):
         canonical = self.canonical_image
         if self.images:
             image_list = json.loads(self.images)
-            out = '<table width=\"100%\">'
-            out += '<tr><th>Profile</th><th>Canonical?</th><th>Updated At</th></tr>'
+            out = '<table width="100%">'
+            out += "<tr><th>Profile</th><th>Canonical?</th><th>Updated At</th></tr>"
             for image in image_list:
-                out += '\n<tr>'
-                out += '<td><a href=\"%s\" target=\"_new\">%s</a></td>' % (
-                    image['image'], image['profile']
+                out += "\n<tr>"
+                out += '<td><a href="%s" target="_new">%s</a></td>' % (
+                    image["image"],
+                    image["profile"],
                 )
-                out += '<td>%s</td>' % str(image['image'] == canonical)
-                out += '<td>%s</td>' % image['updated_at']
-                out += '</tr>'
-            out += '</table>'
+                out += "<td>%s</td>" % str(image["image"] == canonical)
+                out += "<td>%s</td>" % image["updated_at"]
+                out += "</tr>"
+            out += "</table>"
             return mark_safe(out)
         return None
 
-    pretty_image_list.short_description = 'Image List'
+    pretty_image_list.short_description = "Image List"
 
 
 class PBSMMFunder(models.Model):
     funder_message = models.TextField(
-        _('Funder Message'),
+        _("Funder Message"),
         null=True,
         blank=True,
-        help_text='JSON serialized field',
+        help_text="JSON serialized field",
     )
 
     class Meta:
@@ -337,9 +350,9 @@ class PBSMMFunder(models.Model):
 
 
 class PBSMMPlayerMetadata(models.Model):
-    is_excluded_from_dfp = models.BooleanField(_('Is excluded from DFP'), default=False)
+    is_excluded_from_dfp = models.BooleanField(_("Is excluded from DFP"), default=False)
 
-    can_embed_player = models.BooleanField(_('Can Embed Player'), default=False)
+    can_embed_player = models.BooleanField(_("Can Embed Player"), default=False)
 
     class Meta:
         abstract = True
@@ -347,7 +360,7 @@ class PBSMMPlayerMetadata(models.Model):
 
 class PBSMMLinks(models.Model):
     links = models.TextField(
-        _('Links'), null=True, blank=True, help_text='JSON serialized field'
+        _("Links"), null=True, blank=True, help_text="JSON serialized field"
     )
 
     class Meta:
@@ -356,7 +369,7 @@ class PBSMMLinks(models.Model):
 
 class PBSMMPlatforms(models.Model):
     platforms = models.TextField(
-        _('Platforms'), null=True, blank=True, help_text='JSON serialized field'
+        _("Platforms"), null=True, blank=True, help_text="JSON serialized field"
     )
 
     class Meta:
@@ -365,7 +378,7 @@ class PBSMMPlatforms(models.Model):
 
 class PBSMMWindows(models.Model):
     windows = models.TextField(
-        _('Windows'), null=True, blank=True, help_text='JSON serialized field'
+        _("Windows"), null=True, blank=True, help_text="JSON serialized field"
     )
 
     class Meta:
@@ -375,7 +388,7 @@ class PBSMMWindows(models.Model):
 class PBSMMGeo(models.Model):
     # countries --- hold off until needed
     geo_profile = models.TextField(
-        _('Geo Profile'), null=True, blank=True, help_text='JSON serialized field'
+        _("Geo Profile"), null=True, blank=True, help_text="JSON serialized field"
     )
 
     class Meta:
@@ -383,8 +396,8 @@ class PBSMMGeo(models.Model):
 
 
 class PBSMMGoogleTracking(models.Model):
-    ga_page = models.CharField(_('GA Page Tag'), max_length=40, null=True, blank=True)
-    ga_event = models.CharField(_('GA Event Tag'), max_length=40, null=True, blank=True)
+    ga_page = models.CharField(_("GA Page Tag"), max_length=40, null=True, blank=True)
+    ga_event = models.CharField(_("GA Event Tag"), max_length=40, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -392,7 +405,7 @@ class PBSMMGoogleTracking(models.Model):
 
 class PBSMMGenre(models.Model):
     genre = models.TextField(
-        _('Genre'), null=True, blank=True, help_text='JSON Serialized Field'
+        _("Genre"), null=True, blank=True, help_text="JSON Serialized Field"
     )
 
     class Meta:
@@ -401,20 +414,20 @@ class PBSMMGenre(models.Model):
 
 class PBSMMEpisodeSeason(models.Model):
     episode_count = models.PositiveIntegerField(
-        _('Episode Count'),
+        _("Episode Count"),
         null=True,
         blank=True,
     )
     display_episode_number = models.BooleanField(
-        _('Display Episode Number'),
+        _("Display Episode Number"),
         default=False,
     )
     sort_episodes_descending = models.BooleanField(
-        _('Sort Episodes Descending'),
+        _("Sort Episodes Descending"),
         default=False,
     )
     ordinal_season = models.BooleanField(
-        _('Ordinal Season'),
+        _("Ordinal Season"),
         default=True,
     )
 
@@ -423,7 +436,7 @@ class PBSMMEpisodeSeason(models.Model):
 
 
 class PBSMMLanguage(models.Model):
-    language = models.CharField(_('Language'), max_length=10, null=True, blank=True)
+    language = models.CharField(_("Language"), max_length=10, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -431,7 +444,7 @@ class PBSMMLanguage(models.Model):
 
 class PBSMMAudience(models.Model):
     audience = models.TextField(
-        _('Audience'), null=True, blank=True, help_text='JSON Serialized Field'
+        _("Audience"), null=True, blank=True, help_text="JSON Serialized Field"
     )
 
     class Meta:
@@ -439,7 +452,7 @@ class PBSMMAudience(models.Model):
 
 
 class PBSMMHashtag(models.Model):
-    hashtag = models.CharField(_('Hashtag'), max_length=100, null=True, blank=True)
+    hashtag = models.CharField(_("Hashtag"), max_length=100, null=True, blank=True)
 
     class Meta:
         abstract = True
@@ -485,9 +498,14 @@ class PBSMMHashtag(models.Model):
 # EVERY object type
 
 
-class PBSMMGenericObject(PBSMMObjectID, PBSMMObjectTitleSortableTitle,
-                         PBSMMObjectDescription, PBSMMObjectDates,
-                         GenericObjectManagement, PBSObjectMetadata):
+class PBSMMGenericObject(
+    PBSMMObjectID,
+    PBSMMObjectTitleSortableTitle,
+    PBSMMObjectDescription,
+    PBSMMObjectDates,
+    GenericObjectManagement,
+    PBSObjectMetadata,
+):
     def __get_default_asset(self):
         return get_default_asset(self)
 
@@ -497,9 +515,18 @@ class PBSMMGenericObject(PBSMMObjectID, PBSMMObjectTitleSortableTitle,
         abstract = True
 
 
-class PBSMMGenericAsset(PBSMMGenericObject, PBSMMObjectSlug, PBSMMImage, PBSMMFunder,
-                        PBSMMPlayerMetadata, PBSMMLinks, PBSMMGeo, PBSMMPlatforms,
-                        PBSMMWindows, PBSMMLanguage):
+class PBSMMGenericAsset(
+    PBSMMGenericObject,
+    PBSMMObjectSlug,
+    PBSMMImage,
+    PBSMMFunder,
+    PBSMMPlayerMetadata,
+    PBSMMLinks,
+    PBSMMGeo,
+    PBSMMPlatforms,
+    PBSMMWindows,
+    PBSMMLanguage,
+):
     class Meta:
         abstract = True
 
@@ -509,51 +536,66 @@ class PBSMMGenericRemoteAsset(PBSMMGenericObject):
         abstract = True
 
 
-class PBSMMGenericShow(PBSMMGenericObject, GenericAccessControl, PBSMMObjectSlug,
-                       PBSMMImage, PBSMMLinks, PBSMMNOLA, PBSMMHashtag, PBSMMGenre,
-                       PBSMMFunder, PBSMMPlayerMetadata, PBSMMGoogleTracking,
-                       PBSMMEpisodeSeason, PBSMMPlatforms, PBSMMAudience,
-                       PBSMMBroadcastDates, PBSMMLanguage):
+class PBSMMGenericShow(
+    PBSMMGenericObject,
+    GenericAccessControl,
+    PBSMMObjectSlug,
+    PBSMMImage,
+    PBSMMLinks,
+    PBSMMNOLA,
+    PBSMMHashtag,
+    PBSMMGenre,
+    PBSMMFunder,
+    PBSMMPlayerMetadata,
+    PBSMMGoogleTracking,
+    PBSMMEpisodeSeason,
+    PBSMMPlatforms,
+    PBSMMAudience,
+    PBSMMBroadcastDates,
+    PBSMMLanguage,
+):
     class Meta:
         abstract = True
 
 
 class PBSMMGenericEpisode(
-        PBSMMGenericObject,
-        GenericAccessControl,
-        PBSMMObjectSlug,
-        PBSMMFunder,
-        PBSMMLanguage,
-        PBSMMImage,
-        PBSMMBroadcastDates,
-        PBSMMNOLA,
-        PBSMMLinks,
+    PBSMMGenericObject,
+    GenericAccessControl,
+    PBSMMObjectSlug,
+    PBSMMFunder,
+    PBSMMLanguage,
+    PBSMMImage,
+    PBSMMBroadcastDates,
+    PBSMMNOLA,
+    PBSMMLinks,
 ):
     class Meta:
         abstract = True
 
 
-class PBSMMGenericSeason(PBSMMGenericObject, GenericAccessControl, PBSMMLinks,
-                         PBSMMImage):
+class PBSMMGenericSeason(
+    PBSMMGenericObject, GenericAccessControl, PBSMMLinks, PBSMMImage
+):
     class Meta:
         abstract = True
 
 
 class PBSMMGenericSpecial(
-        PBSMMGenericObject,
-        GenericAccessControl,
-        PBSMMObjectSlug,
-        PBSMMLanguage,
-        PBSMMBroadcastDates,
-        PBSMMNOLA,
-        PBSMMLinks,
+    PBSMMGenericObject,
+    GenericAccessControl,
+    PBSMMObjectSlug,
+    PBSMMLanguage,
+    PBSMMBroadcastDates,
+    PBSMMNOLA,
+    PBSMMLinks,
 ):
     class Meta:
         abstract = True
 
 
-class PBSMMGenericCollection(PBSMMGenericObject, GenericAccessControl, PBSMMObjectSlug,
-                             PBSMMImage):
+class PBSMMGenericCollection(
+    PBSMMGenericObject, GenericAccessControl, PBSMMObjectSlug, PBSMMImage
+):
     # There is no sortable title field - it is allowed in the model purely out of laziness since
     # abstracting it out from PBSGenericObject would be more-complicated than leaving it in.
     # PLUS I suspect that eventually it'll be added...
@@ -561,10 +603,21 @@ class PBSMMGenericCollection(PBSMMGenericObject, GenericAccessControl, PBSMMObje
         abstract = True
 
 
-class PBSMMGenericFranchise(PBSMMGenericObject, GenericAccessControl, PBSMMObjectSlug,
-                            PBSMMFunder, PBSMMNOLA, PBSMMBroadcastDates, PBSMMImage,
-                            PBSMMPlatforms, PBSMMLinks, PBSMMHashtag, PBSMMGoogleTracking,
-                            PBSMMGenre, PBSMMPlayerMetadata):
+class PBSMMGenericFranchise(
+    PBSMMGenericObject,
+    GenericAccessControl,
+    PBSMMObjectSlug,
+    PBSMMFunder,
+    PBSMMNOLA,
+    PBSMMBroadcastDates,
+    PBSMMImage,
+    PBSMMPlatforms,
+    PBSMMLinks,
+    PBSMMHashtag,
+    PBSMMGoogleTracking,
+    PBSMMGenre,
+    PBSMMPlayerMetadata,
+):
     # There is no can_embed_player field - again, laziness (see above)
     class Meta:
         abstract = True

@@ -1,7 +1,16 @@
-from django.views.generic import DetailView, ListView
+from django.views.generic import (
+    DetailView,
+    ListView,
+)
 
-from pbsmmapi.abstract.mixins import PBSMMObjectDetailMixin, PBSMMObjectListMixin
-from pbsmmapi.abstract.mixin_helpers import filter_offline_seasons, filter_offline_parent_season
+from pbsmmapi.abstract.mixin_helpers import (
+    filter_offline_parent_season,
+    filter_offline_seasons,
+)
+from pbsmmapi.abstract.mixins import (
+    PBSMMObjectDetailMixin,
+    PBSMMObjectListMixin,
+)
 from pbsmmapi.episode.models import PBSMMEpisode as Episode
 
 
@@ -10,9 +19,10 @@ class PBSMMAllEpisodeListView(ListView, PBSMMObjectListMixin):
     This is the Episode Listing View - it's generic and is Show/Season agnostic.
     Gate-keeping is handled in the PBSMMObjectListMixin class.
     """
+
     model = Episode
-    template_name = 'episode/episode_list.html'
-    context_object_name = 'episode_list'
+    template_name = "episode/episode_list.html"
+    context_object_name = "episode_list"
 
     def get_queryset(self):
         """
@@ -28,9 +38,10 @@ class PBSMMSeasonEpisodeListView(ListView, PBSMMObjectListMixin):
     This is the Episode Listing View - it's generic and is Show/Season agnostic.
     Gate-keeping is handled in the PBSMMObjectListMixin class.
     """
+
     model = Episode
-    template_name = 'episode/episode_list.html'
-    context_object_name = 'episode_list'
+    template_name = "episode/episode_list.html"
+    context_object_name = "episode_list"
 
     def get_queryset(self):
         """
@@ -38,10 +49,10 @@ class PBSMMSeasonEpisodeListView(ListView, PBSMMObjectListMixin):
         """
         qs = super(PBSMMSeasonEpisodeListView, self).get_queryset()
         # Filter out the grandparent show
-        show_slug = self.kwargs['show_slug']
+        show_slug = self.kwargs["show_slug"]
         qs = qs.filter(season__show__slug=show_slug)
         # Filter out the parent season
-        season_ordinal = self.kwargs['season_ordinal']
+        season_ordinal = self.kwargs["season_ordinal"]
         qs = qs.filter(season__ordinal=season_ordinal)
         # filter out offline parental seasons
         qs = filter_offline_seasons(qs, self.request.user.is_authenticated)
@@ -53,9 +64,10 @@ class PBSMMEpisodeDetailView(DetailView, PBSMMObjectDetailMixin):
     This is the Episode detail view.
     Gate-keeping is handled in the PBSMMObjectDetailMixin class.
     """
+
     model = Episode
-    template_name = 'episode/episode_detail.html'
-    context_object_name = 'episode'
+    template_name = "episode/episode_detail.html"
+    context_object_name = "episode"
 
     def get_object(self, queryset=None):
         """

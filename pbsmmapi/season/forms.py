@@ -9,11 +9,10 @@ class PBSMMSeasonCreateForm(ModelForm):
     This is for adding a Season "by hand" although in general, they will
     be created as part of the process of seeding a Show.
     """
+
     class Meta:
         model = PBSMMSeason
-        fields = (
-            'object_id', 'show'
-        )
+        fields = ("object_id", "show")
 
 
 class PBSMMSeasonEditForm(ModelForm):

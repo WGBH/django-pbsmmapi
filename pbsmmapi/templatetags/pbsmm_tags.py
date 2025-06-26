@@ -1,10 +1,11 @@
 import json
+
 from django import template
 
 register = template.Library()
 
 
-@register.filter(name='extract_from_json')
+@register.filter(name="extract_from_json")
 def extract_from_json(value, arg):
     if value:
         data = json.loads(value)

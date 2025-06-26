@@ -1,5 +1,10 @@
 from django.conf.urls import url
-from .views import PBSMMAllEpisodeListView, PBSMMSeasonEpisodeListView, PBSMMEpisodeDetailView
+
+from .views import (
+    PBSMMAllEpisodeListView,
+    PBSMMEpisodeDetailView,
+    PBSMMSeasonEpisodeListView,
+)
 
 # For now assume there is an Episode listing page, and an Episode detail page.
 #
@@ -8,18 +13,18 @@ from .views import PBSMMAllEpisodeListView, PBSMMSeasonEpisodeListView, PBSMMEpi
 
 urlpatterns = (
     url(
-        r'^$',
+        r"^$",
         PBSMMAllEpisodeListView.as_view(),
-        name='all-episode-list',
+        name="all-episode-list",
     ),
     url(
-        r'^(?P<show_slug>[^/]+)/(?P<season_ordinal>[^/]+)/',
+        r"^(?P<show_slug>[^/]+)/(?P<season_ordinal>[^/]+)/",
         PBSMMSeasonEpisodeListView.as_view(),
-        name='season-episode-list'
+        name="season-episode-list",
     ),
     url(
-        r'^(?P<slug>[^/]+)/$',
+        r"^(?P<slug>[^/]+)/$",
         PBSMMEpisodeDetailView.as_view(),
-        name='episode-detail',
+        name="episode-detail",
     ),
 )

@@ -5,51 +5,51 @@ from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
-from django.utils.translation import ugettext_lazy as _
 from django.urls import reverse
+from django.utils.translation import ugettext_lazy as _
 
 from ..abstract.gatekeeper import can_object_page_be_shown
 from ..abstract.helpers import time_zone_aware_now
 from ..abstract.models import PBSMMGenericShow
-
 from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
-
 from ..asset.ingest_asset import process_asset_record
 from ..asset.models import PBSMMAbstractAsset
-
+from .ingest_children import (
+    process_seasons,
+    process_specials,
+)
 from .ingest_show import process_show_record
-from .ingest_children import process_seasons, process_specials
 
-PBSMM_SHOW_ENDPOINT = 'https://media.services.pbs.org/api/v1/shows/'
+PBSMM_SHOW_ENDPOINT = "https://media.services.pbs.org/api/v1/shows/"
 
 
 class PBSMMAbstractShow(PBSMMGenericShow):
 
     ingest_seasons = models.BooleanField(
-        _('Ingest Seasons'),
+        _("Ingest Seasons"),
         default=False,
-        help_text='Also ingest all Seasons',
+        help_text="Also ingest all Seasons",
     )
     ingest_specials = models.BooleanField(
-        _('Ingest Specials'),
+        _("Ingest Specials"),
         default=False,
-        help_text='Also ingest all Specials',
+        help_text="Also ingest all Specials",
     )
     ingest_episodes = models.BooleanField(
-        _('Ingest Episodes'),
+        _("Ingest Episodes"),
         default=False,
-        help_text='Also ingest all Episodes (for each Season)',
+        help_text="Also ingest all Episodes (for each Season)",
     )
 
     class Meta:
-        verbose_name = 'PBS MM Show'
-        verbose_name_plural = 'PBS MM Shows'
-        db_table = 'pbsmm_show'
+        verbose_name = "PBS MM Show"
+        verbose_name_plural = "PBS MM Shows"
+        db_table = "pbsmm_show"
         abstract = True
 
     def get_absolute_url(self):
-        return reverse('show-detail', args=[self.slug])
+        return reverse("show-detail", args=[self.slug])
 
     def __unicode__(self):
         if self.title:
@@ -59,7 +59,7 @@ class PBSMMAbstractShow(PBSMMGenericShow):
     def __object_model_type(self):
         # This handles the correspondence to the "type" field in the PBSMM JSON
         # object
-        return 'show'
+        return "show"
 
     object_model_type = property(__object_model_type)
 
@@ -76,14 +76,14 @@ class PBSMMShow(PBSMMAbstractShow):
 class PBSMMShowAsset(PBSMMAbstractAsset):
     show = models.ForeignKey(
         PBSMMShow,
-        related_name='assets',
+        related_name="assets",
         on_delete=models.CASCADE,  # required for Django 2.0
     )
 
     class Meta:
-        verbose_name = 'PBS MM Show - Asset'
-        verbose_name_plural = 'PBS MM Shows - Assets'
-        db_table = 'pbsmm_show_asset'
+        verbose_name = "PBS MM Show - Asset"
+        verbose_name_plural = "PBS MM Shows - Assets"
+        db_table = "pbsmm_show_asset"
 
     def __unicode__(self):
         return "%s: %s" % (self.show, self.title)
@@ -94,10 +94,10 @@ def process_show_assets(endpoint, this_show):
     scraped_object_ids = []
     while keep_going:
         (status, json) = get_PBSMM_record(endpoint)
-        data = json['data']
+        data = json["data"]
 
         for item in data:
-            object_id = item.get('id')
+            object_id = item.get("id")
             scraped_object_ids.append(UUID(object_id))
 
             try:
@@ -105,7 +105,7 @@ def process_show_assets(endpoint, this_show):
             except PBSMMShowAsset.DoesNotExist:
                 instance = PBSMMShowAsset()
 
-            instance = process_asset_record(item, instance, origin='show')
+            instance = process_asset_record(item, instance, origin="show")
 
             # For now - borrow from the parent object
             instance.last_api_status = status
@@ -183,17 +183,17 @@ def handle_child_objects(sender, instance, *args, **kwargs):
     this_json = instance.json
 
     # ALWAYS GET CHILD ASSETS
-    assets_endpoint = this_json['links'].get('assets')
+    assets_endpoint = this_json["links"].get("assets")
     if assets_endpoint:
         process_show_assets(assets_endpoint, instance)
 
     if instance.ingest_seasons:
-        seasons_endpoint = this_json['links'].get('seasons')
+        seasons_endpoint = this_json["links"].get("seasons")
         if seasons_endpoint:
             process_seasons(seasons_endpoint, instance)
 
     if instance.ingest_specials:
-        specials_endpoint = this_json['links'].get('specials')
+        specials_endpoint = this_json["links"].get("specials")
         if specials_endpoint:
             process_specials(specials_endpoint, instance)
 

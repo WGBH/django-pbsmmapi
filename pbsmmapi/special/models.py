@@ -1,48 +1,45 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
+from django.urls import reverse
 from django.utils.safestring import mark_safe
 from django.utils.translation import ugettext_lazy as _
-from django.urls import reverse
 
 from ..abstract.helpers import time_zone_aware_now
 from ..abstract.models import PBSMMGenericSpecial
-
 from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
-from ..asset.models import PBSMMAbstractAsset
 from ..asset.ingest_asset import process_asset_record
-
+from ..asset.models import PBSMMAbstractAsset
 from .ingest_special import process_special_record
 
-PBSMM_SPECIAL_ENDPOINT = 'https://media.services.pbs.org/api/v1/specials/'
+PBSMM_SPECIAL_ENDPOINT = "https://media.services.pbs.org/api/v1/specials/"
 
 
 class PBSMMSpecial(PBSMMGenericSpecial):
 
     show_api_id = models.UUIDField(
-        _('Show Object ID'),
-        null=True,
-        blank=True  # does this work?
+        _("Show Object ID"), null=True, blank=True  # does this work?
     )
     show = models.ForeignKey(
-        'show.PBSMMShow',
-        related_name='specials',
+        "show.PBSMMShow",
+        related_name="specials",
         on_delete=models.CASCADE,  # required for Django 2.0
         null=True,
-        blank=True  # added for AR5 support
+        blank=True,  # added for AR5 support
     )
 
     class Meta:
-        verbose_name = 'PBS MM Special'
-        verbose_name_plural = 'PBS MM Specials'
-        db_table = 'pbsmm_special'
+        verbose_name = "PBS MM Special"
+        verbose_name_plural = "PBS MM Specials"
+        db_table = "pbsmm_special"
 
     def get_absolute_url(self):
-        return reverse('special-detail', (), {'slug': self.slug})
+        return reverse("special-detail", (), {"slug": self.slug})
 
     def __unicode__(self):
         return "%s | %s | %s " % (self.object_id, self.show, self.title)
@@ -50,14 +47,14 @@ class PBSMMSpecial(PBSMMGenericSpecial):
     def __object_model_type(self):
         # This handles the correspondence to the "type" field in the PBSMM JSON
         # object
-        return 'special'
+        return "special"
 
     object_model_type = property(__object_model_type)
 
     def __get_nola_code(self):
-        if self.nola is None or self.nola == '':
+        if self.nola is None or self.nola == "":
             return None
-        if self.show.nola is None or self.show.nola == '':
+        if self.show.nola is None or self.show.nola == "":
             return None
         return "%s-%s" % (self.show.nola, self.nola)
 
@@ -65,10 +62,11 @@ class PBSMMSpecial(PBSMMGenericSpecial):
 
     def create_table_line(self):
         out = "<tr>"
-        out += "\n\t<td><a href=\"/admin/special/pbsmmspecial/%d/change/\"><B>%s</b></a></td>" % (
-            self.id, self.title
+        out += (
+            '\n\t<td><a href="/admin/special/pbsmmspecial/%d/change/"><B>%s</b></a></td>'
+            % (self.id, self.title)
         )
-        out += "\n\t<td><a href=\"%s\" target=\"_new\">API</a></td>" % self.api_endpoint
+        out += '\n\t<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
         out += "\n\t<td>%d</td>" % self.assets.count()
         out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
@@ -80,14 +78,14 @@ class PBSMMSpecial(PBSMMGenericSpecial):
 class PBSMMSpecialAsset(PBSMMAbstractAsset):
     special = models.ForeignKey(
         PBSMMSpecial,
-        related_name='assets',
+        related_name="assets",
         on_delete=models.CASCADE,  # required for Django 2.0
     )
 
     class Meta:
-        verbose_name = 'PBS MM Special Asset'
-        verbose_name_plural = 'PBS MM Specials - Assets'
-        db_table = 'pbsmm_special_asset'
+        verbose_name = "PBS MM Special Asset"
+        verbose_name_plural = "PBS MM Specials - Assets"
+        db_table = "pbsmm_special_asset"
 
     def __unicode__(self):
         return "%s: %s" % (self.special.title, self.title)
@@ -100,13 +98,13 @@ def process_special_assets(endpoint, this_special):
     while keep_going:
         (status, json) = get_PBSMM_record(endpoint)
 
-        if 'data' in json.keys():
-            asset_list = json['data']
+        if "data" in json.keys():
+            asset_list = json["data"]
         else:
             return
 
         for item in asset_list:
-            object_id = item.get('id')
+            object_id = item.get("id")
             scraped_object_ids.append(UUID(object_id))
 
             try:
@@ -114,7 +112,7 @@ def process_special_assets(endpoint, this_special):
             except PBSMMSpecialAsset.DoesNotExist:
                 instance = PBSMMSpecialAsset()
 
-            instance = process_asset_record(item, instance, origin='special')
+            instance = process_asset_record(item, instance, origin="special")
 
             # For now - borrow from the parent object
             instance.last_api_status = status
@@ -190,6 +188,6 @@ def handle_child_objects(sender, instance, *args, **kwargs):
     this_json = instance.json
 
     # ALWAYS GET CHILD ASSETS
-    assets_endpoint = this_json['links'].get('assets')
+    assets_endpoint = this_json["links"].get("assets")
     if assets_endpoint:
         process_special_assets(assets_endpoint, instance)

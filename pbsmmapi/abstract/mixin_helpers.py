@@ -1,8 +1,11 @@
-import pytz
 from datetime import datetime
+
 from django.db.models import Q
 from django.http import Http404
+import pytz
+
 from .gatekeeper import can_object_page_be_shown
+
 """
 These functions are extensions of the generic PBSMMObject mixins.
 
@@ -83,6 +86,7 @@ def filter_offline_seasons(queryset, is_logged_in):
         queryset = queryset.exclude(condition_4 & condition_6)
 
     return queryset
+
 
 ##########################################################################
 # DetailView filters

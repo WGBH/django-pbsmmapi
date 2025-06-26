@@ -1,41 +1,42 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
+
 from uuid import UUID
 
 from django.db import models
 from django.dispatch import receiver
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
 from django.utils.safestring import mark_safe
+from django.utils.translation import ugettext_lazy as _
 
 from ..abstract.helpers import time_zone_aware_now
 from ..abstract.models import PBSMMGenericEpisode
 from ..api.api import get_PBSMM_record
 from ..api.helpers import check_pagination
-from ..asset.models import PBSMMAbstractAsset
 from ..asset.ingest_asset import process_asset_record
-
+from ..asset.models import PBSMMAbstractAsset
 from .ingest_episode import process_episode_record
 
-PBSMM_EPISODE_ENDPOINT = 'https://media.services.pbs.org/api/v1/episodes/'
+PBSMM_EPISODE_ENDPOINT = "https://media.services.pbs.org/api/v1/episodes/"
 
 
 class PBSMMEpisode(PBSMMGenericEpisode):
     """
     These are the fields that are unique to Episode records.
     """
+
     encored_on = models.DateTimeField(
-        _('Encored On'),
+        _("Encored On"),
         blank=True,
         null=True,
     )
     ordinal = models.PositiveIntegerField(
-        _('Ordinal'),
+        _("Ordinal"),
         blank=True,
         null=True,
     )
     segment = models.CharField(
-        _('Segment'),
+        _("Segment"),
         max_length=200,
         blank=True,
         null=True,
@@ -43,28 +44,26 @@ class PBSMMEpisode(PBSMMGenericEpisode):
 
     # THIS IS THE PARENTAL SEASON
     season = models.ForeignKey(
-        'season.PBSMMSeason',
-        related_name='episodes',
+        "season.PBSMMSeason",
+        related_name="episodes",
         on_delete=models.CASCADE,  # required for Django 2.0
         null=True,
-        blank=True  # ADDED FOR AR5 support
+        blank=True,  # ADDED FOR AR5 support
     )
     season_api_id = models.UUIDField(
-        _('Season Object ID'),
-        null=True,
-        blank=True  # does this work?
+        _("Season Object ID"), null=True, blank=True  # does this work?
     )
 
     class Meta:
-        verbose_name = 'PBS MM Episode'
-        verbose_name_plural = 'PBS MM Episodes'
-        db_table = 'pbsmm_episode'
+        verbose_name = "PBS MM Episode"
+        verbose_name_plural = "PBS MM Episodes"
+        db_table = "pbsmm_episode"
 
     def get_absolute_url(self):
         """
         This is so the Admin can have a "view on site" button
         """
-        return reverse('episode-detail', (), {'slug': self.slug})
+        return reverse("episode-detail", (), {"slug": self.slug})
 
     def __unicode__(self):
         return self.title
@@ -73,7 +72,7 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         """
         This just returns object "type"
         """
-        return 'episode'
+        return "episode"
 
     object_model_type = property(__object_model_type)
 
@@ -87,7 +86,9 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         """
         if self.season and self.season.show and self.season.ordinal:
             return "%s-%02d%02d" % (
-                self.season.show.slug, self.season.ordinal, self.ordinal
+                self.season.show.slug,
+                self.season.ordinal,
+                self.ordinal,
             )
         return "{}: (episode {})".format(self.pk, self.ordinal)
 
@@ -99,12 +100,12 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         """
         return "%02d%02d" % (self.season.ordinal, self.ordinal)
 
-    short_episode_code.short_description = 'Ep #'
+    short_episode_code.short_description = "Ep #"
 
     def __get_nola_code(self):
-        if self.nola is None or self.nola == '':
+        if self.nola is None or self.nola == "":
             return None
-        if self.season.show.nola is None or self.season.show.nola == '':
+        if self.season.show.nola is None or self.season.show.nola == "":
             return None
         return "%s-%s" % (self.season.show.nola, self.nola)
 
@@ -118,10 +119,11 @@ class PBSMMEpisode(PBSMMGenericEpisode):
         out = "<tr>"
         out += "\t<td></td>"
         out += "\n\t<td>%02d%02d:</td>" % (self.season.ordinal, self.ordinal)
-        out += "\n\t<td><a href=\"/admin/episode/pbsmmepisode/%d/change/\"><b>%s</b></td>" % (
-            self.id, self.title
+        out += (
+            '\n\t<td><a href="/admin/episode/pbsmmepisode/%d/change/"><b>%s</b></td>'
+            % (self.id, self.title)
         )
-        out += "\n\t<td><a href=\"%s\" target=\"_new\">API</a></td>" % self.api_endpoint
+        out += '\n\t<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
         out += "\n\t<td>%d</td>" % self.assets.count()
         out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
@@ -133,16 +135,17 @@ class PBSMMEpisodeAsset(PBSMMAbstractAsset):
     """
     These are the Assets associated with an episode.
     """
+
     episode = models.ForeignKey(
         PBSMMEpisode,
-        related_name='assets',
+        related_name="assets",
         on_delete=models.CASCADE,  # required for Django 2.0
     )
 
     class Meta:
-        verbose_name = 'PBS MM Episode Asset'
-        verbose_name_plural = 'PBS MM Episodes - Assets'
-        db_table = 'pbsmm_episode_asset'
+        verbose_name = "PBS MM Episode Asset"
+        verbose_name_plural = "PBS MM Episodes - Assets"
+        db_table = "pbsmm_episode_asset"
 
     def __unicode__(self):
         return "%s: %s" % (self.episode.title, self.title)
@@ -159,13 +162,13 @@ def process_episode_assets(endpoint, this_episode):
     while keep_going:
         # This is the endpoint for the 'assets' link (page with list of assets)
         (status, json) = get_PBSMM_record(endpoint)
-        if 'data' in json.keys():
-            asset_list = json['data']
+        if "data" in json.keys():
+            asset_list = json["data"]
         else:
             return
 
         for item in asset_list:
-            object_id = item.get('id')
+            object_id = item.get("id")
             scraped_object_ids.append(UUID(object_id))
 
             try:
@@ -177,7 +180,7 @@ def process_episode_assets(endpoint, this_episode):
             instance.last_api_status = status
             instance.date_last_api_update = time_zone_aware_now()
 
-            instance = process_asset_record(item, instance, origin='episode')
+            instance = process_asset_record(item, instance, origin="episode")
             instance.episode = this_episode
             instance.ingest_on_save = True
 
@@ -215,14 +218,14 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     # the appropriate URL to access.
     if instance.pk and instance.object_id and str(instance.object_id).strip():
         # Object is being edited
-        op = 'edit'
+        op = "edit"
 
     else:  # object is being added
-        op = 'create'
+        op = "create"
         if not instance.object_id:
             return  # do nothing - can't get an ID to look up!
 
-    if op == 'create' or instance.ingest_on_save:
+    if op == "create" or instance.ingest_on_save:
         url = "{}{}/".format(PBSMM_EPISODE_ENDPOINT, instance.object_id)
 
         # OK - get the record from the API
@@ -241,7 +244,9 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         instance = process_episode_record(json, instance)
 
         # continue saving, but turn off the ingest_on_save flag
-        instance.ingest_on_save = False  # otherwise we could end up in an infinite loop!
+        instance.ingest_on_save = (
+            False  # otherwise we could end up in an infinite loop!
+        )
 
     # We're done here - continue with the save() operation
     return instance
@@ -262,7 +267,7 @@ def handle_children(sender, instance, *args, **kwargs):
         return
 
     # ALWAYS GET CHILD ASSETS
-    assets_endpoint = instance.json['links'].get('assets')
+    assets_endpoint = instance.json["links"].get("assets")
     if assets_endpoint:
         process_episode_assets(assets_endpoint, instance)
 
