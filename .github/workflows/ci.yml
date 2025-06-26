@@ -73,6 +73,12 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Check version
+        id: check-tag
+        uses: samuelcolvin/check-python-version@v4.1
+        with:
+          version_file_path: pbsmmapi/__init__.py
+
       - name: Install dependencies
         run: uv sync
 
