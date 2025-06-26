@@ -52,7 +52,7 @@ def process_episode_record(obj, instance):
     this_season = attrs.get("season", None)
     try:
         instance.season_api_id = this_season.get("id", None)
-    except:
+    except AttributeError:
         pass
 
     instance.json = obj
