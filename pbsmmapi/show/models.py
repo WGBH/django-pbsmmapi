@@ -6,7 +6,7 @@ from uuid import UUID
 from django.db import models
 from django.dispatch import receiver
 from django.urls import reverse
-from django.utils.translation import ugettext_lazy as _
+from django.utils.translation import gettext_lazy as _
 
 from ..abstract.gatekeeper import can_object_page_be_shown
 from ..abstract.helpers import time_zone_aware_now
@@ -25,7 +25,6 @@ PBSMM_SHOW_ENDPOINT = "https://media.services.pbs.org/api/v1/shows/"
 
 
 class PBSMMAbstractShow(PBSMMGenericShow):
-
     ingest_seasons = models.BooleanField(
         _("Ingest Seasons"),
         default=False,
@@ -177,7 +176,6 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
 
 @receiver(models.signals.post_save, sender=PBSMMShow)
 def handle_child_objects(sender, instance, *args, **kwargs):
-
     if instance.last_api_status != 200:
         return
     this_json = instance.json

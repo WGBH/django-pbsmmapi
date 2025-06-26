@@ -3,12 +3,10 @@ from __future__ import unicode_literals
 
 import json
 
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.safestring import mark_safe
-from django.utils.translation import ugettext_lazy as _
-
-# from django.contrib.postgres.fields import JSONField
-from jsonfield import JSONField
+from django.utils.translation import gettext_lazy as _
 
 from ..abstract.gatekeeper import can_object_page_be_shown
 from ..abstract.helpers import is_in_the_future
@@ -133,7 +131,10 @@ class PBSMMObjectID(models.Model):
     """
 
     object_id = models.UUIDField(
-        _("Object ID"), unique=True, null=True, blank=True  # does this work?
+        _("Object ID"),
+        unique=True,
+        null=True,
+        blank=True,  # does this work?
     )
 
     class Meta:
