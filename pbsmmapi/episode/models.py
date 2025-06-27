@@ -1,5 +1,3 @@
-from http import HTTPStatus
-
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -9,10 +7,7 @@ from pbsmmapi.abstract.models import (
     GenericProvisional,
     PBSMMGenericEpisode,
 )
-from pbsmmapi.api.api import (
-    PBSMM_EPISODE_ENDPOINT,
-    get_PBSMM_record,
-)
+from pbsmmapi.api.api import PBSMM_EPISODE_ENDPOINT
 
 
 class Episode(GenericProvisional, PBSMMGenericEpisode):
@@ -45,17 +40,14 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
     )
 
     @classmethod
-    def realize(cls, api_link: str):
-        status, json = get_PBSMM_record(api_link)
-        if status != HTTPStatus.OK:
-            return
+    def realize(cls, data: dict):
         try:
             episode = cls.objects.get(
-                season_api_id=json["data"]["attributes"]["season"]["id"],
-                ordinal=json["data"]["attributes"]["ordinal"],
+                season_api_id=data["data"]["attributes"]["season"]["id"],
+                ordinal=data["data"]["attributes"]["ordinal"],
                 provisional=True,
             )
-            episode.object_id = json["data"]["id"]
+            episode.object_id = data["data"]["id"]
             episode.provisional = False
             episode.save()
         except cls.DoesNotExist:
@@ -138,9 +130,13 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         db_table = "pbsmm_episode"
 
     def save(self, *args, **kwargs):
-        self.pre_save()
-        super().save(*args, **kwargs)
-        self.post_save(self.id)
+        skip_ingest = kwargs.pop("skip_ingest", False)
+        if skip_ingest:
+            super().save(*args, **kwargs)
+        else:
+            self.pre_save()
+            super().save(*args, **kwargs)
+            self.post_save(self.id)
 
     def pre_save(self):
         self.process(PBSMM_EPISODE_ENDPOINT)

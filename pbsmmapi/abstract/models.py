@@ -391,10 +391,9 @@ class GenericProvisional(models.Model):
     )
 
     @classmethod
-    def realize(cls, api_link: str):
+    def realize(cls, data: dict):
         """
-        Class method to be called from the ChangeLog object's process method
-        Data will be passed from the ChangeLog to be used here to identify the instance for realization
+        Class method to be called from the Huey task processing ChangeLog objects
         """
         raise NotImplementedError
 

@@ -32,6 +32,7 @@ from pbsmmapi.changelog.models import (
     ChangeLog,
     EpisodeChangeLog,
     SeasonChangeLog,
+    ShowChangeLog,
     SpecialChangeLog,
 )
 from pbsmmapi.episode.models import Episode
@@ -125,7 +126,18 @@ def fetch_api_data(log: ChangeLog):
 
 
 def ingest_new_objects():
-    # note: Franchise Shows are ingested during reingest_updated_objects
+    for franchise in Franchise.objects.all():
+        show_logs = ShowChangeLog.objects.filter(
+            franchise_id=franchise.object_id,
+            ingested=False,
+        )
+        for log in show_logs:
+            if log.get_instance() is not None:
+                log.save()
+            else:
+                result = Show.realize(log.api_data)
+                if result is False:
+                    Show(object_id=log.content_id).save()
     for show in Show.objects.all():
         season_logs = SeasonChangeLog.objects.filter(
             show_id=show.object_id,
@@ -135,7 +147,9 @@ def ingest_new_objects():
             if log.get_instance() is not None:
                 log.save()
             else:
-                Season(object_id=log.content_id).save()
+                result = Season.realize(log.api_data)
+                if result is False:
+                    Season(object_id=log.content_id).save()
 
         episode_logs = EpisodeChangeLog.objects.filter(
             show_id=show.object_id,
@@ -145,7 +159,9 @@ def ingest_new_objects():
             if log.get_instance() is not None:
                 log.save()
             else:
-                Episode(object_id=log.content_id).save()
+                result = Episode.realize(log.api_data)
+                if result is False:
+                    Episode(object_id=log.content_id).save()
 
         special_logs = SpecialChangeLog.objects.filter(
             show_id=show.object_id,
@@ -155,7 +171,9 @@ def ingest_new_objects():
             if log.get_instance() is not None:
                 log.save()
             else:
-                Special(object_id=log.content_id).save()
+                result = Special.realize(log.api_data)
+                if result is False:
+                    Special(object_id=log.content_id).save()
 
     for log in AssetChangeLog.objects.exclude(parent_type__isnull=True):
         parent = log.get_parent_instance()
@@ -172,7 +190,6 @@ def reingest_updated_objects():
         changelog = ChangeLog.objects.get(content_id=franchise.object_id)
         if changelog.latest_timestamp > franchise.date_last_api_update:
             franchise.ingest_on_save = True
-            franchise.ingest_shows = True
             franchise.save()
 
     querysets = [

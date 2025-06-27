@@ -86,7 +86,12 @@ class ChangeLog(models.Model):
 
 class ShowChangeLogManager(models.Manager):
     def get_queryset(self):
-        return super().get_queryset().filter(resource_type="show")
+        return (
+            super()
+            .get_queryset()
+            .filter(resource_type="show")
+            .annotate(franchise_id=KT("api_data__data__attributes__franchise__id"))
+        )
 
 
 class ShowChangeLog(ChangeLog):

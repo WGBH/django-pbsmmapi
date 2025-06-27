@@ -9,10 +9,7 @@ from pbsmmapi.abstract.models import (
     GenericProvisional,
     PBSMMGenericShow,
 )
-from pbsmmapi.api.api import (
-    PBSMM_SHOW_ENDPOINT,
-    get_PBSMM_record,
-)
+from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
 from pbsmmapi.season.models import Season
 from pbsmmapi.special.models import Special
 
@@ -49,18 +46,22 @@ class Show(GenericProvisional, PBSMMGenericShow):
     )
 
     @classmethod
-    def realize(cls, api_link: str):
-        status, json = get_PBSMM_record(api_link)
-        if status != HTTPStatus.OK:
-            return
+    def realize(cls, data: dict):
         try:
             show = cls.objects.get(
-                title=json["data"]["attributes"]["title"],
+                title=data["data"]["attributes"]["title"],
                 provisional=True,
             )
-            show.object_id = json["data"]["id"]
+            object_id = data["data"]["id"]
+            show.object_id = object_id
             show.provisional = False
             show.save()
+            Season.objects.filter(
+                provisional=True, show=show, show_api_id__isnull=True
+            ).update(show_api_id=object_id)
+            Special.objects.filter(
+                provisional=True, show=show, show_api_id__isnull=True
+            ).update(show_api_id=object_id)
         except cls.DoesNotExist:
             return
 
@@ -71,9 +72,13 @@ class Show(GenericProvisional, PBSMMGenericShow):
         return "show"
 
     def save(self, *args, **kwargs):
-        self.pre_save()
-        super().save(*args, **kwargs)
-        self.post_save(self.id)
+        skip_ingest = kwargs.pop("skip_ingest", False)
+        if skip_ingest:
+            super().save(*args, **kwargs)
+        else:
+            self.pre_save()
+            super().save(*args, **kwargs)
+            self.post_save(self.id)
 
     def pre_save(self):
         attrs = self.process(PBSMM_SHOW_ENDPOINT, "?platform-slug=partnerplayer")

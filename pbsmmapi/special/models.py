@@ -1,15 +1,10 @@
-from http import HTTPStatus
-
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import PBSMMGenericSpecial
-from pbsmmapi.api.api import (
-    PBSMM_SPECIAL_ENDPOINT,
-    get_PBSMM_record,
-)
+from pbsmmapi.api.api import PBSMM_SPECIAL_ENDPOINT
 
 
 class Special(PBSMMGenericSpecial):
@@ -27,17 +22,14 @@ class Special(PBSMMGenericSpecial):
     )
 
     @classmethod
-    def realize(cls, api_link: str):
-        status, json = get_PBSMM_record(api_link)
-        if status != HTTPStatus.OK:
-            return
+    def realize(cls, data: dict):
         try:
             special = cls.objects.get(
-                show_api_id=json["data"]["attributes"]["show"]["id"],
-                title=json["data"]["attributes"]["title"],
+                show_api_id=data["data"]["attributes"]["show"]["id"],
+                title=data["data"]["attributes"]["title"],
                 provisional=True,
             )
-            special.object_id = json["data"]["id"]
+            special.object_id = data["data"]["id"]
             special.provisional = False
             special.save()
         except cls.DoesNotExist:
@@ -69,9 +61,13 @@ class Special(PBSMMGenericSpecial):
         return mark_safe(out)
 
     def save(self, *args, **kwargs):
-        self.pre_save()
-        super().save(*args, **kwargs)
-        self.post_save(self.id)
+        skip_ingest = kwargs.pop("skip_ingest", False)
+        if skip_ingest:
+            super().save(*args, **kwargs)
+        else:
+            self.pre_save()
+            super().save(*args, **kwargs)
+            self.post_save(self.id)
 
     def pre_save(self):
         self.process(PBSMM_SPECIAL_ENDPOINT)
