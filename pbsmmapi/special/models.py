@@ -3,11 +3,14 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
-from pbsmmapi.abstract.models import PBSMMGenericSpecial
+from pbsmmapi.abstract.models import (
+    GenericProvisional,
+    PBSMMGenericSpecial,
+)
 from pbsmmapi.api.api import PBSMM_SPECIAL_ENDPOINT
 
 
-class Special(PBSMMGenericSpecial):
+class Special(GenericProvisional, PBSMMGenericSpecial):
     show_api_id = models.UUIDField(
         _("Show Object ID"),
         null=True,
