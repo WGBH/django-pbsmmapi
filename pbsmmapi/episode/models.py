@@ -3,11 +3,14 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
-from pbsmmapi.abstract.models import PBSMMGenericEpisode
+from pbsmmapi.abstract.models import (
+    GenericProvisional,
+    PBSMMGenericEpisode,
+)
 from pbsmmapi.api.api import PBSMM_EPISODE_ENDPOINT
 
 
-class Episode(PBSMMGenericEpisode):
+class Episode(GenericProvisional, PBSMMGenericEpisode):
     """
     These are the fields that are unique to Episode records.
     """
@@ -35,6 +38,20 @@ class Episode(PBSMMGenericEpisode):
         null=True,
         blank=True,  # does this work?
     )
+
+    @classmethod
+    def realize(cls, data: dict):
+        try:
+            episode = cls.objects.get(
+                season_api_id=data["data"]["attributes"]["season"]["id"],
+                ordinal=data["data"]["attributes"]["ordinal"],
+                provisional=True,
+            )
+            episode.object_id = data["data"]["id"]
+            episode.provisional = False
+            episode.save()
+        except cls.DoesNotExist:
+            return
 
     @property
     def object_model_type(self):
@@ -113,9 +130,13 @@ class Episode(PBSMMGenericEpisode):
         db_table = "pbsmm_episode"
 
     def save(self, *args, **kwargs):
-        self.pre_save()
-        super().save(*args, **kwargs)
-        self.post_save(self.id)
+        skip_ingest = kwargs.pop("skip_ingest", False)
+        if skip_ingest:
+            super().save(*args, **kwargs)
+        else:
+            self.pre_save()
+            super().save(*args, **kwargs)
+            self.post_save(self.id)
 
     def pre_save(self):
         self.process(PBSMM_EPISODE_ENDPOINT)

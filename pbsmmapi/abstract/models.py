@@ -33,7 +33,7 @@ class GenericObjectManagement(models.Model):
     )
     json = models.JSONField(
         _("JSON"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="This is the last JSON uploaded.",
     )
@@ -206,7 +206,7 @@ class PBSMMNOLA(models.Model):
 class PBSMMImage(models.Model):
     images = models.JSONField(
         _("Images"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON serialized field",
     )
@@ -261,7 +261,7 @@ class PBSMMPlayerMetadata(models.Model):
 class PBSMMLinks(models.Model):
     links = models.JSONField(
         _("Links"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON serialized field",
     )
@@ -273,19 +273,7 @@ class PBSMMLinks(models.Model):
 class PBSMMPlatforms(models.Model):
     platforms = models.JSONField(
         _("Platforms"),
-        null=True,
-        blank=True,
-        help_text="JSON serialized field",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMWindows(models.Model):
-    windows = models.JSONField(
-        _("Windows"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON serialized field",
     )
@@ -298,7 +286,7 @@ class PBSMMGeo(models.Model):
     # countries --- hold off until needed
     geo_profile = models.JSONField(
         _("Geo Profile"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON serialized field",
     )
@@ -328,7 +316,7 @@ class PBSMMGoogleTracking(models.Model):
 class PBSMMGenre(models.Model):
     genre = models.JSONField(
         _("Genre"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON Serialized Field",
     )
@@ -375,7 +363,7 @@ class PBSMMLanguage(models.Model):
 class PBSMMAudience(models.Model):
     audience = models.JSONField(
         _("Audience"),
-        null=True,
+        default=dict,
         blank=True,
         help_text="JSON Serialized Field",
     )
@@ -403,10 +391,9 @@ class GenericProvisional(models.Model):
     )
 
     @classmethod
-    def realize(cls, api_data: dict):
+    def realize(cls, data: dict):
         """
-        Class method to be called from the ChangeLog object's process method
-        Data will be passed from the ChangeLog to be used here to identify the instance for realization
+        Class method to be called from the Huey task processing ChangeLog objects
         """
         raise NotImplementedError
 
@@ -434,10 +421,10 @@ class Ingest(models.Model):
         if query_param is None:
             query_param = ""
         status, json = get_PBSMM_record(f"{endpoint}{identifier}/{query_param}")
-        self.object_id = json.get("id", json["data"]["id"])
-        self.last_api_status = status
+        self.last_api_status = status  # stop post_save in case of 4xx status
         if status != HTTPStatus.OK:
             return
+        self.object_id = json.get("id", json["data"]["id"])
         attrs = json.get("attributes", json["data"].get("attributes"))
         for field in self._meta.get_fields():
             value = attrs.get(field.name)
@@ -577,7 +564,6 @@ class PBSMMGenericAsset(
     PBSMMLinks,
     PBSMMGeo,
     PBSMMPlatforms,
-    PBSMMWindows,
     PBSMMLanguage,
 ):
     class Meta:

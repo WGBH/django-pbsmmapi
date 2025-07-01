@@ -21,6 +21,20 @@ class Special(PBSMMGenericSpecial):
         blank=True,
     )
 
+    @classmethod
+    def realize(cls, data: dict):
+        try:
+            special = cls.objects.get(
+                show_api_id=data["data"]["attributes"]["show"]["id"],
+                title=data["data"]["attributes"]["title"],
+                provisional=True,
+            )
+            special.object_id = data["data"]["id"]
+            special.provisional = False
+            special.save()
+        except cls.DoesNotExist:
+            return
+
     @property
     def object_model_type(self):
         # This handles the correspondence to the "type" field in the PBSMM JSON
@@ -47,9 +61,13 @@ class Special(PBSMMGenericSpecial):
         return mark_safe(out)
 
     def save(self, *args, **kwargs):
-        self.pre_save()
-        super().save(*args, **kwargs)
-        self.post_save(self.id)
+        skip_ingest = kwargs.pop("skip_ingest", False)
+        if skip_ingest:
+            super().save(*args, **kwargs)
+        else:
+            self.pre_save()
+            super().save(*args, **kwargs)
+            self.post_save(self.id)
 
     def pre_save(self):
         self.process(PBSMM_SPECIAL_ENDPOINT)

@@ -5,13 +5,16 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
-from pbsmmapi.abstract.models import PBSMMGenericShow
+from pbsmmapi.abstract.models import (
+    GenericProvisional,
+    PBSMMGenericShow,
+)
 from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
 from pbsmmapi.season.models import Season
 from pbsmmapi.special.models import Special
 
 
-class Show(PBSMMGenericShow):
+class Show(GenericProvisional, PBSMMGenericShow):
     ingest_seasons = models.BooleanField(
         _("Ingest Seasons"),
         default=False,
@@ -27,6 +30,11 @@ class Show(PBSMMGenericShow):
         default=False,
         help_text="Also ingest all Episodes (for each Season)",
     )
+    season_ordinal = models.BooleanField(
+        _("Season Ordinal"),
+        default=True,
+        help_text="Use incrementing integer or current year when creating a Season",
+    )
     # This is the parental Franchise
     franchise_api_id = models.UUIDField(_("Franchise Object ID"), null=True, blank=True)
     franchise = models.ForeignKey(
@@ -37,6 +45,26 @@ class Show(PBSMMGenericShow):
         blank=True,
     )
 
+    @classmethod
+    def realize(cls, data: dict):
+        try:
+            show = cls.objects.get(
+                title=data["data"]["attributes"]["title"],
+                provisional=True,
+            )
+            object_id = data["data"]["id"]
+            show.object_id = object_id
+            show.provisional = False
+            show.save()
+            Season.objects.filter(
+                provisional=True, show=show, show_api_id__isnull=True
+            ).update(show_api_id=object_id)
+            Special.objects.filter(
+                provisional=True, show=show, show_api_id__isnull=True
+            ).update(show_api_id=object_id)
+        except cls.DoesNotExist:
+            return
+
     @property
     def object_model_type(self):
         # This handles the correspondence to the "type" field in the PBSMM JSON
@@ -44,9 +72,13 @@ class Show(PBSMMGenericShow):
         return "show"
 
     def save(self, *args, **kwargs):
-        self.pre_save()
-        super().save(*args, **kwargs)
-        self.post_save(self.id)
+        skip_ingest = kwargs.pop("skip_ingest", False)
+        if skip_ingest:
+            super().save(*args, **kwargs)
+        else:
+            self.pre_save()
+            super().save(*args, **kwargs)
+            self.post_save(self.id)
 
     def pre_save(self):
         attrs = self.process(PBSMM_SHOW_ENDPOINT, "?platform-slug=partnerplayer")

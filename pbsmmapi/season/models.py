@@ -3,13 +3,20 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
-from pbsmmapi.abstract.models import PBSMMGenericSeason
+from pbsmmapi.abstract.models import (
+    GenericProvisional,
+    PBSMMGenericSeason,
+)
 from pbsmmapi.api.api import PBSMM_SEASON_ENDPOINT
 from pbsmmapi.episode.models import Episode
 
 
-class Season(PBSMMGenericSeason):
-    ordinal = models.PositiveIntegerField(_("Ordinal"), null=True, blank=True)
+class Season(GenericProvisional, PBSMMGenericSeason):
+    ordinal = models.PositiveIntegerField(
+        _("Ordinal"),
+        null=True,
+        blank=True,
+    )
 
     # This is the parental Show
     show_api_id = models.UUIDField(
@@ -47,6 +54,24 @@ class Season(PBSMMGenericSeason):
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
         return mark_safe(out)
 
+    @classmethod
+    def realize(cls, data: dict):
+        try:
+            season = cls.objects.get(
+                show_api_id=data["data"]["attributes"]["show"]["id"],
+                ordinal=data["data"]["attributes"]["ordinal"],
+                provisional=True,
+            )
+            object_id = data["data"]["id"]
+            season.object_id = object_id
+            season.provisional = False
+            season.save()
+            Episode.objects.filter(
+                provisional=True, season=season, season_api_id__isnull=True
+            ).update(season_api_id=object_id)
+        except cls.DoesNotExist:
+            return
+
     @property
     def object_model_type(self):
         """
@@ -64,12 +89,16 @@ class Season(PBSMMGenericSeason):
         """
         if self.show:
             return f"{self.show.title} Season {self.ordinal}"
-        return "Season {self.ordinal}"
+        return f"Season {self.ordinal}"
 
     def save(self, *args, **kwargs):
-        self.pre_save()
-        super().save(*args, **kwargs)
-        self.post_save(self.id)
+        skip_ingest = kwargs.pop("skip_ingest", False)
+        if skip_ingest:
+            super().save(*args, **kwargs)
+        else:
+            self.pre_save()
+            super().save(*args, **kwargs)
+            self.post_save(self.id)
 
     def pre_save(self):
         attrs = self.process(PBSMM_SEASON_ENDPOINT)
