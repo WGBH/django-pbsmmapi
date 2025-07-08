@@ -1,6 +1,5 @@
 import json
 
-from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -11,6 +10,11 @@ from .helpers import (
     get_canonical_image,
     get_default_asset,
 )
+
+try:
+    from django.db.models import JSONField
+except ImportError:
+    from django.contrib.postgres.fields import JSONField
 
 PUBLISH_STATUS_LIST = (
     (-1, "NEVER Available"),

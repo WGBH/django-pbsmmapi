@@ -5,7 +5,11 @@ from django.db import (
     models,
 )
 import django.db.models.deletion
-import jsonfield.fields
+
+try:
+    from django.db.models import JSONField
+except ImportError:
+    from django.contrib.postgres.fields import JSONField
 
 
 class Migration(migrations.Migration):
@@ -60,7 +64,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "json",
-                    jsonfield.fields.JSONField(
+                    JSONField(
                         blank=True,
                         help_text="This is the last JSON uploaded.",
                         null=True,
@@ -233,7 +237,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "json",
-                    jsonfield.fields.JSONField(
+                    JSONField(
                         blank=True,
                         help_text="This is the last JSON uploaded.",
                         null=True,
