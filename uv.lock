@@ -312,7 +312,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "django", specifier = ">=2.0,<=4.2" },
+    { name = "django", specifier = ">=3.0,<=4.2" },
     { name = "huey", specifier = ">=2.5.3" },
     { name = "python-dateutil" },
     { name = "pytz" },
