@@ -1,6 +1,11 @@
 from datetime import datetime
 
 from dateutil import parser
+from nltk import PunktSentenceTokenizer
+from pycaption.base import (
+    BaseWriter,
+    CaptionNode,
+)
 import pytz
 
 
@@ -34,3 +39,33 @@ def check_asset_availability(start=None, end=None):
         return (False, 2, "expired")
 
     return (False, -1, "unknown")
+
+
+class SafeTranscriptWriter(BaseWriter):
+    """
+    Adapted from pycaption.transcript.TranscriptWriter, using safe nltk version.
+    """
+
+    def __init__(self, *args, **kwargs):
+        self.tokenizer = PunktSentenceTokenizer()
+        super().__init__(*args, **kwargs)
+
+    def write(self, captions):
+        transcripts = []
+
+        for lang in captions.get_languages():
+            lang_transcript = ""
+
+            for caption in captions.get_captions(lang):
+                lang_transcript = self._strip_text(caption.nodes, lang_transcript)
+
+            lang_transcript = "\n".join(self.tokenizer.tokenize(lang_transcript))
+            transcripts.append(lang_transcript)
+
+        return "\n".join(transcripts)
+
+    def _strip_text(self, elements, lang_transcript):
+        return " ".join(
+            [lang_transcript]
+            + [el.content for el in elements if el.type_ == CaptionNode.TEXT]
+        )
