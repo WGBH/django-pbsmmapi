@@ -54,13 +54,6 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
             return
 
     @property
-    def object_model_type(self):
-        """
-        This just returns object "type"
-        """
-        return "episode"
-
-    @property
     def segment(self):
         """
         Return individual segments of a single episode.

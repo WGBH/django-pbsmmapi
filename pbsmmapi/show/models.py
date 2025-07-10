@@ -90,12 +90,6 @@ class Show(GenericProvisional, PBSMMGenericShow):
         except cls.DoesNotExist:
             return
 
-    @property
-    def object_model_type(self):
-        # This handles the correspondence to the "type" field in the PBSMM JSON
-        # object
-        return "show"
-
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False)
         if skip_ingest:
