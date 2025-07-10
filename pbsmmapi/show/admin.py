@@ -192,25 +192,19 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
         return super().get_form(request, obj, **kwargs)
 
     def format_seasons_list(self, obj):
-        out = (
-            '<table width="100%" border=2>\n'
-            + '<tr style="background-color: #999;">'
-            + '<th colspan="3">Season / Episodes</th>'
-            + "<th>API Link</th>"
-            + "<th># Assets</th>"
-            + "<th>Last Updated</th>"
-            + "<th>API Status"
-            + "<th>Public</th>"
-            + "</tr>"
-        )
-        season_list = obj.seasons.order_by("-ordinal")
-        for season in season_list:
-            x = season.create_table_line()
-            out = out + x
-
-            episode_list = season.episodes.order_by("ordinal")
-            for episode in episode_list:
-                x = episode.create_table_line()
+        out = """
+        <table width="100%" border=2>\n
+        <tr style="background-color: #999;">
+        <th colspan="3">Season / Episodes</th>
+        <th>API Link</th>
+        <th># Assets</th>
+        <th>Last Updated</th>
+        <th>API Status</th>
+        </tr>
+        """
+        for season in obj.seasons.order_by("-ordinal"):
+            out += season.create_table_line()
+            for episode in season.episodes.order_by("ordinal"):
                 out += episode.create_table_line()
 
         out += "</table>"
@@ -235,17 +229,16 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
         else:
             specials_list_to_show = specials_list
 
-        out += (
-            '<table width="100%" border=2>\n'
-            + '<tr style="background-color: #999;">'
-            + "<th>Special Title</th>"
-            + "<th>API Link</th>"
-            + "<th># Assets</th>"
-            + "<th>Last Updated</th>"
-            + "<th>API Status"
-            + "<th>Public</th>"
-            + "</tr>"
-        )
+        out += """
+        <table width="100%" border=2>\n
+        <tr style="background-color: #999;">
+        <th>Special Title</th>
+        <th>API Link</th>
+        <th># Assets</th>
+        <th>Last Updated</th>
+        <th>API Status</th>
+        </tr>
+        """
         for special in specials_list_to_show:
             out += special.create_table_line()
 
