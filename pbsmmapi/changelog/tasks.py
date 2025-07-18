@@ -126,18 +126,14 @@ def fetch_api_data(log: ChangeLog):
 
 
 def ingest_new_objects():
-    for franchise in Franchise.objects.all():
-        show_logs = ShowChangeLog.objects.filter(
-            franchise_id=franchise.object_id,
-            ingested=False,
-        )
-        for log in show_logs:
-            if log.get_instance() is not None:
-                log.save()
-            else:
-                result = Show.realize(log.api_data)
-                if result is False:
-                    Show(object_id=log.content_id).save()
+    show_logs = ShowChangeLog.objects.filter(
+        ingested=False,
+    )
+    for log in show_logs:
+        if log.get_instance() is not None:
+            log.save()
+        else:
+            Show.realize(log.api_data)
     for show in Show.objects.all():
         season_logs = SeasonChangeLog.objects.filter(
             show_id=show.object_id,
@@ -148,7 +144,7 @@ def ingest_new_objects():
                 log.save()
             else:
                 result = Season.realize(log.api_data)
-                if result is False:
+                if result is None:
                     Season(object_id=log.content_id).save()
 
         episode_logs = EpisodeChangeLog.objects.filter(
@@ -160,7 +156,7 @@ def ingest_new_objects():
                 log.save()
             else:
                 result = Episode.realize(log.api_data)
-                if result is False:
+                if result is None:
                     Episode(object_id=log.content_id).save()
 
         special_logs = SpecialChangeLog.objects.filter(
@@ -172,7 +168,7 @@ def ingest_new_objects():
                 log.save()
             else:
                 result = Special.realize(log.api_data)
-                if result is False:
+                if result is None:
                     Special(object_id=log.content_id).save()
 
     for log in AssetChangeLog.objects.exclude(parent_type__isnull=True):
