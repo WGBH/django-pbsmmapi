@@ -87,8 +87,9 @@ class Show(GenericProvisional, PBSMMGenericShow):
                 show=show,
                 show_api_id__isnull=True,
             ).update(show_api_id=object_id)
+            return show
         except cls.DoesNotExist:
-            return
+            return None
 
     @property
     def object_model_type(self):
