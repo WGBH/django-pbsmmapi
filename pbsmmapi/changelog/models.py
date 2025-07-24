@@ -91,6 +91,7 @@ class ShowChangeLogManager(models.Manager):
             .get_queryset()
             .filter(resource_type="show")
             .annotate(franchise_id=KT("api_data__data__attributes__franchise__id"))
+            .annotate(title=KT("api_data__data__attributes__title"))
         )
 
 
@@ -108,6 +109,7 @@ class SeasonChangeLogManager(models.Manager):
             .get_queryset()
             .filter(resource_type="season")
             .annotate(show_id=KT("api_data__data__attributes__show__id"))
+            .annotate(ordinal=KT("api_data__data__attributes__ordinal"))
         )
 
 
@@ -125,6 +127,8 @@ class EpisodeChangeLogManager(models.Manager):
             .get_queryset()
             .filter(resource_type="episode")
             .annotate(show_id=KT("api_data__data__attributes__show__id"))
+            .annotate(season_id=KT("api_data__data__attributes__season__id"))
+            .annotate(ordinal=KT("api_data__data__attributes__ordinal"))
         )
 
 
@@ -142,6 +146,7 @@ class SpecialChangeLogManager(models.Manager):
             .get_queryset()
             .filter(resource_type="special")
             .annotate(show_id=KT("api_data__data__attributes__show__id"))
+            .annotate(title=KT("api_data__data__attributes__title"))
         )
 
 
