@@ -267,17 +267,17 @@ def realize_provisional_objects():
         except SpecialChangeLog.DoesNotExist:
             pass
 
+    for season in filter(None, realized_seasons):
+        season.ingest_on_save = True
+        season.ingest_episodes = True
+        season.save()
+
     for show in filter(None, realized_shows):
         show.ingest_on_save = True
         show.ingest_seasons = True
         show.ingest_specials = True
         show.ingest_episodes = True
         show.save()
-
-    for season in filter(None, realized_seasons):
-        season.ingest_on_save = True
-        season.ingest_episodes = True
-        season.save()
 
 
 def get_changelog_data(limit: int):
