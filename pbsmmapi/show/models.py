@@ -30,19 +30,40 @@ class Show(GenericProvisional, PBSMMGenericShow):
         default=False,
         help_text="Also ingest all Episodes (for each Season)",
     )
-    season_ordinal = models.BooleanField(
-        _("Season Ordinal"),
-        default=True,
-        help_text="Use incrementing integer or current year when creating a Season",
-    )
+
     # This is the parental Franchise
-    franchise_api_id = models.UUIDField(_("Franchise Object ID"), null=True, blank=True)
+    franchise_api_id = models.UUIDField(
+        _("Franchise Object ID"),
+        null=True,
+        blank=True,
+    )
     franchise = models.ForeignKey(
         "franchise.Franchise",
         related_name="shows",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
+    )
+
+    ordinal_season = models.BooleanField(
+        _("Ordinal Season"),
+        default=True,
+        help_text="Use incrementing integer or current year when creating a Season",
+    )
+
+    # TODO revisit these fields - are they useful?
+    episode_count = models.PositiveIntegerField(
+        _("Episode Count"),
+        null=True,
+        blank=True,
+    )
+    display_episode_number = models.BooleanField(
+        _("Display Episode Number"),
+        default=False,
+    )
+    sort_episodes_descending = models.BooleanField(
+        _("Sort Episodes Descending"),
+        default=False,
     )
 
     @classmethod
@@ -55,21 +76,20 @@ class Show(GenericProvisional, PBSMMGenericShow):
             object_id = data["data"]["id"]
             show.object_id = object_id
             show.provisional = False
-            show.save()
+            show.save()  # TODO: we could avoid calling the MM API again because we have the latest information in the data dict, we just need to update the obj fields and call save with skip_ingest=True
             Season.objects.filter(
-                provisional=True, show=show, show_api_id__isnull=True
+                provisional=True,
+                show=show,
+                show_api_id__isnull=True,
             ).update(show_api_id=object_id)
             Special.objects.filter(
-                provisional=True, show=show, show_api_id__isnull=True
+                provisional=True,
+                show=show,
+                show_api_id__isnull=True,
             ).update(show_api_id=object_id)
+            return show
         except cls.DoesNotExist:
-            return
-
-    @property
-    def object_model_type(self):
-        # This handles the correspondence to the "type" field in the PBSMM JSON
-        # object
-        return "show"
+            return None
 
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False)

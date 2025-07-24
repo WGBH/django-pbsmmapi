@@ -134,20 +134,18 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
         return super().get_form(request, obj, **kwargs)
 
     def format_episode_list(self, obj):
-        out = (
-            '<table width="100%">\n'
-            + "<tr>"
-            + '<th colspan="3">Episodes</th>'
-            + "<th>API Link</th>"
-            + "<th># Assets</th>"
-            + "<th>Last Updated</th>"
-            + "<th>API Status"
-            + "<th>Public</th>"
-            + "</tr>"
-        )
+        out = """
+        <table width="100%">\n
+        <tr>
+        <th colspan="3">Episodes</th>
+        <th>API Link</th>
+        <th># Assets</th>
+        <th>Last Updated</th>
+        <th>API Status
+        </tr>
+        """
 
-        episode_list = obj.episodes.order_by("ordinal")
-        for episode in episode_list:
+        for episode in obj.episodes.order_by("ordinal"):
             out += episode.create_table_line()
         out += "</table>"
         return mark_safe(out)

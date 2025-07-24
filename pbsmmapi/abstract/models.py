@@ -325,29 +325,6 @@ class PBSMMGenre(models.Model):
         abstract = True
 
 
-class PBSMMEpisodeSeason(models.Model):
-    episode_count = models.PositiveIntegerField(
-        _("Episode Count"),
-        null=True,
-        blank=True,
-    )
-    display_episode_number = models.BooleanField(
-        _("Display Episode Number"),
-        default=False,
-    )
-    sort_episodes_descending = models.BooleanField(
-        _("Sort Episodes Descending"),
-        default=False,
-    )
-    ordinal_season = models.BooleanField(
-        _("Ordinal Season"),
-        default=True,
-    )
-
-    class Meta:
-        abstract = True
-
-
 class PBSMMLanguage(models.Model):
     language = models.CharField(
         _("Language"),
@@ -586,7 +563,6 @@ class PBSMMGenericShow(
     PBSMMFunder,
     PBSMMPlayerMetadata,
     PBSMMGoogleTracking,
-    PBSMMEpisodeSeason,
     PBSMMPlatforms,
     PBSMMAudience,
     PBSMMBroadcastDates,

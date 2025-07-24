@@ -67,19 +67,13 @@ class Season(GenericProvisional, PBSMMGenericSeason):
             season.provisional = False
             season.save()
             Episode.objects.filter(
-                provisional=True, season=season, season_api_id__isnull=True
+                provisional=True,
+                season=season,
+                season_api_id__isnull=True,
             ).update(season_api_id=object_id)
+            return season
         except cls.DoesNotExist:
             return
-
-    @property
-    def object_model_type(self):
-        """
-        This return the object type.
-        """
-        # This handles the correspondence to the "type" field in the PBSMM JSON
-        # object
-        return "season"
 
     @property
     def printable_title(self):

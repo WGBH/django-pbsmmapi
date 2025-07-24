@@ -1,8 +1,10 @@
 import multiprocessing
 import os
+from pathlib import Path
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "false").lower() == "true"
-PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
+PROJECT_ROOT = Path(__file__).resolve(strict=True).parent.parent
+WEBROOT = PROJECT_ROOT.parent.joinpath(".ephemeral", "webroot")
 
 USE_TZ = True
 TIME_ZONE = "America/New_York"
@@ -36,7 +38,7 @@ STORAGES = {
     },
 }
 
-STATIC_ROOT = os.path.join(PROJECT_ROOT, "tests", "test-static")
+STATIC_ROOT = WEBROOT / "static"
 STATIC_URL = "/static/"
 
 STATICFILES_FINDERS = (
@@ -44,7 +46,7 @@ STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 )
 
-MEDIA_ROOT = os.path.join(PROJECT_ROOT, "tests", "test-media")
+MEDIA_ROOT = WEBROOT / "media"
 MEDIA_URL = "/media/"
 
 LANGUAGE_CODE = "en"

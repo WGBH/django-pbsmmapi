@@ -174,21 +174,18 @@ class PBSMMFranchiseAdmin(PBSMMAbstractAdmin):
         return super().get_form(request, obj, **kwargs)
 
     def format_shows_list(self, obj):
-        out = (
-            '<table width="100%" border=2>\n'
-            + '<tr style="background-color: #555;">'
-            + '<th colspan="3">Show</th>'
-            + "<th>API Link</th>"
-            + "<th># Assets</th>"
-            + "<th>Last Updated</th>"
-            + "<th>API Status"
-            + "<th>Public</th>"
-            + "</tr>"
-        )
-        shows_list = obj.shows.all()
-        for show in shows_list:
-            x = show.create_table_line()
-            out = out + x
+        out = """
+        <table width="100%" border=2>\n
+        <tr style="background-color: #555;">
+        <th colspan="3">Show</th>
+        <th>API Link</th>
+        <th># Assets</th>
+        <th>Last Updated</th>
+        <th>API Status
+        </tr>
+        """
+        for show in obj.shows.all():
+            out += show.create_table_line()
 
         out += "</table>"
         return mark_safe(out)
