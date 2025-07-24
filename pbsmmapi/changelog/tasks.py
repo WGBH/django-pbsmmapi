@@ -28,7 +28,6 @@ from huey.contrib.djhuey import (
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.asset.models import Asset
 from pbsmmapi.changelog.models import (
-    AssetChangeLog,
     ChangeLog,
     EpisodeChangeLog,
     SeasonChangeLog,
@@ -125,74 +124,76 @@ def fetch_api_data(log: ChangeLog):
     log.save()
 
 
-def ingest_new_objects():
-    for franchise in Franchise.objects.all():
-        show_logs = ShowChangeLog.objects.filter(
-            franchise_id=franchise.object_id,
-            ingested=False,
-        )
-        for log in show_logs:
-            if log.get_instance() is not None:
-                log.save()
-            else:
-                result = Show.realize(log.api_data)
-                if result is False:
-                    Show(object_id=log.content_id).save()
-    for show in Show.objects.all():
-        season_logs = SeasonChangeLog.objects.filter(
-            show_id=show.object_id,
-            ingested=False,
-        )
-        for log in season_logs:
-            if log.get_instance() is not None:
-                log.save()
-            else:
-                result = Season.realize(log.api_data)
-                if result is False:
-                    Season(object_id=log.content_id).save()
-
-        episode_logs = EpisodeChangeLog.objects.filter(
-            show_id=show.object_id,
-            ingested=False,
-        )
-        for log in episode_logs:
-            if log.get_instance() is not None:
-                log.save()
-            else:
-                result = Episode.realize(log.api_data)
-                if result is False:
-                    Episode(object_id=log.content_id).save()
-
-        special_logs = SpecialChangeLog.objects.filter(
-            show_id=show.object_id,
-            ingested=False,
-        )
-        for log in special_logs:
-            if log.get_instance() is not None:
-                log.save()
-            else:
-                result = Special.realize(log.api_data)
-                if result is False:
-                    Special(object_id=log.content_id).save()
-
-    for log in AssetChangeLog.objects.exclude(parent_type__isnull=True):
-        parent = log.get_parent_instance()
-        if parent is not None:
-            if not parent.assets.filter(object_id=log.content_id).exists():
-                parent.ingest_on_save = True
-                parent.save()
+def set_ingested():
+    """
+    If an object has already been ingested, we need to set the ingested boolean
+    to True. This prevents unnecessary API calls.
+    """
+    querysets = [
+        Franchise.objects.filter(
+            Exists(
+                ChangeLog.objects.filter(
+                    content_id=OuterRef("object_id"),
+                    ingested=False,
+                )
+            )
+        ),
+        Show.objects.filter(
+            Exists(
+                ChangeLog.objects.filter(
+                    content_id=OuterRef("object_id"),
+                    ingested=False,
+                )
+            )
+        ),
+        Special.objects.filter(
+            Exists(
+                ChangeLog.objects.filter(
+                    content_id=OuterRef("object_id"),
+                    ingested=False,
+                )
+            )
+        ),
+        Season.objects.filter(
+            Exists(
+                ChangeLog.objects.filter(
+                    content_id=OuterRef("object_id"),
+                    ingested=False,
+                )
+            )
+        ),
+        Episode.objects.filter(
+            Exists(
+                ChangeLog.objects.filter(
+                    content_id=OuterRef("object_id"),
+                    ingested=False,
+                )
+            )
+        ),
+        Asset.objects.filter(
+            Exists(
+                ChangeLog.objects.filter(
+                    content_id=OuterRef("object_id"),
+                    ingested=False,
+                )
+            )
+        ),
+    ]
+    for queryset in filter(lambda qs: qs.exists(), querysets):
+        ChangeLog.objects.filter(
+            content_id__in=queryset.values_list("object_id")
+        ).update(ingested=True)
 
 
 def reingest_updated_objects():
-    for franchise in Franchise.objects.filter(
-        Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id")))
-    ):
-        changelog = ChangeLog.objects.get(content_id=franchise.object_id)
-        if changelog.latest_timestamp > franchise.date_last_api_update:
-            franchise.ingest_on_save = True
-            franchise.save()
-
+    """
+    When new actions appear in the changelog, we need to trigger
+    ingest of the related object to get everything in sync.
+    """
     querysets = [
+        Franchise.objects.filter(
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id")))
+        ),
         Show.objects.filter(
             Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id")))
         ),
@@ -215,6 +216,68 @@ def reingest_updated_objects():
             if changelog.latest_timestamp > item.date_last_api_update:
                 item.ingest_on_save = True
                 item.save()
+
+
+def realize_provisional_objects():
+    """
+    For any provisional objects, we try to find matching Changelog entries and
+    send the API data into the realize method.
+    """
+    realized_shows = []
+    for show in Show.objects.filter(provisional=True):
+        try:
+            changelog = ShowChangeLog.objects.get(title=show.title)
+            realized_show = Show.realize(changelog.api_data)
+            realized_shows.append(realized_show)
+        except ShowChangeLog.DoesNotExist:
+            pass
+
+    realized_seasons = []
+    for season in Season.objects.filter(provisional=True):
+        try:
+            changelog = SeasonChangeLog.objects.get(
+                show_id=season.show_api_id,
+                ordinal=season.ordinal,
+            )
+            realized_season = Season.realize(changelog.api_data)
+            realized_seasons.append(realized_season)
+        except SeasonChangeLog.DoesNotExist:
+            pass
+
+    for episode in Episode.objects.filter(provisional=True):
+        try:
+            changelog = EpisodeChangeLog.objects.get(
+                season_id=episode.season_api_id,
+                ordinal=episode.ordinal,
+            )
+            Episode.realize(changelog.api_data)
+        except EpisodeChangeLog.DoesNotExist:
+            pass
+
+    for special in Special.objects.filter(
+        provisional=True,
+    ):
+        try:
+            changelog = SpecialChangeLog.objects.get(
+                show_id=special.show_api_id,
+                title=special.title,
+            )
+            Special.realize(changelog.api_data)
+
+        except SpecialChangeLog.DoesNotExist:
+            pass
+
+    for season in filter(None, realized_seasons):
+        season.ingest_on_save = True
+        season.ingest_episodes = True
+        season.save()
+
+    for show in filter(None, realized_shows):
+        show.ingest_on_save = True
+        show.ingest_seasons = True
+        show.ingest_specials = True
+        show.ingest_episodes = True
+        show.save()
 
 
 def get_changelog_data(limit: int):
@@ -261,7 +324,7 @@ def get_changelog_data(limit: int):
     # API limit so we should just ingest new objects and update existing ones
     if limit > 0:
         reingest_updated_objects()
-        ingest_new_objects()
+        realize_provisional_objects()
 
 
 @db_periodic_task(crontab(minute="*/1"))
@@ -288,6 +351,7 @@ def scrape_changelog():
     entries = get_changelog_entries.map(urls)
     data = prep_changelog_data(chain.from_iterable(entries.get(blocking=True)))
     save_changelog_entries(data)
+    set_ingested()
 
     remaining_api_calls = MAX_QUERIES - len(urls)
     get_changelog_data(remaining_api_calls)

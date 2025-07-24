@@ -16,6 +16,8 @@ env:
 
 jobs:
   lint:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     name: Lint ${{ matrix.python-version }}
     strategy:
@@ -43,6 +45,8 @@ jobs:
 
   check:
     if: always()
+    permissions:
+      contents: read
 
     outputs:
       result: ${{ steps.all-green.outputs.result }}
