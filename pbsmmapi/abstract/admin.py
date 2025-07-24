@@ -27,7 +27,7 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
 
     def assemble_asset_table(self, obj):
         asset_list = obj.assets.all()
-        out = get_abstract_asset_table(asset_list, obj.object_model_type)
+        out = get_abstract_asset_table(asset_list)
         return mark_safe(out)
 
     assemble_asset_table.short_description = "Assets"
@@ -36,8 +36,8 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
         abstract = True
 
 
-def get_abstract_asset_table(object_list, parent_type):
-    url = f"/admin/{parent_type}/pbsmm{parent_type}asset"
+def get_abstract_asset_table(object_list):
+    url = "/admin/asset/asset"
     if len(object_list) < 1:
         return "(No assets)"
     out = '<table width="100%" border=2>'

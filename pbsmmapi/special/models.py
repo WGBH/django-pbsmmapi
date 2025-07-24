@@ -39,12 +39,6 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
             return
 
     @property
-    def object_model_type(self):
-        # This handles the correspondence to the "type" field in the PBSMM JSON
-        # object
-        return "special"
-
-    @property
     def nola_code(self):
         if self.nola is None or self.nola == "":
             return None
