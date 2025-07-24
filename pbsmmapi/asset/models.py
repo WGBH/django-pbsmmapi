@@ -113,15 +113,6 @@ class Asset(PBSMMGenericAsset):
 
     # Properties and methods
     @property
-    def object_model_type(self):
-        """
-        This handles the correspondence to the "type" field in the PBSMM JSON
-        object. Basically this just makes it easy to identify whether an object
-        is an asset or not.
-        """
-        return "asset"
-
-    @property
     def topics(self):
         """
         Return a list of topics if the asset have it.

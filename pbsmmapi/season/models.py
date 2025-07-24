@@ -76,15 +76,6 @@ class Season(GenericProvisional, PBSMMGenericSeason):
             return
 
     @property
-    def object_model_type(self):
-        """
-        This return the object type.
-        """
-        # This handles the correspondence to the "type" field in the PBSMM JSON
-        # object
-        return "season"
-
-    @property
     def printable_title(self):
         """
         This creates a human friendly title out of the Season metadata

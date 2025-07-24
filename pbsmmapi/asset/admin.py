@@ -1,8 +1,12 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
+from pbsmmapi.asset.models import Asset
 
-class PBSMMAbstractAssetAdmin(admin.ModelAdmin):
+
+class PBSMMAssetAdmin(admin.ModelAdmin):
+    model = Asset
+
     # Why so many readonly_fields?  Because we don't want to override what's
     # coming from the API, but we do want to be able to view it in the context
     # of the Django system.
@@ -132,5 +136,5 @@ class PBSMMAbstractAssetAdmin(admin.ModelAdmin):
             out += "</div>"
         return mark_safe(out)
 
-    class Meta:
-        abstract = True
+
+admin.site.register(Asset, PBSMMAssetAdmin)

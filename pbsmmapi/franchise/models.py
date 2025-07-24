@@ -31,12 +31,6 @@ class Franchise(PBSMMGenericFranchise):
         help_text="Also ingest all Episodes (for each Season)",
     )
 
-    @property
-    def object_model_type(self):
-        # This handles the correspondence to the "type" field in the PBSMM JSON
-        # object
-        return "franchise"
-
     def save(self, *args, **kwargs):
         self.pre_save()
         super().save(*args, **kwargs)
