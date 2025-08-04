@@ -12,16 +12,16 @@ from pbsmmapi.test.url_map import url_map
 default_data_set = url_map
 assets_deleted_data_set = url_map.copy()
 assets_deleted_data_set[
-    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/"
+    "https://media.services.pbs.org/api/v1/shows/adfb2f9d-f61e-4613-ac58-ab3bde582afb/assets/?platform-slug=partnerplayer"
 ] = "test_fixtures/nova_shows_adfb2f9d-f61e-4613-ac58-ab3bde582afb_assets_minus_one.json"
 assets_deleted_data_set[
-    "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/assets/"
+    "https://media.services.pbs.org/api/v1/seasons/7f613b59-588b-4ec5-bcb1-a3d595b2579c/assets/?platform-slug=partnerplayer"
 ] = "test_fixtures/nova_seasons_7f613b59-588b-4ec5-bcb1-a3d595b2579c_assets_minus_one.json"
 assets_deleted_data_set[
-    "https://media.services.pbs.org/api/v1/specials/a3410528-7f72-47e8-b28d-6861693b9309/assets/"
+    "https://media.services.pbs.org/api/v1/specials/a3410528-7f72-47e8-b28d-6861693b9309/assets/?platform-slug=partnerplayer"
 ] = "test_fixtures/nova_specials_a3410528-7f72-47e8-b28d-6861693b9309_assets_minus_one.json"
 assets_deleted_data_set[
-    "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/assets/"
+    "https://media.services.pbs.org/api/v1/episodes/107268fc-0437-4877-8c3b-d5fdcef32737/assets/?platform-slug=partnerplayer"
 ] = "test_fixtures/nova_episodes_107268fc-0437-4877-8c3b-d5fdcef32737_assets_minus_one.json"
 
 data_set = default_data_set
