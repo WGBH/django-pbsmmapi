@@ -1,8 +1,14 @@
 import re
 
 from django.db import models
+from django.db.models.fields.json import KT
+from django.db.models.functions import (
+    Cast,
+    Coalesce,
+)
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
+import requests
 
 from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericAsset
@@ -19,7 +25,26 @@ PBSMM_ASSET_ENDPOINT = f"{PBSMM_BASE_URL}api/v1/assets/"
 PBSMM_LEGACY_ASSET_ENDPOINT = f"{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id="
 
 
+class AssetManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                transcripts=Coalesce(
+                    Cast(
+                        KT("json__attributes__transcripts"),
+                        models.JSONField(),
+                    ),
+                    models.Value([], models.JSONField()),
+                )
+            )
+        )
+
+
 class Asset(PBSMMGenericAsset):
+    objects = AssetManager()
+
     legacy_tp_media_id = models.BigIntegerField(
         _("COVE ID"),
         null=True,
@@ -245,6 +270,18 @@ class Asset(PBSMMGenericAsset):
             defaults=fields,
             object_id=asset["id"],
         )[0]
+
+    @property
+    def transcript_url(self) -> str | None:
+        return next(
+            filter(lambda x: x.get("primary"), self.transcripts),
+            dict(),
+        ).get("url", None)
+
+    def fetch_transcript(self) -> str | None:
+        if self.transcript_url:
+            r = requests.get(self.transcript_url)
+            return r.text
 
     def get_video_id_from_player_code(self):
         regex = r"org\/partnerplayer\/(.*)((?:\/\?))"
