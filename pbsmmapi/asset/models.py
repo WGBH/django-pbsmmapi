@@ -8,11 +8,15 @@ from django.db.models.functions import (
 )
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
+from pycaption import detect_format
 import requests
 
 from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericAsset
-from pbsmmapi.asset.helpers import check_asset_availability
+from pbsmmapi.asset.helpers import (
+    SafeTranscriptWriter,
+    check_asset_availability,
+)
 
 AVAILABILITY_GROUPS = (
     ("Station Members", "station_members"),
@@ -37,7 +41,14 @@ class AssetManager(models.Manager):
                         models.JSONField(),
                     ),
                     models.Value([], models.JSONField()),
-                )
+                ),
+                captions=Coalesce(
+                    Cast(
+                        KT("json__attributes__captions"),
+                        models.JSONField(),
+                    ),
+                    models.Value([], models.JSONField()),
+                ),
             )
         )
 
@@ -279,11 +290,38 @@ class Asset(PBSMMGenericAsset):
             dict(),
         ).get("url", None)
 
+    @property
+    def caption_url(self) -> str | None:
+        """
+        We only need one caption file for the purpose of converting to
+        a transcript (as a fallback when no transcript is in the Asset data).
+        The list of profiles below is ranked by compatability (plus a little
+        personal preference).
+        """
+        caption_map = {config["profile"]: config["url"] for config in self.captions}
+        profiles = [
+            "WebVTT",
+            "SRT",
+            "Caption-SAMI",
+            "DFXP",
+        ]
+        for profile in profiles:
+            url = caption_map.get(profile, None)
+            if url:
+                return url
+
     def fetch_transcript(self) -> str | None:
         if self.transcript_url:
             r = requests.get(self.transcript_url)
             r.encoding = "UTF-8"
             return r.text
+
+        if self.caption_url:
+            r = requests.get(self.caption_url)
+            r.encoding = "UTF-8"
+            captions = r.text
+            reader = detect_format(captions)
+            return SafeTranscriptWriter().write(reader().read(captions))
 
     def get_video_id_from_player_code(self):
         regex = r"org\/partnerplayer\/(.*)((?:\/\?))"
