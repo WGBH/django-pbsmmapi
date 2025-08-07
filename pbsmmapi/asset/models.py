@@ -238,6 +238,7 @@ class Asset(PBSMMGenericAsset):
         verbose_name = "PBS MM Asset"
         verbose_name_plural = "PBS MM Assets"
         db_table = "pbsmm_asset"
+        base_manager_name = "objects"
 
     @staticmethod
     @db_task()
@@ -281,6 +282,7 @@ class Asset(PBSMMGenericAsset):
     def fetch_transcript(self) -> str | None:
         if self.transcript_url:
             r = requests.get(self.transcript_url)
+            r.encoding = "UTF-8"
             return r.text
 
     def get_video_id_from_player_code(self):
