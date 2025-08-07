@@ -49,6 +49,14 @@ class AssetManager(models.Manager):
                     ),
                     models.Value([], models.JSONField()),
                 ),
+                data_format=models.Case(
+                    models.When(
+                        models.Q(json__has_key="links"),
+                        then=models.Value("compact"),
+                    ),
+                    default=models.Value("full"),
+                    output_field=models.CharField(),
+                ),
             )
         )
 
