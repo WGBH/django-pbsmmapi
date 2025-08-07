@@ -29,6 +29,8 @@ dependencies = [
     "python-dateutil",
     "pytz",
     "huey>=2.5.3",
+    "pycaption>=2.2.16",
+    "nltk",
 ]
 
 [dependency-groups]
