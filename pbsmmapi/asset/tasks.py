@@ -4,6 +4,7 @@ from huey.contrib.djhuey import (
     db_task,
 )
 
+from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.asset.models import Asset
 
@@ -11,8 +12,11 @@ from pbsmmapi.asset.models import Asset
 @db_task(retries=3, retry_delay=10)
 def get_complete_asset_data(asset: Asset) -> None:
     status, data = get_PBSMM_record(asset.api_endpoint)
-    assert status == 200
-    asset.json = data["data"]
+    if status == 200:
+        asset.json = data["data"]
+
+    asset.last_api_status = status
+    asset.date_last_api_update = time_zone_aware_now()
     asset.save()
 
 
@@ -33,6 +37,9 @@ def update_partial_assets() -> None:
     simultaneously with any of the other API-calling tasks. As a safeguard, we
     limit to 100 requests/minute.
     """
-    incomplete_assets = Asset.objects.filter(json__has_key="links")
+    incomplete_assets = Asset.objects.filter(
+        data_format="compact",
+        last_api_status=200,
+    )
     for asset in incomplete_assets[:100]:
         get_complete_asset_data(asset)
