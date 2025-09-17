@@ -16,7 +16,7 @@ updates:
     reviewers:
       - "eyemyth"
 
-  - package-ecosystem: "uv"
+  - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
