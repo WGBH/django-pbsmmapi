@@ -28,6 +28,7 @@ from huey.contrib.djhuey import (
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.asset.models import Asset
 from pbsmmapi.changelog.models import (
+    AssetChangeLog,
     ChangeLog,
     EpisodeChangeLog,
     SeasonChangeLog,
@@ -216,6 +217,14 @@ def reingest_updated_objects():
             if changelog.latest_timestamp > item.date_last_api_update:
                 item.ingest_on_save = True
                 item.save()
+
+    # Under some circumstances, an Asset can be updated without the change
+    # being reflected by the parent object's ChangeLog.
+    for item in AssetChangeLog.objects.filter(ingested=False, api_status=200):
+        parent = item.get_parent_instance()
+        if parent is not None:
+            parent.ingest_on_save = True
+            parent.save()
 
 
 def realize_provisional_objects():
