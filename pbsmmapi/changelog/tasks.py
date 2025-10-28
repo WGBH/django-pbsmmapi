@@ -226,6 +226,8 @@ def reingest_updated_objects():
             parent.ingest_on_save = True
             parent.save()
 
+    # TODO also need to update when ingested = true and parent scrape date is less than latest timestamp
+
 
 def realize_provisional_objects():
     """
@@ -300,14 +302,26 @@ def get_changelog_data(limit: int):
         api_status__isnull=True,
         ingested=False,
     )
-
     if logs.count() > limit:
         logs = logs[:limit]
         limit = 0
     else:
         limit = limit - logs.count()
-
     fetch_api_data.map(logs)
+
+    # Since asset changes do not always result in the parent object reflecting
+    # the change in the changelog, we have to get full data for any asset that
+    # was already ingested before we started scraping the changelog
+    asset_logs = AssetChangeLog.objects.filter(
+        ingested=True,
+        api_status__isnull=True,
+    )
+    if asset_logs.count() > limit:
+        asset_logs = asset_logs[:limit]
+        limit = 0
+    else:
+        limit = limit - asset_logs.count()
+    fetch_api_data.map(asset_logs)
 
     # retry API fetch for objects that previously returned 403 or 404,
     # and which have been updated since the last API fetch attempt
