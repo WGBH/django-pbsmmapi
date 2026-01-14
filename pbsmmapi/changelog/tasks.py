@@ -350,7 +350,9 @@ def get_changelog_data(limit: int):
         realize_provisional_objects()
 
 
-@db_periodic_task(crontab(minute="*/1"))
+@db_periodic_task(
+    crontab(minute="*/2")
+)  # if Huey is unable to acquire lock we need to decrease how often the task is run
 @lock_task("changelog-ingest")
 def scrape_changelog():
     if not ChangeLog.objects.exists():
