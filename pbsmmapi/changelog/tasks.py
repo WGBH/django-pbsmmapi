@@ -346,8 +346,8 @@ def get_changelog_data(limit: int):
     # at this point it's unlikely that we'll need to worry about going over the
     # API limit so we should just ingest new objects and update existing ones
     if limit > 0:
-        reingest_updated_objects()
         realize_provisional_objects()
+        reingest_updated_objects()
 
 
 @db_periodic_task(crontab(minute="*/1"))
