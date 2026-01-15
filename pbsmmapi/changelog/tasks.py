@@ -362,14 +362,18 @@ def scrape_changelog():
         assert most_recent_entry.latest_timestamp is not None
         # rewind 5 minutes to account for changelog entries added since
         # last crawl
-        since = datetime.strftime(
-            most_recent_entry.latest_timestamp - timedelta(minutes=5),
-            DT_FORMAT,
-        )
-        base_url = f"{BASE_CHANGELOG_URL}&since={since}"
-        _, mm_response_data = get_PBSMM_record(base_url)
-        upper_page_bound = max_page_number(mm_response_data)
-        urls = [f"{base_url}&page={i}" for i in range(1, upper_page_bound)]
+        delta = datetime.now(UTC) - most_recent_entry.latest_timestamp
+        if delta.days > 30:
+            urls = [f"{BASE_CHANGELOG_URL}&page={i}" for i in range(1, MAX_QUERIES)]
+        else:
+            since = datetime.strftime(
+                most_recent_entry.latest_timestamp - timedelta(minutes=5),
+                DT_FORMAT,
+            )
+            base_url = f"{BASE_CHANGELOG_URL}&since={since}"
+            _, mm_response_data = get_PBSMM_record(base_url)
+            upper_page_bound = max_page_number(mm_response_data)
+            urls = [f"{base_url}&page={i}" for i in range(1, upper_page_bound)]
 
     entries = get_changelog_entries.map(urls)
     data = prep_changelog_data(chain.from_iterable(entries.get(blocking=True)))
