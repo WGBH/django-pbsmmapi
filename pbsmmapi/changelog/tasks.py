@@ -19,6 +19,7 @@ from django.db.models import (
 from django.db.models.lookups import LessThan
 from huey import crontab
 from huey.contrib.djhuey import (
+    HUEY,
     db_periodic_task,
     db_task,
     lock_task,
@@ -108,11 +109,7 @@ def max_page_number(mm_response_data: dict) -> int:
         last_page = int(query_params["page"][0])
     except KeyError:
         last_page = 0
-
-    if last_page > MAX_QUERIES:
-        return MAX_QUERIES + 1
-    else:
-        return last_page + 1
+    return last_page
 
 
 @db_task(retries=3)
@@ -350,30 +347,69 @@ def get_changelog_data(limit: int):
         reingest_updated_objects()
 
 
+def get_new_mm_changelogs():
+    most_recent_entry = ChangeLog.objects.last()
+    assert most_recent_entry is not None
+    assert most_recent_entry.latest_timestamp is not None
+    # rewind 5 minutes to account for changelog entries added since
+    # last crawl
+    delta = datetime.now(UTC) - most_recent_entry.latest_timestamp
+    if delta.days > 30:
+        urls = [f"{BASE_CHANGELOG_URL}&page={i}" for i in range(1, MAX_QUERIES)]
+    else:
+        since = datetime.strftime(
+            most_recent_entry.latest_timestamp - timedelta(minutes=5),
+            DT_FORMAT,
+        )
+        base_url = f"{BASE_CHANGELOG_URL}&since={since}"
+        _, mm_response_data = get_PBSMM_record(base_url)
+        last_page = max_page_number(mm_response_data)
+        if last_page > MAX_QUERIES:  # add the bounds to Huey for processing
+            urls = [f"{base_url}&page={i}" for i in range(1, MAX_QUERIES + 1)]
+            changelog_bounds = {
+                "lower_bound": MAX_QUERIES + 1,
+                "upper_bound": last_page,
+                "url": base_url,
+            }
+            HUEY.put("changelog_bounds", changelog_bounds)
+        else:
+            urls = [f"{base_url}&page={i}" for i in range(1, last_page + 1)]
+
+    return urls
+
+
 @db_periodic_task(crontab(minute="*/1"))
 @lock_task("changelog-ingest")
 def scrape_changelog():
     if not ChangeLog.objects.exists():
         # first time scraping, get first 400 pages
         urls = [f"{BASE_CHANGELOG_URL}&page={i}" for i in range(1, MAX_QUERIES)]
+    elif HUEY.get("changelog_bounds", peek=True):  # process new batch of 400
+        changelog_bounds = HUEY.get("changelog_bounds", peek=True)
+        upper_bound = changelog_bounds["upper_bound"]
+        lower_bound = changelog_bounds["lower_bound"]
+        base_url = changelog_bounds["url"]
+        bound_difference = upper_bound - lower_bound
+        if bound_difference > 0:
+            if bound_difference >= 400:
+                new_lower_bound = lower_bound + MAX_QUERIES
+                urls = [
+                    f"{base_url}&page={i}" for i in range(lower_bound, new_lower_bound)
+                ]
+                changelog_bounds["lower_bound"] = new_lower_bound
+            else:
+                urls = [
+                    f"{base_url}&page={i}" for i in range(lower_bound, upper_bound + 1)
+                ]
+                changelog_bounds["lower_bound"] = upper_bound
+            HUEY.put("changelog_bounds", changelog_bounds)
+        else:  # difference is 0
+            HUEY.put(
+                "changelog_bounds", None
+            )  # get(peek=False) does not actually remove the key from storage
+            urls = get_new_mm_changelogs()
     else:
-        most_recent_entry = ChangeLog.objects.last()
-        assert most_recent_entry is not None
-        assert most_recent_entry.latest_timestamp is not None
-        # rewind 5 minutes to account for changelog entries added since
-        # last crawl
-        delta = datetime.now(UTC) - most_recent_entry.latest_timestamp
-        if delta.days > 30:
-            urls = [f"{BASE_CHANGELOG_URL}&page={i}" for i in range(1, MAX_QUERIES)]
-        else:
-            since = datetime.strftime(
-                most_recent_entry.latest_timestamp - timedelta(minutes=5),
-                DT_FORMAT,
-            )
-            base_url = f"{BASE_CHANGELOG_URL}&since={since}"
-            _, mm_response_data = get_PBSMM_record(base_url)
-            upper_page_bound = max_page_number(mm_response_data)
-            urls = [f"{base_url}&page={i}" for i in range(1, upper_page_bound)]
+        urls = get_new_mm_changelogs()
 
     entries = get_changelog_entries.map(urls)
     data = prep_changelog_data(chain.from_iterable(entries.get(blocking=True)))
