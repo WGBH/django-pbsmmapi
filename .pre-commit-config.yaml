@@ -10,11 +10,11 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
   - repo: https://github.com/psf/black
-    rev: 26.1.0
+    rev: 26.3.0
     hooks:
       - id: black
   - repo: https://github.com/pycqa/isort
-    rev: 7.0.0
+    rev: 8.0.1
     hooks:
       - id: isort
         name: isort (python)
@@ -25,11 +25,11 @@ repos:
         name: isort (pyi)
         types: [pyi]
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.13
+    rev: v0.15.5
     hooks:
       - id: ruff
   - repo: https://github.com/rhysd/actionlint
-    rev: v1.7.10
+    rev: v1.7.11
     hooks:
       - id: actionlint
   - repo: https://github.com/google/yamlfmt
