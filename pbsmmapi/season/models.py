@@ -125,7 +125,7 @@ def process_season_assets(endpoint, this_season):
     keep_going = True
     scraped_object_ids = []
     while keep_going:
-        (status, json) = get_PBSMM_record(endpoint)
+        status, json = get_PBSMM_record(endpoint)
         asset_list = json["data"]
 
         for item in asset_list:
@@ -149,7 +149,7 @@ def process_season_assets(endpoint, this_season):
             # This needs to be here because otherwise it never updates...
             instance.save()
 
-        (keep_going, endpoint) = check_pagination(json)
+        keep_going, endpoint = check_pagination(json)
 
     for asset in PBSMMSeasonAsset.objects.filter(season=this_season):
         if asset.object_id not in scraped_object_ids:
@@ -189,7 +189,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
     url = "{}{}/".format(PBSMM_SEASON_ENDPOINT, instance.object_id)
 
     # OK - get the record from the API
-    (status, json) = get_PBSMM_record(url)
+    status, json = get_PBSMM_record(url)
 
     instance.last_api_status = status
     # Update this record's time stamp (the API has its own)

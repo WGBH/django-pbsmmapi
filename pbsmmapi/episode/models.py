@@ -160,7 +160,7 @@ def process_episode_assets(endpoint, this_episode):
     scraped_object_ids = []
     while keep_going:
         # This is the endpoint for the 'assets' link (page with list of assets)
-        (status, json) = get_PBSMM_record(endpoint)
+        status, json = get_PBSMM_record(endpoint)
         if "data" in json.keys():
             asset_list = json["data"]
         else:
@@ -186,7 +186,7 @@ def process_episode_assets(endpoint, this_episode):
             # This needs to be here because otherwise it never updates...
             instance.save()
 
-        (keep_going, endpoint) = check_pagination(json)
+        keep_going, endpoint = check_pagination(json)
 
     for asset in PBSMMEpisodeAsset.objects.filter(episode=this_episode):
         if asset.object_id not in scraped_object_ids:
@@ -228,7 +228,7 @@ def scrape_PBSMMAPI(sender, instance, **kwargs):
         url = "{}{}/".format(PBSMM_EPISODE_ENDPOINT, instance.object_id)
 
         # OK - get the record from the API
-        (status, json) = get_PBSMM_record(url)
+        status, json = get_PBSMM_record(url)
 
         instance.last_api_status = status
         # Update this record's time stamp (the API has its own)

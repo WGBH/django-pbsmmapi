@@ -11,7 +11,7 @@ def process_seasons(endpoint, this_show):
     keep_going = True
     while keep_going:
         # this is the "Seasons" endpoint for the show
-        (status, json) = get_PBSMM_record(endpoint)
+        status, json = get_PBSMM_record(endpoint)
         if "data" in json.keys():
             season_list = json["data"]
         else:
@@ -35,7 +35,7 @@ def process_seasons(endpoint, this_show):
 
             instance.save()
 
-        (keep_going, endpoint) = check_pagination(json)
+        keep_going, endpoint = check_pagination(json)
 
     return
 
@@ -45,7 +45,7 @@ def process_specials(endpoint, this_show):
     keep_going = True
     while keep_going:
         # this is a page from the "Seasons" endpoint for the show
-        (status, json) = get_PBSMM_record(endpoint)
+        status, json = get_PBSMM_record(endpoint)
         if "data" in json.keys():
             data = json["data"]
         else:
@@ -66,6 +66,6 @@ def process_specials(endpoint, this_show):
             # This needs to be here because otherwise it never updates...
             instance.save()
 
-        (keep_going, endpoint) = check_pagination(json)
+        keep_going, endpoint = check_pagination(json)
 
     return
