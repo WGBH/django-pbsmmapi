@@ -41,14 +41,18 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
 
     @classmethod
     def realize(cls, data: dict):
+        # use the slug for matching because of Roadshow's arbitrary non-sequential ordinal inputs
         try:
             episode = cls.objects.get(
                 season_api_id=data["data"]["attributes"]["season"]["id"],
-                ordinal=data["data"]["attributes"]["ordinal"],
+                slug=data["data"]["attributes"]["slug"],
                 provisional=True,
             )
             episode.object_id = data["data"]["id"]
             episode.provisional = False
+            data_ordinal = data["data"]["attributes"]["ordinal"]
+            if episode.ordinal != data_ordinal:
+                episode.ordinal = data_ordinal
             episode.save()
         except cls.DoesNotExist:
             return

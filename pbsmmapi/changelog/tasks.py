@@ -256,7 +256,7 @@ def realize_provisional_objects():
         try:
             changelog = EpisodeChangeLog.objects.get(
                 season_id=episode.season_api_id,
-                ordinal=episode.ordinal,
+                slug=episode.slug,
             )
             Episode.realize(changelog.api_data)
         except EpisodeChangeLog.DoesNotExist:

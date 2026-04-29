@@ -129,6 +129,7 @@ class EpisodeChangeLogManager(models.Manager):
             .annotate(show_id=KT("api_data__data__attributes__show__id"))
             .annotate(season_id=KT("api_data__data__attributes__season__id"))
             .annotate(ordinal=KT("api_data__data__attributes__ordinal"))
+            .annotate(slug=KT("api_data__data__attributes__slug"))
         )
 
 
