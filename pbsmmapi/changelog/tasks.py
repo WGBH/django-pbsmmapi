@@ -11,6 +11,7 @@ from urllib.parse import (
     urlparse,
 )
 
+from django.conf import settings
 from django.db.models import (
     Exists,
     F,
@@ -42,7 +43,7 @@ from pbsmmapi.season.models import Season
 from pbsmmapi.show.models import Show
 from pbsmmapi.special.models import Special
 
-BASE_CHANGELOG_URL = "https://media.services.pbs.org/api/v1/changelog/?sort=timestamp&type=asset&type=episode&type=franchise&type=season&type=show&type=special"
+BASE_CHANGELOG_URL = f"{settings.PBSMM_BASE_URL}api/v1/changelog/?sort=timestamp&type=asset&type=episode&type=franchise&type=season&type=show&type=special"
 
 DT_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 MAX_QUERIES = 400

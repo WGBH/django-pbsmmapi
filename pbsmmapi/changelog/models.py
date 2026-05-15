@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.fields.json import KT
@@ -41,7 +42,9 @@ class ChangeLog(models.Model):
 
     @property
     def api_url(self):
-        return f"https://media.services.pbs.org/api/v1/{self.resource_type}s/{self.content_id}/"
+        return (
+            f"{settings.PBSMM_BASE_URL}api/v1/{self.resource_type}s/{self.content_id}/"
+        )
 
     def save(self, *args, **kwargs):
         self.latest_timestamp = max(self.entries.keys(), default=None)

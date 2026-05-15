@@ -3,11 +3,11 @@ from http import HTTPStatus
 from django.conf import settings
 import requests
 
-PBSMM_FRANCHISE_ENDPOINT = "https://media.services.pbs.org/api/v1/franchises/"
-PBSMM_SHOW_ENDPOINT = "https://media.services.pbs.org/api/v1/shows/"
-PBSMM_SEASON_ENDPOINT = "https://media.services.pbs.org/api/v1/seasons/"
-PBSMM_EPISODE_ENDPOINT = "https://media.services.pbs.org/api/v1/episodes/"
-PBSMM_SPECIAL_ENDPOINT = "https://media.services.pbs.org/api/v1/specials/"
+PBSMM_FRANCHISE_ENDPOINT = f"{settings.PBSMM_BASE_URL}api/v1/franchises/"
+PBSMM_SHOW_ENDPOINT = f"{settings.PBSMM_BASE_URL}api/v1/shows/"
+PBSMM_SEASON_ENDPOINT = f"{settings.PBSMM_BASE_URL}api/v1/seasons/"
+PBSMM_EPISODE_ENDPOINT = f"{settings.PBSMM_BASE_URL}api/v1/episodes/"
+PBSMM_SPECIAL_ENDPOINT = f"{settings.PBSMM_BASE_URL}api/v1/specials/"
 
 
 def get_PBSMM_record(url: str) -> tuple[int, dict]:
