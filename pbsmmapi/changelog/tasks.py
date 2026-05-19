@@ -11,7 +11,6 @@ from urllib.parse import (
     urlparse,
 )
 
-from django.conf import settings
 from django.db.models import (
     Exists,
     F,
@@ -27,6 +26,7 @@ from huey.contrib.djhuey import (
     task,
 )
 
+from pbsmmapi.abstract.constants import PBSMM_BASE_URL
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.asset.models import Asset
 from pbsmmapi.changelog.models import (
@@ -43,7 +43,7 @@ from pbsmmapi.season.models import Season
 from pbsmmapi.show.models import Show
 from pbsmmapi.special.models import Special
 
-BASE_CHANGELOG_URL = f"{settings.PBSMM_BASE_URL}api/v1/changelog/?sort=timestamp&type=asset&type=episode&type=franchise&type=season&type=show&type=special"
+BASE_CHANGELOG_URL = f"{PBSMM_BASE_URL}api/v1/changelog/?sort=timestamp&type=asset&type=episode&type=franchise&type=season&type=show&type=special"
 
 DT_FORMAT = "%Y-%m-%dT%H:%M:%S.%fZ"
 MAX_QUERIES = 400
