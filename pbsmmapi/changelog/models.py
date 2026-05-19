@@ -3,6 +3,8 @@ from django.db import models
 from django.db.models.fields.json import KT
 from django.utils.translation import gettext_lazy as _
 
+from pbsmmapi.abstract.constants import PBSMM_BASE_URL
+
 
 class PBSMMResourceType(models.TextChoices):
     ASSET = "asset", _("Asset")
@@ -41,7 +43,7 @@ class ChangeLog(models.Model):
 
     @property
     def api_url(self):
-        return f"https://media.services.pbs.org/api/v1/{self.resource_type}s/{self.content_id}/"
+        return f"{PBSMM_BASE_URL}api/v1/{self.resource_type}s/{self.content_id}/"
 
     def save(self, *args, **kwargs):
         self.latest_timestamp = max(self.entries.keys(), default=None)

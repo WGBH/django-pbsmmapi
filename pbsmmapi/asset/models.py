@@ -11,6 +11,7 @@ from huey.contrib.djhuey import db_task
 from pycaption import detect_format
 import requests
 
+from pbsmmapi.abstract.constants import PBSMM_BASE_URL
 from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericAsset
 from pbsmmapi.asset.helpers import (
@@ -24,7 +25,6 @@ AVAILABILITY_GROUPS = (
     ("Public", "public"),
 )
 
-PBSMM_BASE_URL = "https://media.services.pbs.org/"
 PBSMM_ASSET_ENDPOINT = f"{PBSMM_BASE_URL}api/v1/assets/"
 PBSMM_LEGACY_ASSET_ENDPOINT = f"{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id="
 
