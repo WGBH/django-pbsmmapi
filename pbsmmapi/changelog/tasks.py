@@ -204,9 +204,6 @@ def reingest_updated_objects():
         Episode.objects.filter(
             Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id")))
         ),
-        Asset.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id")))
-        ),
     ]
     for queryset in querysets:
         for item in queryset:
@@ -214,6 +211,13 @@ def reingest_updated_objects():
             if changelog.latest_timestamp > item.date_last_api_update:
                 item.ingest_on_save = True
                 item.save()
+    for item in Asset.objects.filter(
+        Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id")))
+    ):
+        changelog = ChangeLog.objects.get(content_id=item.object_id)
+        if changelog.latest_timestamp > item.date_last_api_update:
+            data = changelog.api_data["data"]
+            Asset.set(data, last_api_status=changelog.api_status)
 
     # Under some circumstances, an Asset can be updated without the change
     # being reflected by the parent object's ChangeLog.
