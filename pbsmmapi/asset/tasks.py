@@ -12,12 +12,13 @@ from pbsmmapi.asset.models import Asset
 @db_task(retries=3, retry_delay=10)
 def get_complete_asset_data(asset: Asset) -> None:
     status, data = get_PBSMM_record(asset.api_endpoint)
+    now = time_zone_aware_now()
     if status == 200:
-        asset.json = data["data"]
-
-    asset.last_api_status = status
-    asset.date_last_api_update = time_zone_aware_now()
-    asset.save()
+        Asset.set(data["data"], last_api_status=status)
+    else:
+        asset.last_api_status = status
+        asset.date_last_api_update = now
+        asset.save()
 
 
 @db_periodic_task(crontab(minute="*/1"))

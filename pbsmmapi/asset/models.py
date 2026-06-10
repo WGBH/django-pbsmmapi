@@ -270,6 +270,10 @@ class Asset(PBSMMGenericAsset):
 
         def make_fields():
             for f in (f.name for f in Asset._meta.get_fields()):
+                # temporary workaround to make Asset updates from ChangeLog ingest & get_complete_asset_data ingest work
+                # until we can refactor PBSMMAPI modeling in the next sprints
+                if f in ("franchise", "show", "season", "episode", "special"):
+                    continue
                 value = attrs.get(f)
                 if value is not None:
                     yield f, value
