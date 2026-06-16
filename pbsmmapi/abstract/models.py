@@ -641,21 +641,19 @@ class PBSMMGenericFranchise(
         abstract = True
 
 
-class PBSMMBaseManager(models.Manager):
+class PBSMMBaseRecordManager(models.Manager):
     def get_queryset(self):
         return (
-            super().get_queryset()
+            super()
+            .get_queryset()
             .annotate(
                 api_data=models.F("mm_content_record__api_data"),
                 content_type=KT("api_data__data__type"),
                 description_short=KT("api_data__data__attributes__description_short"),
                 description_long=KT("api_data__data__attributes__description_long"),
-                updated_at=Cast(KT("api_data__data__attributes__updated_at"), models.DateTimeField()),
-                links=Cast(KT("api_data__links"), models.JSONField())
+                updated_at=Cast(
+                    KT("api_data__data__attributes__updated_at"), models.DateTimeField()
+                ),
+                links=Cast(KT("api_data__links"), models.JSONField()),
             )
         )
-
-
-class PBSMMContentRecord(models.Model):
-    content_id = models.UUIDField(primary_key=True)
-    api_data = models.JSONField()

@@ -7,19 +7,25 @@ from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
     GenericProvisional,
-    PBSMMBaseManager,
+    PBSMMBaseRecordManager,
     PBSMMGenericSeason,
 )
 from pbsmmapi.api.api import PBSMM_SEASON_ENDPOINT
 from pbsmmapi.episode.models import Episode
 
 
-class PBSMMSeasonManager(PBSMMBaseManager):
+class PBSMMSeasonManager(PBSMMBaseRecordManager):
     def get_queryset(self):
         return (
-            super().get_queryset()
+            super()
+            .get_queryset()
             .annotate(
-                internal_links=Cast(KT("api_data__data__attributes__links"), models.JSONField())
+                internal_links=Cast(
+                    KT("api_data__data__attributes__links"), models.JSONField()
+                ),
+                show_content_id=Cast(
+                    KT("api_data__data__attributes__show__id"), models.UUIDField()
+                ),
             )
         )
 

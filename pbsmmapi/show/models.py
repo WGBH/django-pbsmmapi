@@ -9,7 +9,7 @@ from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
     GenericProvisional,
-    PBSMMBaseManager,
+    PBSMMBaseRecordManager,
     PBSMMGenericShow,
 )
 from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
@@ -17,24 +17,43 @@ from pbsmmapi.season.models import Season
 from pbsmmapi.special.models import Special
 
 
-class PBSMMShowManager(PBSMMBaseManager):
+class PBSMMShowManager(PBSMMBaseRecordManager):
     def get_queryset(self):
         return (
-            super().get_queryset()
+            super()
+            .get_queryset()
             .annotate(
                 nola=KT("api_data__data__attributes__nola"),
                 tms_id=KT("api_data__data__attributes__tms_id"),
-                premiered_on=Cast(KT("api_data__data__attributes__premiered_on"), models.DateTimeField()),
+                premiered_on=Cast(
+                    KT("api_data__data__attributes__premiered_on"),
+                    models.DateTimeField(),
+                ),
                 funder_message=KT("api_data__data__attributes__funder_message"),
                 tracking_ga_page=KT("api_data__data__attributes__tracking_ga_page"),
                 tracking_ga_event=KT("api_data__data__attributes__tracking_ga_event"),
-                is_excluded_from_dfp=Cast(KT("api_data__data__attributes__is_excluded_from_dfp"), models.BooleanField()),
-                can_embed_player=Cast(KT("api_data__data__attributes__can_embed_player"), models.BooleanField()),
+                is_excluded_from_dfp=Cast(
+                    KT("api_data__data__attributes__is_excluded_from_dfp"),
+                    models.BooleanField(),
+                ),
+                can_embed_player=Cast(
+                    KT("api_data__data__attributes__can_embed_player"),
+                    models.BooleanField(),
+                ),
                 language=KT("api_data__data__attributes__language"),
                 genre=Cast(KT("api_data__data__attributes__genre"), models.JSONField()),
-                internal_links=Cast(KT("api_data__data__attributes__links"), models.JSONField()),
-                audience=Cast(KT("api_data__data__attributes__audience"), models.JSONField()),
-                platforms=Cast(KT("api_data__data__attributes__platforms"), models.JSONField()),
+                internal_links=Cast(
+                    KT("api_data__data__attributes__links"), models.JSONField()
+                ),
+                audience=Cast(
+                    KT("api_data__data__attributes__audience"), models.JSONField()
+                ),
+                platforms=Cast(
+                    KT("api_data__data__attributes__platforms"), models.JSONField()
+                ),
+                franchise_content_id=Cast(
+                    KT("api_data__data__attributes__franchise__id"), models.UUIDField()
+                ),
             )
         )
 
