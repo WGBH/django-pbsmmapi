@@ -61,6 +61,11 @@ class Franchise(PBSMMGenericFranchise):
             return
 
         def set_show(show: dict, _):
+            # Realize any provisional Show with this title first so its object_id
+            # is set; otherwise update_or_create() keyed on object_id would
+            # create a duplicate and later changelog realization would raise an
+            # IntegrityError on the unique object_id constraint.
+            Show.realize({"data": show})
             Show.objects.update_or_create(
                 defaults=dict(
                     franchise_id=self.id,

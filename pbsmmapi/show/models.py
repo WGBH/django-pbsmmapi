@@ -128,6 +128,13 @@ class Show(GenericProvisional, PBSMMGenericShow):
             return
 
         def set_season(season: dict, _):
+            # Realize any provisional Season for this ordinal first so its
+            # object_id is set; otherwise update_or_create() keyed on object_id
+            # would create a duplicate and later changelog realization would
+            # raise an IntegrityError on the unique object_id constraint.
+            attributes = season.setdefault("attributes", {})
+            attributes["show"] = {"id": str(self.object_id)}
+            Season.realize({"data": season})
             Season.objects.update_or_create(
                 defaults=dict(
                     show_id=self.id,
@@ -144,6 +151,13 @@ class Show(GenericProvisional, PBSMMGenericShow):
             return
 
         def set_special(special: dict, _):
+            # Realize any provisional Special with this title first so its
+            # object_id is set; otherwise update_or_create() keyed on object_id
+            # would create a duplicate and later changelog realization would
+            # raise an IntegrityError on the unique object_id constraint.
+            attributes = special.setdefault("attributes", {})
+            attributes["show"] = {"id": str(self.object_id)}
+            Special.realize({"data": special})
             Special.objects.update_or_create(
                 defaults=dict(show_id=self.id, ingest_on_save=True),
                 object_id=special["id"],

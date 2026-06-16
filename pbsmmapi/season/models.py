@@ -128,6 +128,13 @@ class Season(GenericProvisional, PBSMMGenericSeason):
             return
 
         def set_episode(episode: dict, _):
+            # If a provisional Episode exists for this ordinal, realize it first
+            # so its object_id is set. Otherwise the get_or_create() below would
+            # create a duplicate and later changelog realization would raise an
+            # IntegrityError on the unique object_id constraint.
+            attributes = episode.setdefault("attributes", {})
+            attributes["season"] = {"id": str(self.object_id)}
+            Episode.realize({"data": episode})
             obj, created = Episode.objects.get_or_create(
                 object_id=episode["id"],
             )
