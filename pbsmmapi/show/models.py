@@ -67,7 +67,7 @@ class Show(GenericProvisional, PBSMMGenericShow):
     )
 
     @classmethod
-    def realize(cls, data: dict):
+    def realize(cls, data: dict, skip_ingest: bool = False):
         try:
             show = cls.objects.get(
                 title=data["data"]["attributes"]["title"],
@@ -76,7 +76,9 @@ class Show(GenericProvisional, PBSMMGenericShow):
             object_id = data["data"]["id"]
             show.object_id = object_id
             show.provisional = False
-            show.save()  # TODO: we could avoid calling the MM API again because we have the latest information in the data dict, we just need to update the obj fields and call save with skip_ingest=True
+            show.save(
+                skip_ingest=skip_ingest
+            )  # TODO: we could avoid calling the MM API again because we have the latest information in the data dict, we just need to update the obj fields and call save with skip_ingest=True
             Season.objects.filter(
                 provisional=True,
                 show=show,
@@ -132,9 +134,13 @@ class Show(GenericProvisional, PBSMMGenericShow):
             # object_id is set; otherwise update_or_create() keyed on object_id
             # would create a duplicate and later changelog realization would
             # raise an IntegrityError on the unique object_id constraint.
+            # Promote without ingesting (skip_ingest=True) and let the
+            # update_or_create() below run the single ingest pass with the
+            # correct ingest flags.
             attributes = season.setdefault("attributes", {})
-            attributes["show"] = {"id": str(self.object_id)}
-            Season.realize({"data": season})
+            show_ref = {"id": str(self.object_id)}
+            attributes.setdefault("show", show_ref)
+            Season.realize({"data": season}, skip_ingest=True)
             Season.objects.update_or_create(
                 defaults=dict(
                     show_id=self.id,
@@ -155,9 +161,12 @@ class Show(GenericProvisional, PBSMMGenericShow):
             # object_id is set; otherwise update_or_create() keyed on object_id
             # would create a duplicate and later changelog realization would
             # raise an IntegrityError on the unique object_id constraint.
+            # Promote without ingesting (skip_ingest=True) and let the
+            # update_or_create() below run the single ingest pass.
             attributes = special.setdefault("attributes", {})
-            attributes["show"] = {"id": str(self.object_id)}
-            Special.realize({"data": special})
+            show_ref = {"id": str(self.object_id)}
+            attributes.setdefault("show", show_ref)
+            Special.realize({"data": special}, skip_ingest=True)
             Special.objects.update_or_create(
                 defaults=dict(show_id=self.id, ingest_on_save=True),
                 object_id=special["id"],

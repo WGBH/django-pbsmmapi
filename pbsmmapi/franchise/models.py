@@ -64,8 +64,10 @@ class Franchise(PBSMMGenericFranchise):
             # Realize any provisional Show with this title first so its object_id
             # is set; otherwise update_or_create() keyed on object_id would
             # create a duplicate and later changelog realization would raise an
-            # IntegrityError on the unique object_id constraint.
-            Show.realize({"data": show})
+            # IntegrityError on the unique object_id constraint. Promote without
+            # ingesting (skip_ingest=True) and let the update_or_create() below
+            # run the single ingest pass with the correct ingest flags.
+            Show.realize({"data": show}, skip_ingest=True)
             Show.objects.update_or_create(
                 defaults=dict(
                     franchise_id=self.id,
