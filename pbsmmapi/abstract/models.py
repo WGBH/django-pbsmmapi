@@ -1,6 +1,8 @@
 from http import HTTPStatus
 
 from django.db import models
+from django.db.models.fields.json import KT
+from django.db.models.functions import Cast
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
@@ -637,3 +639,23 @@ class PBSMMGenericFranchise(
     # There is no can_embed_player field - again, laziness (see above)
     class Meta:
         abstract = True
+
+
+class PBSMMBaseManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super().get_queryset()
+            .annotate(
+                api_data=models.F("mm_content_record__api_data"),
+                content_type=KT("api_data__data__type"),
+                description_short=KT("api_data__data__attributes__description_short"),
+                description_long=KT("api_data__data__attributes__description_long"),
+                updated_at=Cast(KT("api_data__data__attributes__updated_at"), models.DateTimeField()),
+                links=Cast(KT("api_data__links"), models.JSONField())
+            )
+        )
+
+
+class PBSMMContentRecord(models.Model):
+    content_id = models.UUIDField(primary_key=True)
+    api_data = models.JSONField()

@@ -11,9 +11,11 @@ from huey.contrib.djhuey import db_task
 from pycaption import detect_format
 import requests
 
-from pbsmmapi.abstract.constants import PBSMM_BASE_URL
 from pbsmmapi.abstract.helpers import time_zone_aware_now
-from pbsmmapi.abstract.models import PBSMMGenericAsset
+from pbsmmapi.abstract.models import (
+    PBSMMBaseManager,
+    PBSMMGenericAsset,
+)
 from pbsmmapi.asset.helpers import (
     SafeTranscriptWriter,
     check_asset_availability,
@@ -25,33 +27,48 @@ AVAILABILITY_GROUPS = (
     ("Public", "public"),
 )
 
+PBSMM_BASE_URL = "https://media.services.pbs.org/"
 PBSMM_ASSET_ENDPOINT = f"{PBSMM_BASE_URL}api/v1/assets/"
 PBSMM_LEGACY_ASSET_ENDPOINT = f"{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id="
 
 
-class AssetManager(models.Manager):
+class AssetManager(PBSMMBaseManager):
     def get_queryset(self):
         return (
             super()
             .get_queryset()
             .annotate(
+                asset_type=KT("api_data__data__attributes__object_type"),
+                premiered_on=Cast(KT("api_data__data__attributes__premiered_on"), models.DateTimeField()),
+                encored_on=Cast(KT("api_data__data__attributes__encored_on"), models.DateTimeField()),
+                is_excluded_from_dfp=Cast(KT("api_data__data__attributes__is_excluded_from_dfp"), models.BooleanField()),
+                duration=Cast(KT("api_data__data__attributes__duration"), models.IntegerField()),
+                content_rating=KT("api_data__data__attributes__content_rating"),
+                content_rating_description=KT("api_data__data__attributes__content_rating_description"),
+                legacy_tp_media_id=KT("api_data__data__attributes__legacy_tp_media_id"),
+                tags=Cast(KT("api_data__data__attributes__tags"), models.JSONField()),
+                platforms=Cast(KT("api_data__data__attributes__platforms"), models.JSONField()),
+                player_code=Cast(KT("api_data__data__attributes__player_code"), models.TextField()),
+                availability=Cast(KT("api_data__data__attributes__availabilities"), models.JSONField()),
+                parent_tree=Cast(KT("api_data__data__attributes__parent_tree"), models.JSONField()),
+                has_captions=Cast(KT("api_data__data__attributes__has_captions"), models.BooleanField()),
                 transcripts=Coalesce(
                     Cast(
-                        KT("json__attributes__transcripts"),
+                        KT("api_data__data__attributes__transcripts"),
                         models.JSONField(),
                     ),
                     models.Value([], models.JSONField()),
                 ),
                 captions=Coalesce(
                     Cast(
-                        KT("json__attributes__captions"),
+                        KT("api_data__data__attributes__captions"),
                         models.JSONField(),
                     ),
                     models.Value([], models.JSONField()),
                 ),
                 data_format=models.Case(
                     models.When(
-                        models.Q(json__has_key="links"),
+                        models.Q(api_data__data__attributes__has_key="links"),
                         then=models.Value("compact"),
                     ),
                     default=models.Value("full"),

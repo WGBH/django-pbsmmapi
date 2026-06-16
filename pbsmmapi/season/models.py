@@ -1,14 +1,27 @@
 from django.db import models
+from django.db.models.fields.json import KT
+from django.db.models.functions import Cast
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
     GenericProvisional,
+    PBSMMBaseManager,
     PBSMMGenericSeason,
 )
 from pbsmmapi.api.api import PBSMM_SEASON_ENDPOINT
 from pbsmmapi.episode.models import Episode
+
+
+class PBSMMSeasonManager(PBSMMBaseManager):
+    def get_queryset(self):
+        return (
+            super().get_queryset()
+            .annotate(
+                internal_links=Cast(KT("api_data__data__attributes__links"), models.JSONField())
+            )
+        )
 
 
 class Season(GenericProvisional, PBSMMGenericSeason):
