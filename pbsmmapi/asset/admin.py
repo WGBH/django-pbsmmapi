@@ -13,34 +13,14 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
     #
     # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
-        "api_endpoint_link",
         "asset_publicly_available",
-        "availability",
-        "can_embed_player",
         "content_rating",
         "content_rating_description",
         "date_created",
-        "date_last_api_update",
-        "description_long",
-        "description_short",
-        "duration",
-        "geo_profile",
-        "images",
-        "pretty_image_list",
-        "is_excluded_from_dfp",
-        "language",
-        "last_api_status_color",
-        "links",
-        "asset_type",
-        "platforms",
-        "player_code",
         "player_code_preview",
         "slug",
-        "tags",
         "title",
-        "title_sortable",
         "topics",
-        "updated_at",
     ]
     search_fields = ("title",)
 
@@ -51,46 +31,28 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "ingest_on_save",
-                    (
-                        "date_created",
-                        "date_last_api_update",
-                        "updated_at",
-                        "last_api_status_color",
-                    ),
-                    "api_endpoint_link",
-                    ("object_id", "legacy_tp_media_id"),
+                    ("date_created",),
                 ),
             },
         ),
         (
             "Title and Availability",
             {
-                "fields": (
-                    "title",
-                    "title_sortable",
-                    "asset_publicly_available",
-                ),
+                "fields": ("title",),
             },
         ),
         (
             "Images",
             {
                 "classes": ("collapse",),
-                "fields": (
-                    "images",
-                    "pretty_image_list",
-                ),
+                "fields": ("images",),
             },
         ),
         (
             "Description",
             {
                 "classes": ("collapse",),
-                "fields": (
-                    "slug",
-                    "description_long",
-                    "description_short",
-                ),
+                "fields": ("slug",),
             },
         ),
         (

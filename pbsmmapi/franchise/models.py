@@ -30,6 +30,12 @@ class Franchise(PBSMMGenericFranchise):
         default=False,
         help_text="Also ingest all Episodes (for each Season)",
     )
+    mm_content = models.OneToOneField(
+        "record.ContentRecord",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
 
     def save(self, *args, **kwargs):
         self.pre_save()

@@ -39,11 +39,8 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
     These are the fields that are unique to Episode records.
     """
 
-    encored_on = models.DateTimeField(
-        _("Encored On"),
-        blank=True,
-        null=True,
-    )
+    objects = PBSMMEpisodeManager()
+
     ordinal = models.PositiveIntegerField(
         _("Ordinal"),
         blank=True,
@@ -57,10 +54,11 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         null=True,
         blank=True,
     )
-    season_api_id = models.UUIDField(
-        _("Season Object ID"),
+    mm_content = models.OneToOneField(
+        "record.ContentRecord",
         null=True,
-        blank=True,  # does this work?
+        blank=True,
+        on_delete=models.SET_NULL,
     )
 
     @classmethod
@@ -76,16 +74,6 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
             episode.save()
         except cls.DoesNotExist:
             return
-
-    @property
-    def segment(self):
-        """
-        Return individual segments of a single episode.
-        """
-        try:
-            return self.json.get("data").get("attributes").get("segment")
-        except AttributeError:
-            return None
 
     @property
     def full_episode_code(self):
@@ -111,14 +99,6 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         return f"{self.season.ordinal:02d}{self.ordinal:02d}"
 
     short_episode_code.short_description = "Ep #"
-
-    @property
-    def nola_code(self):
-        if self.nola is None or self.nola == "":
-            return None
-        if self.season.show.nola is None or self.season.show.nola == "":
-            return None
-        return f"{self.season.show.nola}{self.nola}"
 
     def create_table_line(self):
         """

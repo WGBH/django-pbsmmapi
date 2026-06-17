@@ -6,7 +6,6 @@ from django.db.models.functions import (
     Cast,
     Coalesce,
 )
-from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 from pycaption import detect_format
 import requests
@@ -102,57 +101,16 @@ class AssetManager(PBSMMBaseRecordManager):
 
 
 class Asset(PBSMMGenericAsset):
-
-    legacy_tp_media_id = models.BigIntegerField(
-        _("COVE ID"),
-        null=True,
-        blank=True,
-        unique=True,
-        help_text="(Legacy TP Media ID)",
-    )
-
-    availability = models.JSONField(
-        _("Availability"),
-        default=dict,
-        blank=True,
-        help_text="JSON serialized Field",
-    )
-
-    duration = models.IntegerField(
-        _("Duration"),
-        null=True,
-        blank=True,
-        help_text="(in seconds)",
-    )
-
-    asset_type = models.CharField(  # This is 'clip', etc.
-        _("Asset Type"),
-        max_length=40,
-        null=True,
-        blank=True,
-    )
-
-    # CAPTIONS
-    has_captions = models.BooleanField(
-        _("Has Captions"),
-        default=False,
-    )
-
-    tags = models.JSONField(
-        _("Tags"),
-        default=dict,
-        blank=True,
-        help_text="JSON serialized field",
-    )
-
-    # PLAYER FIELDS
-    player_code = models.TextField(
-        _("Player Code"),
-        null=True,
-        blank=True,
-    )
+    # objects = AssetManager()
 
     # Relationships
+
+    # mm_content = models.OneToOneField(
+    #     "record.ContentRecord",
+    #     null=True,
+    #     blank=True,
+    #     on_delete=models.SET_NULL,
+    # )
 
     episode = models.ForeignKey(
         "episode.Episode",

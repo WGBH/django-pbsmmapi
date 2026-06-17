@@ -16,46 +16,22 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
     list_display = (
         "pk",
         "slug",
-        "object_id",
-        "title_sortable",
-        "date_last_api_update",
-        "last_api_status_color",
+        "title",
     )
-    list_display_links = ("pk", "slug", "object_id")
+    list_display_links = (
+        "pk",
+        "slug",
+    )
     readonly_fields = [
-        "api_endpoint",
-        "api_endpoint_link",
         "assemble_asset_table",
-        "audience",
-        "can_embed_player",
         "date_created",
-        "date_last_api_update",
-        "description_long",
-        "description_short",
         "display_episode_number",
         "episode_count",
         "format_seasons_list",
         "format_specials_list",
-        "funder_message",
-        "ga_event",
-        "ga_page",
-        "genre",
-        "hashtag",
-        "images",
-        "is_excluded_from_dfp",
-        "language",
-        "last_api_status_color",
-        "links",
-        "nola",
-        "object_id",
         "ordinal_season",
-        "platforms",
-        "premiered_on",
-        "pretty_image_list",
         "sort_episodes_descending",
         "title",
-        "title_sortable",
-        "updated_at",
     ]
     add_readonly_fields = []
     add_fieldsets = (
@@ -75,16 +51,8 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
             None,
             {
                 "fields": (
-                    (
-                        "title",
-                        "title_sortable",
-                    ),
-                    (
-                        "object_id",
-                        "date_created",
-                        "api_endpoint_link",
-                    ),
-                    ("date_last_api_update", "updated_at", "last_api_status_color"),
+                    ("title",),
+                    ("date_created",),
                 ),
             },
         ),
@@ -144,10 +112,7 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
             "Images",
             {
                 "classes": ("collapse",),
-                "fields": (
-                    "images",
-                    "pretty_image_list",
-                ),
+                "fields": ("images",),
             },
         ),
         (

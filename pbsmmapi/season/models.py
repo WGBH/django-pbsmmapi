@@ -37,12 +37,6 @@ class Season(GenericProvisional, PBSMMGenericSeason):
         blank=True,
     )
 
-    # This is the parental Show
-    show_api_id = models.UUIDField(
-        _("Show Object ID"),
-        null=True,
-        blank=True,  # does this work?
-    )
     show = models.ForeignKey(
         "show.Show",
         related_name="seasons",
@@ -57,6 +51,13 @@ class Season(GenericProvisional, PBSMMGenericSeason):
         _("Ingest Episodes"),
         default=False,
         help_text="Also ingest all Episodes (for each Season)",
+    )
+
+    mm_content = models.OneToOneField(
+        "record.ContentRecord",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
     )
 
     def create_table_line(self):

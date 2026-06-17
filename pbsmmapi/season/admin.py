@@ -18,42 +18,27 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
         "printable_title",
         "show",
         "ordinal",
-        "date_last_api_update",
-        "last_api_status_color",
     )
     list_display_links = ("pk", "printable_title")
-    list_filter = ("show__title_sortable",)
+    list_filter = ("show__title",)
     # Why so many readonly_fields?  Because we don't want to override what's
     # coming from the API, but we do want to be able to view it in the context
     # of the Django system.
     #
     # Most things here are fields, some are method output and some are properties.
     readonly_fields = [
-        "api_endpoint",
-        "api_endpoint_link",
         "assemble_asset_table",
         "date_created",
-        "date_last_api_update",
-        "description_long",
-        "description_short",
         "format_episode_list",
-        "images",
-        "last_api_status",
-        "last_api_status_color",
-        "links",
         "ordinal",
-        "pretty_image_list",
-        "show_api_id",
         "title",
-        "title_sortable",
-        "updated_at",
     ]
 
     add_fieldsets = (
         (
             None,
             {
-                "fields": ("object_id", "show", "ingest_episodes"),
+                "fields": ("show", "ingest_episodes"),
             },
         ),
     )
@@ -64,14 +49,7 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
             {
                 "fields": (
                     ("ingest_on_save", "ingest_episodes"),
-                    (
-                        "date_created",
-                        "date_last_api_update",
-                        "updated_at",
-                        "last_api_status",
-                        "last_api_status_color",
-                    ),
-                    "api_endpoint_link",
+                    ("date_created",),
                 ),
             },
         ),
@@ -101,10 +79,7 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
             "Images",
             {
                 "classes": ("collapse",),
-                "fields": (
-                    "images",
-                    "pretty_image_list",
-                ),
+                "fields": ("images",),
             },
         ),
         (

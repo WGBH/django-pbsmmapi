@@ -16,39 +16,17 @@ class PBSMMFranchiseAdmin(PBSMMAbstractAdmin):
     list_display = (
         "pk",
         "slug",
-        "object_id",
-        "title_sortable",
-        "date_last_api_update",
-        "last_api_status_color",
-    )
-    list_display_links = ("pk", "slug", "object_id")
-    readonly_fields = [
-        "api_endpoint",
-        "api_endpoint_link",
-        "assemble_asset_table",
-        "can_embed_player",
-        "date_created",
-        "date_last_api_update",
-        "description_long",
-        "description_short",
-        "format_shows_list",
-        "funder_message",
-        "ga_event",
-        "ga_page",
-        "genre",
-        "hashtag",
-        "images",
-        "is_excluded_from_dfp",
-        "last_api_status_color",
-        "links",
-        "nola",
-        "object_id",
-        "platforms",
-        "premiered_on",
-        "pretty_image_list",
         "title",
-        "title_sortable",
-        "updated_at",
+    )
+    list_display_links = (
+        "pk",
+        "slug",
+    )
+    readonly_fields = [
+        "assemble_asset_table",
+        "date_created",
+        "format_shows_list",
+        "title",
     ]
     add_readonly_fields = []
     add_fieldsets = (
@@ -73,16 +51,8 @@ class PBSMMFranchiseAdmin(PBSMMAbstractAdmin):
             None,
             {
                 "fields": (
-                    (
-                        "title",
-                        "title_sortable",
-                    ),
-                    (
-                        "object_id",
-                        "date_created",
-                        "api_endpoint_link",
-                    ),
-                    ("date_last_api_update", "updated_at", "last_api_status_color"),
+                    ("title",),
+                    ("date_created",),
                 ),
             },
         ),

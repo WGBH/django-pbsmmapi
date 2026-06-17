@@ -7,7 +7,7 @@ from django.db import (
 
 
 def populate_records(apps, schema_editor):
-    Asset = apps.get_model("asset", "Asset")
+    # Asset = apps.get_model("asset", "Asset")
     Episode = apps.get_model("episode", "Episode")
     Season = apps.get_model("season", "Season")
     Special = apps.get_model("special", "Special")
@@ -21,7 +21,7 @@ def populate_records(apps, schema_editor):
             api_data=franchise.json,
             last_api_status=franchise.last_api_status,
         )
-        for franchise in Franchise.objects.all()
+        for franchise in Franchise.objects.filter(object_id__isnull=False)
     ]
     batch_data += [
         ContentRecord(
@@ -29,7 +29,7 @@ def populate_records(apps, schema_editor):
             api_data=show.json,
             last_api_status=show.last_api_status,
         )
-        for show in Show.objects.all()
+        for show in Show.objects.filter(object_id__isnull=False)
     ]
     batch_data += [
         ContentRecord(
@@ -37,7 +37,7 @@ def populate_records(apps, schema_editor):
             api_data=season.json,
             last_api_status=season.last_api_status,
         )
-        for season in Season.objects.all()
+        for season in Season.objects.filter(object_id__isnull=False)
     ]
     batch_data += [
         ContentRecord(
@@ -45,7 +45,7 @@ def populate_records(apps, schema_editor):
             api_data=special.json,
             last_api_status=special.last_api_status,
         )
-        for special in Special.objects.all()
+        for special in Special.objects.filter(object_id__isnull=False)
     ]
     batch_data += [
         ContentRecord(
@@ -53,16 +53,17 @@ def populate_records(apps, schema_editor):
             api_data=episode.json,
             last_api_status=episode.last_api_status,
         )
-        for episode in Episode.objects.all()
+        for episode in Episode.objects.filter(object_id__isnull=False)
     ]
-    batch_data += [
-        ContentRecord(
-            content_id=asset.object_id,
-            api_data=asset.json,
-            last_api_status=asset.last_api_status,
-        )
-        for asset in Asset.objects.all()
-    ]
+    # TODO: write a separate ticket to handle the Asset data adjustment for Asset.json
+    # batch_data += [
+    #     ContentRecord(
+    #         content_id=asset.object_id,
+    #         api_data=asset.json,
+    #         last_api_status=asset.last_api_status,
+    #     )
+    #     for asset in Asset.objects.filter(object_id__isnull=False)
+    # ]
     ContentRecord.objects.bulk_create(batch_data)
 
 
