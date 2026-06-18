@@ -16,7 +16,7 @@ def link_franchises(apps, schema_editor):
     }
     franchises = list(Franchise.objects.filter(object_id__isnull=False))
     for franchise in franchises:
-        franchise.mm_content = content_records[franchise.object_id]
+        franchise.mm_content = content_records.get(franchise.object_id)
     Franchise.objects.bulk_update(franchises, ["mm_content"])
 
 

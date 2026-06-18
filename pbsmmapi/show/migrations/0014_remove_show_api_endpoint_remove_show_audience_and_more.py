@@ -16,7 +16,7 @@ def link_shows(apps, schema_editor):
     }
     shows = list(Show.objects.filter(object_id__isnull=False))
     for show in shows:
-        show.mm_content = content_records[show.object_id]
+        show.mm_content = content_records.get(show.object_id)
     Show.objects.bulk_update(shows, ["mm_content"])
 
 

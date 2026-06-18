@@ -16,7 +16,7 @@ def link_specials(apps, schema_editor):
     }
     specials = list(Special.objects.filter(object_id__isnull=False))
     for special in specials:
-        special.mm_content = content_records[special.object_id]
+        special.mm_content = content_records.get(special.object_id)
     Special.objects.bulk_update(specials, ["mm_content"])
 
 

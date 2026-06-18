@@ -16,7 +16,7 @@ def link_assets(apps, schema_editor):
     }
     assets = list(Asset.objects.filter(object_id__isnull=False))
     for asset in assets:
-        asset.mm_content = content_records[asset.object_id]
+        asset.mm_content = content_records.get(asset.object_id)
     Asset.objects.bulk_update(assets, ["mm_content"])
 
 

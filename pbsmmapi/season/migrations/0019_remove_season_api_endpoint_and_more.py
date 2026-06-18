@@ -16,7 +16,7 @@ def link_seasons(apps, schema_editor):
     }
     seasons = list(Season.objects.filter(object_id__isnull=False))
     for season in seasons:
-        season.mm_content = content_records[season.object_id]
+        season.mm_content = content_records.get(season.object_id)
     Season.objects.bulk_update(seasons, ["mm_content"])
 
 

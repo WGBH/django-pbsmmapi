@@ -16,7 +16,7 @@ def link_episodes(apps, schema_editor):
     }
     episodes = list(Episode.objects.filter(object_id__isnull=False))
     for episode in episodes:
-        episode.mm_content = content_records[episode.object_id]
+        episode.mm_content = content_records.get(episode.object_id)
     Episode.objects.bulk_update(episodes, ["mm_content"])
 
 
