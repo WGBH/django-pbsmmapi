@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
+from pbsmmapi.asset.helpers import check_asset_availability
 from pbsmmapi.asset.models import Asset
 
 
@@ -11,7 +12,7 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
     # coming from the API, but we do want to be able to view it in the context
     # of the Django system.
     #
-    # Most things here are fields, some are method output and some are properties.
+    # Most things here are annotated fields.
     readonly_fields = [
         "asset_publicly_available",
         "content_rating",
@@ -97,6 +98,44 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
             out += obj.player_code
             out += "</div>"
         return mark_safe(out)
+
+    def platforms(self, obj):
+        return obj.platforms
+
+    def topics(self, obj):
+        return obj.topics
+
+    def availability(self, obj):
+        return obj.availability
+
+    def player_code(self, obj):
+        return obj.player_code
+
+    def images(self, obj):
+        return obj.images
+
+    def content_rating(self, obj):
+        return obj.content_rating
+
+    def content_rating_description(self, obj):
+        return obj.content_rating_description
+
+    def is_excluded_from_dfp(self, obj):
+        return obj.is_excluded_from_dfp
+
+    @admin.display(
+        boolean=True,
+        description="Pub. Avail.",
+    )
+    def asset_publicly_available(self, obj):
+        if obj.availability:
+            public_window = obj.availability.get("public", None)
+            if public_window:
+                return check_asset_availability(
+                    start=public_window["start"],
+                    end=public_window["end"],
+                )[0]
+        return None
 
 
 admin.site.register(Asset, PBSMMAssetAdmin)
