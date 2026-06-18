@@ -48,6 +48,14 @@ class PBSMMShowManager(PBSMMBaseRecordManager):
                 audience=Cast(
                     KT("api_data__data__attributes__audience"), models.JSONField()
                 ),
+                sort_episodes_descending=Cast(
+                    KT("api_data__data__attributes__sort_episodes_descending"),
+                    models.BooleanField(),
+                ),
+                display_episode_number=Cast(
+                    KT("api_data__data__attributes__display_episode_number"),
+                    models.BooleanField(),
+                ),
                 platforms=Cast(
                     KT("api_data__data__attributes__platforms"), models.JSONField()
                 ),
@@ -59,6 +67,8 @@ class PBSMMShowManager(PBSMMBaseRecordManager):
 
 
 class Show(GenericProvisional, PBSMMGenericShow):
+    objects = PBSMMShowManager()
+
     ingest_seasons = models.BooleanField(
         _("Ingest Seasons"),
         default=False,
@@ -94,20 +104,11 @@ class Show(GenericProvisional, PBSMMGenericShow):
         default=True,
         help_text="Use incrementing integer or current year when creating a Season",
     )
-
-    # TODO revisit these fields - are they useful?
-    episode_count = models.PositiveIntegerField(
-        _("Episode Count"),
+    mm_content = models.OneToOneField(
+        "record.ContentRecord",
         null=True,
         blank=True,
-    )
-    display_episode_number = models.BooleanField(
-        _("Display Episode Number"),
-        default=False,
-    )
-    sort_episodes_descending = models.BooleanField(
-        _("Sort Episodes Descending"),
-        default=False,
+        on_delete=models.SET_NULL,
     )
 
     @classmethod

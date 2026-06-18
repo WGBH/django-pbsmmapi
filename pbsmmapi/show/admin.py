@@ -25,12 +25,9 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
     readonly_fields = [
         "assemble_asset_table",
         "date_created",
-        "display_episode_number",
-        "episode_count",
         "format_seasons_list",
         "format_specials_list",
         "ordinal_season",
-        "sort_episodes_descending",
         "title",
     ]
     add_readonly_fields = []

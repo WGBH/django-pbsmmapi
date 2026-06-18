@@ -1,15 +1,47 @@
 from http import HTTPStatus
 
 from django.db import models
+from django.db.models.fields.json import KT
+from django.db.models.functions import Cast
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
-from pbsmmapi.abstract.models import PBSMMGenericFranchise
+from pbsmmapi.abstract.models import (
+    PBSMMBaseRecordManager,
+    PBSMMGenericFranchise,
+)
 from pbsmmapi.api.api import PBSMM_FRANCHISE_ENDPOINT
 from pbsmmapi.show.models import Show
 
 
+class PBSMMFranchiseManager(PBSMMBaseRecordManager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                nola=KT("api_data__data__attributes__nola"),
+                premiered_on=Cast(
+                    KT("api_data__data__attributes__premiered_on"),
+                    models.DateTimeField(),
+                ),
+                funder_message=KT("api_data__data__attributes__funder_message"),
+                tracking_ga_page=KT("api_data__data__attributes__tracking_ga_page"),
+                tracking_ga_event=KT("api_data__data__attributes__tracking_ga_event"),
+                is_excluded_from_dfp=Cast(
+                    KT("api_data__data__attributes__is_excluded_from_dfp"),
+                    models.BooleanField(),
+                ),
+                internal_links=Cast(
+                    KT("api_data__data__attributes__links"), models.JSONField()
+                ),
+            )
+        )
+
+
 class Franchise(PBSMMGenericFranchise):
+    objects = PBSMMFranchiseManager()
+
     ingest_shows = models.BooleanField(
         _("Ingest Shows"),
         default=False,

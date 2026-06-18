@@ -105,12 +105,12 @@ class Asset(PBSMMGenericAsset):
 
     # Relationships
 
-    # mm_content = models.OneToOneField(
-    #     "record.ContentRecord",
-    #     null=True,
-    #     blank=True,
-    #     on_delete=models.SET_NULL,
-    # )
+    mm_content = models.OneToOneField(
+        "record.ContentRecord",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
 
     episode = models.ForeignKey(
         "episode.Episode",
