@@ -1,4 +1,5 @@
 import re
+from typing import TYPE_CHECKING
 
 from django.db import models
 from django.db.models.fields.json import KT
@@ -16,10 +17,7 @@ from pbsmmapi.abstract.models import (
     PBSMMBaseRecordManager,
     PBSMMGenericAsset,
 )
-from pbsmmapi.asset.helpers import (
-    SafeTranscriptWriter,
-    check_asset_availability,
-)
+from pbsmmapi.asset.helpers import SafeTranscriptWriter
 
 AVAILABILITY_GROUPS = (
     ("Station Members", "station_members"),
@@ -88,12 +86,20 @@ class AssetManager(PBSMMBaseRecordManager):
                     ),
                     models.Value([], models.JSONField()),
                 ),
+                topics=Coalesce(
+                    Cast(
+                        KT("api_data__data__attributes__topics"),
+                        models.JSONField(),
+                    ),
+                    models.Value([], models.JSONField()),
+                ),
+                # TODO figure out correct format
                 data_format=models.Case(
                     models.When(
-                        models.Q(api_data__data__attributes__has_key="links"),
-                        then=models.Value("compact"),
+                        models.Q(api_data__data__attributes__has_key="captions"),
+                        then=models.Value("full"),
                     ),
-                    default=models.Value("full"),
+                    default=models.Value("compact"),
                     output_field=models.CharField(),
                 ),
             )
@@ -101,10 +107,9 @@ class AssetManager(PBSMMBaseRecordManager):
 
 
 class Asset(PBSMMGenericAsset):
-    # objects = AssetManager()
+    objects = AssetManager()
 
     # Relationships
-
     mm_content = models.OneToOneField(
         "record.ContentRecord",
         null=True,
@@ -151,59 +156,6 @@ class Asset(PBSMMGenericAsset):
         related_name="assets",
         on_delete=models.SET_NULL,
     )
-
-    # Properties and methods
-    @property
-    def topics(self):
-        """
-        Return a list of topics if the asset have it.
-        According to PBS this isn't really used
-            - legacy for some third parties - skipping
-        However, Antiques Roadshow appears to be one of them.
-        """
-        try:
-            return self.json.get("attributes").get("topics")
-        except AttributeError:
-            return []
-
-    @property
-    def content_rating(self):
-        """
-        What audience this asset is intended for. eg: TV-Y
-        """
-        try:
-            return self.json.get("attributes").get("content_rating")
-        except AttributeError:
-            return None
-
-    @property
-    def content_rating_description(self):
-        """
-        Verbose description of the content rating. eg: General Audience
-        """
-        try:
-            return self.json.get("attributes").get("content_rating_description")
-        except AttributeError:
-            return None
-
-    def asset_publicly_available(self):
-        """
-        This is mostly for tables listing Assets in the Admin detail page for
-        ancestral objects: e.g., an Episode's page in the Admin has a list of
-        the episode's assets, and this provides a simple column to show
-        availability in that list.
-        """
-        if self.availability:
-            public_window = self.availability.get("public", None)
-            if public_window:
-                return check_asset_availability(
-                    start=public_window["start"],
-                    end=public_window["end"],
-                )[0]
-        return None
-
-    asset_publicly_available.short_description = "Pub. Avail."
-    asset_publicly_available.boolean = True
 
     @property
     def duration_hms(self):
@@ -338,6 +290,15 @@ class Asset(PBSMMGenericAsset):
         return part_of_player_code.group(1)
 
     def __str__(self):
-        return (
-            f"{self.pk} | {self.object_id} ({self.legacy_tp_media_id}) | {self.title}"
-        )
+        return f"{self.pk} | {self.mm_content.pk} ({self.legacy_tp_media_id}) | {self.title}"
+
+    if TYPE_CHECKING:
+        api_data: dict
+        duration: int
+        transcripts: list[dict]
+        captions: list[dict]
+        player_code: str
+        data_format: str
+        is_excluded_from_dfp: bool
+        platforms: list[dict]
+        availability: dict
