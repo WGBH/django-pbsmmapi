@@ -23,7 +23,7 @@ def link_assets(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("asset", "0009_alter_asset_options"),
+        ("asset", "0010_fix_asset_json"),
         ("record", "0001_initial"),
     ]
 

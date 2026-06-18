@@ -7,7 +7,7 @@ from django.db import (
 
 
 def populate_records(apps, schema_editor):
-    # Asset = apps.get_model("asset", "Asset")
+    Asset = apps.get_model("asset", "Asset")
     Episode = apps.get_model("episode", "Episode")
     Season = apps.get_model("season", "Season")
     Special = apps.get_model("special", "Special")
@@ -55,15 +55,14 @@ def populate_records(apps, schema_editor):
         )
         for episode in Episode.objects.filter(object_id__isnull=False)
     ]
-    # TODO: write a separate ticket to handle the Asset data adjustment for Asset.json
-    # batch_data += [
-    #     ContentRecord(
-    #         content_id=asset.object_id,
-    #         api_data=asset.json,
-    #         last_api_status=asset.last_api_status,
-    #     )
-    #     for asset in Asset.objects.filter(object_id__isnull=False)
-    # ]
+    batch_data += [
+        ContentRecord(
+            content_id=asset.object_id,
+            api_data=asset.json,
+            last_api_status=asset.last_api_status,
+        )
+        for asset in Asset.objects.filter(object_id__isnull=False)
+    ]
     ContentRecord.objects.bulk_create(batch_data)
 
 
@@ -72,7 +71,7 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
-        ("asset", "0009_alter_asset_options"),
+        ("asset", "0010_fix_asset_json"),
         ("episode", "0018_auto_increment_ordinal"),
         ("franchise", "0002_alter_franchise_genre_alter_franchise_images_and_more"),
         ("season", "0018_auto_increment_ordinal"),
