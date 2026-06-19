@@ -135,6 +135,9 @@ class Show(GenericProvisional, PBSMMGenericShow):
             # Promote without ingesting (skip_ingest=True) and let the
             # update_or_create() below run the single ingest pass with the
             # correct ingest flags.
+            attributes = season.setdefault("attributes", {})
+            show_ref = {"id": str(self.object_id)}
+            attributes.setdefault("show", show_ref)
             Season.realize({"data": season}, skip_ingest=True)
             Season.objects.update_or_create(
                 defaults=dict(
