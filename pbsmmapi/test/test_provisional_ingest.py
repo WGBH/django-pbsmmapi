@@ -158,7 +158,7 @@ class ProvisionalIngestTestCase(TestCase):
 
         franchise = Franchise(
             slug="a-franchise",
-            object_id=UUID("11111111-1111-1111-1111-111111111111"),
+            object_id=UUID(FRANCHISE_ID),
             ingest_shows=True,
             json={"links": {"shows": shows_base}},
         )
