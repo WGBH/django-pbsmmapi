@@ -134,9 +134,6 @@ class Season(GenericProvisional, PBSMMGenericSeason):
             # IntegrityError on the unique object_id constraint. Promote without
             # ingesting (skip_ingest=True); the save() below runs the single
             # ingest pass.
-            attributes = episode.setdefault("attributes", {})
-            season_ref = {"id": str(self.object_id)}
-            attributes.setdefault("season", season_ref)
             Episode.realize({"data": episode}, skip_ingest=True)
             obj, created = Episode.objects.get_or_create(
                 object_id=episode["id"],

@@ -62,7 +62,7 @@ class ProvisionalIngestTestCase(TestCase):
             {
                 "id": SEASON_ID,
                 "type": "season",
-                "attributes": {"ordinal": 1},
+                "attributes": {"ordinal": 1, "show": {"id": SHOW_ID}},
                 "links": {},
             }
         ]
@@ -138,7 +138,7 @@ class ProvisionalIngestTestCase(TestCase):
             {
                 "id": EPISODE_ID,
                 "type": "episode",
-                "attributes": {"ordinal": 1},
+                "attributes": {"ordinal": 1, "season": {"id": SEASON_ID}},
                 "links": {},
             }
         ]
