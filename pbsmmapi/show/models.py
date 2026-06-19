@@ -76,9 +76,7 @@ class Show(GenericProvisional, PBSMMGenericShow):
             object_id = data["data"]["id"]
             show.object_id = object_id
             show.provisional = False
-            show.save(
-                skip_ingest=skip_ingest
-            )  # TODO: we could avoid calling the MM API again because we have the latest information in the data dict, we just need to update the obj fields and call save with skip_ingest=True
+            show.save(skip_ingest=skip_ingest)
             Season.objects.filter(
                 provisional=True,
                 show=show,
