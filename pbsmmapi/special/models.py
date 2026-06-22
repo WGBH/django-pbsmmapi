@@ -25,7 +25,7 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
     )
 
     @classmethod
-    def realize(cls, data: dict):
+    def realize(cls, data: dict, skip_ingest: bool = False):
         try:
             special = cls.objects.get(
                 show_api_id=data["data"]["attributes"]["show"]["id"],
@@ -34,7 +34,7 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
             )
             special.object_id = data["data"]["id"]
             special.provisional = False
-            special.save()
+            special.save(skip_ingest=skip_ingest)
         except cls.DoesNotExist:
             return
 
