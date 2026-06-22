@@ -29,7 +29,7 @@ class PBSMMEpisodeManager(PBSMMBaseRecordManager):
                     models.DateField(),
                 ),
                 encored_on=Cast(
-                    KT("api_data__data__attributes__encored_on"), models.DateTimeField()
+                    KT("api_data__data__attributes__encored_on"), models.DateField()
                 ),
                 season_content_id=Cast(
                     KT("api_data__data__attributes__season__id"), models.UUIDField()

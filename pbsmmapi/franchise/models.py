@@ -23,7 +23,7 @@ class PBSMMFranchiseManager(PBSMMBaseRecordManager):
                 nola=KT("api_data__data__attributes__nola"),
                 premiered_on=Cast(
                     KT("api_data__data__attributes__premiered_on"),
-                    models.DateTimeField(),
+                    models.DateField(),
                 ),
                 funder_message=KT("api_data__data__attributes__funder_message"),
                 tracking_ga_page=KT("api_data__data__attributes__tracking_ga_page"),

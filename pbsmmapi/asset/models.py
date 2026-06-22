@@ -38,7 +38,7 @@ class AssetManager(PBSMMBaseRecordManager):
                 asset_type=KT("api_data__data__attributes__object_type"),
                 premiered_on=Cast(
                     KT("api_data__data__attributes__premiered_on"),
-                    models.DateTimeField(),
+                    models.DateField(),
                 ),
                 encored_on=Cast(
                     KT("api_data__data__attributes__encored_on"), models.DateTimeField()

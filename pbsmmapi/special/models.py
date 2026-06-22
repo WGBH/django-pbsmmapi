@@ -24,12 +24,13 @@ class PBSMMSpecialManager(PBSMMBaseRecordManager):
                 internal_links=Cast(
                     KT("api_data__data__attributes__links"), models.JSONField()
                 ),
-                encored_on=Cast(
-                    KT("api_data__data__attributes__encored_on"), models.DateTimeField()
-                ),
                 premiered_on=Cast(
                     KT("api_data__data__attributes__premiered_on"),
-                    models.DateTimeField(),
+                    models.DateField(),
+                ),
+                encored_on=Cast(
+                    KT("api_data__data__attributes__encored_on"),
+                    models.DateField(),
                 ),
                 show_content_id=Cast(
                     KT("api_data__data__attributes__show__id"), models.UUIDField()
