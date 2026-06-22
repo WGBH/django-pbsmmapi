@@ -24,6 +24,10 @@ class PBSMMEpisodeManager(PBSMMBaseRecordManager):
                 internal_links=Cast(
                     KT("api_data__data__attributes__links"), models.JSONField()
                 ),
+                premiered_on=Cast(
+                    KT("api_data__data__attributes__premiered_on"),
+                    models.DateField(),
+                ),
                 encored_on=Cast(
                     KT("api_data__data__attributes__encored_on"), models.DateTimeField()
                 ),
