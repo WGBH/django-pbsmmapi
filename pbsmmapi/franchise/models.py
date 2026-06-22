@@ -32,9 +32,13 @@ class Franchise(PBSMMGenericFranchise):
     )
 
     def save(self, *args, **kwargs):
-        self.pre_save()
-        super().save(*args, **kwargs)
-        self.post_save(self.id)
+        skip_ingest = kwargs.pop("skip_ingest", False)
+        if skip_ingest:
+            super().save(*args, **kwargs)
+        else:
+            self.pre_save()
+            super().save(*args, **kwargs)
+            self.post_save(self.id)
 
     def pre_save(self):
         attrs = self.process(PBSMM_FRANCHISE_ENDPOINT)
@@ -61,6 +65,13 @@ class Franchise(PBSMMGenericFranchise):
             return
 
         def set_show(show: dict, _):
+            # Realize any provisional Show with this title first so its object_id
+            # is set; otherwise update_or_create() keyed on object_id would
+            # create a duplicate and later changelog realization would raise an
+            # IntegrityError on the unique object_id constraint. Promote without
+            # ingesting (skip_ingest=True) and let the update_or_create() below
+            # run the single ingest pass with the correct ingest flags.
+            Show.realize({"data": show}, skip_ingest=True)
             Show.objects.update_or_create(
                 defaults=dict(
                     franchise_id=self.id,
