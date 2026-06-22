@@ -66,7 +66,7 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
     )
 
     @classmethod
-    def realize(cls, data: dict):
+    def realize(cls, data: dict, skip_ingest: bool = False):
         try:
             episode = cls.objects.get(
                 season_api_id=data["data"]["attributes"]["season"]["id"],
@@ -75,7 +75,7 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
             )
             episode.object_id = data["data"]["id"]
             episode.provisional = False
-            episode.save()
+            episode.save(skip_ingest=skip_ingest)
         except cls.DoesNotExist:
             return
 

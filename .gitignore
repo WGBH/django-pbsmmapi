@@ -1,5 +1,13 @@
 *OBSOLETE*
 
+# LOCAL #
+.continue
+.envrc
+.ephemeral
+.idea
+.github/copilot-instructions.md
+AGENTS.md
+
 # Compiled source #
 ###################
 *.pyc
