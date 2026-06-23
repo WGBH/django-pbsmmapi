@@ -1,6 +1,8 @@
 from http import HTTPStatus
 
 from django.db import models
+from django.db.models.fields.json import KT
+from django.db.models.functions import Cast
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
@@ -15,38 +17,11 @@ class GenericObjectManagement(models.Model):
         auto_now_add=True,
         help_text="Not set by API",
     )
-    date_last_api_update = models.DateTimeField(
-        _("Last API Retrieval"),
-        help_text="Not set by API",
-        auto_now=True,
-        null=True,
-    )
     ingest_on_save = models.BooleanField(
         _("Ingest on Save"),
         default=False,
         help_text="If true, then will update values from the PBSMM API on save()",
     )
-    last_api_status = models.PositiveIntegerField(
-        _("Last API Status"),
-        null=True,
-        blank=True,
-    )
-    json = models.JSONField(
-        _("JSON"),
-        default=dict,
-        blank=True,
-        help_text="This is the last JSON uploaded.",
-    )
-
-    def last_api_status_color(self):
-        template = '<b><span style="color:#%s;">%d</span></b>'
-        if self.last_api_status:
-            if self.last_api_status == 200:
-                return mark_safe(template % ("0c0", self.last_api_status))
-            return mark_safe(template % ("f00", self.last_api_status))
-        return mark_safe(self.last_api_status)
-
-    last_api_status_color.short_description = "Status"
 
     class Meta:
         abstract = True
@@ -74,47 +49,10 @@ class PBSMMObjectID(models.Model):
         abstract = True
 
 
-class PBSObjectMetadata(models.Model):
-    """Exists for all objects"""
-
-    api_endpoint = models.URLField(
-        _("Link to API Record"),
-        null=True,
-        blank=True,
-        help_text="Endpoint to original record from the API",
-    )
-
-    def api_endpoint_link(self):
-        # This just makes the field clickable in the Admin (why cut and paste
-        # when you can click?)
-        return mark_safe(
-            f'<a href="{self.api_endpoint}" target="_new">{self.api_endpoint}</a>'
-        )
-
-    api_endpoint_link.short_description = "Link to API"
-
-    class Meta:
-        abstract = True
-
-
 class PBSMMObjectTitle(models.Model):
     """Exists for all objects"""
 
     title = models.CharField(_("Title"), max_length=200, null=True, blank=True)
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMObjectSortableTitle(models.Model):
-    """
-    Exists for all objects EXCEPT Collection - so we have to separate it
-    (I don't understand why the API just didn't create this across records...)
-    """
-
-    title_sortable = models.CharField(
-        _("Sortable Title"), max_length=200, null=True, blank=True
-    )
 
     class Meta:
         abstract = True
@@ -130,231 +68,6 @@ class PBSMMObjectSlug(models.Model):
         _("Slug"),
         unique=True,
         max_length=200,
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMObjectTitleSortableTitle(PBSMMObjectTitle, PBSMMObjectSortableTitle):
-    """Lump them together"""
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMObjectDescription(models.Model):
-    """These exist for all Objects"""
-
-    description_long = models.TextField(_("Long Description"))
-    description_short = models.TextField(_("Short Description"))
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMObjectDates(models.Model):
-    """This exists for all objects"""
-
-    updated_at = models.DateTimeField(
-        _("Updated At"),
-        null=True,
-        blank=True,
-        help_text="API record modified date",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMBroadcastDates(models.Model):
-    """
-    premiered_on exists for Episode, Franchise, Show, and Special but NOT
-    Collection or Season
-
-    encored_on ONLY exists for Episode so we might have to
-    split them up
-    """
-
-    premiered_on = models.DateTimeField(_("Premiered On"), null=True, blank=True)
-
-    @property
-    def short_premiere_date(self):
-        return self.premiered_on.strftime("%x")
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMNOLA(models.Model):
-    """
-    This exists for Episode, Franchise, and Special but NOT for Collection,
-    Show, or Season
-    """
-
-    nola = models.CharField(
-        _("NOLA Code"),
-        max_length=8,
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMImage(models.Model):
-    images = models.JSONField(
-        _("Images"),
-        default=dict,
-        blank=True,
-        help_text="JSON serialized field",
-    )
-
-    def pretty_image_list(self):
-        if self.images:
-            image_list = self.images
-            out = '<table width="100%">'
-            out += "<tr><th>Profile</th><th>Updated At</th></tr>"
-            for image in image_list:
-                out += "\n<tr>"
-                out += f'<td><a href="{image["image"]}" target="_new">'
-                out += f"{image['profile']}</a></td>"
-                out += f"<td>{image['updated_at']}</td>"
-                out += "</tr>"
-            out += "</table>"
-            return mark_safe(out)
-        return None
-
-    pretty_image_list.short_description = "Image List"
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMFunder(models.Model):
-    funder_message = models.TextField(
-        _("Funder Message"),
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMPlayerMetadata(models.Model):
-    is_excluded_from_dfp = models.BooleanField(
-        _("Is excluded from DFP"),
-        default=False,
-    )
-
-    can_embed_player = models.BooleanField(
-        _("Can Embed Player"),
-        default=False,
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMLinks(models.Model):
-    links = models.JSONField(
-        _("Links"),
-        default=dict,
-        blank=True,
-        help_text="JSON serialized field",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMPlatforms(models.Model):
-    platforms = models.JSONField(
-        _("Platforms"),
-        default=dict,
-        blank=True,
-        help_text="JSON serialized field",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMGeo(models.Model):
-    # countries --- hold off until needed
-    geo_profile = models.JSONField(
-        _("Geo Profile"),
-        default=dict,
-        blank=True,
-        help_text="JSON serialized field",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMGoogleTracking(models.Model):
-    ga_page = models.CharField(
-        _("GA Page Tag"),
-        max_length=40,
-        null=True,
-        blank=True,
-    )
-    ga_event = models.CharField(
-        _("GA Event Tag"),
-        max_length=40,
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMGenre(models.Model):
-    genre = models.JSONField(
-        _("Genre"),
-        default=dict,
-        blank=True,
-        help_text="JSON Serialized Field",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMLanguage(models.Model):
-    language = models.CharField(
-        _("Language"),
-        max_length=10,
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMAudience(models.Model):
-    audience = models.JSONField(
-        _("Audience"),
-        default=dict,
-        blank=True,
-        help_text="JSON Serialized Field",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMHashtag(models.Model):
-    hashtag = models.CharField(
-        _("Hashtag"),
-        max_length=100,
-        null=True,
-        blank=True,
     )
 
     class Meta:
@@ -521,13 +234,30 @@ class Ingest(models.Model):
 
 
 class PBSMMGenericObject(
-    PBSMMObjectID,
-    PBSMMObjectTitleSortableTitle,
-    PBSMMObjectDescription,
-    PBSMMObjectDates,
+    PBSMMObjectTitle,
     GenericObjectManagement,
-    PBSObjectMetadata,
 ):
+    def last_api_status_color(self):
+        """
+        Colorized rendering of the last API status, used by the admin asset/
+        relation tables. The status now lives on the related ContentRecord
+        (``mm_content``) rather than on a local field.
+        """
+        status = self.mm_content.last_api_status if self.mm_content_id else None
+        if status is None:
+            return mark_safe('<span style="color: #999;">&mdash;</span>')
+        color = "green" if int(status) == HTTPStatus.OK else "red"
+        return mark_safe(f'<span style="color: {color};">{status}</span>')
+
+    def last_updated_display(self):
+        """
+        Guarded rendering of the ``updated_at`` annotation (it may be NULL, and
+        is only present on instances loaded through the annotating manager).
+        Replaces the removed ``date_last_api_update`` field in admin tables.
+        """
+        updated = getattr(self, "updated_at", None)
+        return updated.strftime("%x %X") if updated else "—"
+
     class Meta:
         abstract = True
 
@@ -535,19 +265,7 @@ class PBSMMGenericObject(
 class PBSMMGenericAsset(
     PBSMMGenericObject,
     PBSMMObjectSlug,
-    PBSMMImage,
-    PBSMMFunder,
-    PBSMMPlayerMetadata,
-    PBSMMLinks,
-    PBSMMGeo,
-    PBSMMPlatforms,
-    PBSMMLanguage,
 ):
-    class Meta:
-        abstract = True
-
-
-class PBSMMGenericRemoteAsset(PBSMMGenericObject):
     class Meta:
         abstract = True
 
@@ -555,18 +273,6 @@ class PBSMMGenericRemoteAsset(PBSMMGenericObject):
 class PBSMMGenericShow(
     PBSMMGenericObject,
     PBSMMObjectSlug,
-    PBSMMLinks,
-    PBSMMNOLA,
-    PBSMMHashtag,
-    PBSMMImage,
-    PBSMMGenre,
-    PBSMMFunder,
-    PBSMMPlayerMetadata,
-    PBSMMGoogleTracking,
-    PBSMMPlatforms,
-    PBSMMAudience,
-    PBSMMBroadcastDates,
-    PBSMMLanguage,
     Ingest,
 ):
     class Meta:
@@ -576,11 +282,6 @@ class PBSMMGenericShow(
 class PBSMMGenericEpisode(
     PBSMMGenericObject,
     PBSMMObjectSlug,
-    PBSMMFunder,
-    PBSMMLanguage,
-    PBSMMBroadcastDates,
-    PBSMMNOLA,
-    PBSMMLinks,
     Ingest,
 ):
     class Meta:
@@ -589,8 +290,6 @@ class PBSMMGenericEpisode(
 
 class PBSMMGenericSeason(
     PBSMMGenericObject,
-    PBSMMLinks,
-    PBSMMImage,
     Ingest,
 ):
     class Meta:
@@ -600,21 +299,8 @@ class PBSMMGenericSeason(
 class PBSMMGenericSpecial(
     PBSMMGenericObject,
     PBSMMObjectSlug,
-    PBSMMLanguage,
-    PBSMMBroadcastDates,
-    PBSMMNOLA,
-    PBSMMLinks,
     Ingest,
 ):
-    class Meta:
-        abstract = True
-
-
-class PBSMMGenericCollection(PBSMMGenericObject, PBSMMObjectSlug, PBSMMImage):
-    # There is no sortable title field - it is allowed in the model purely out
-    # of laziness since abstracting it out from PBSMMGenericObject would be
-    # more-complicated than leaving it in. PLUS I suspect that eventually it'll
-    # be added...
     class Meta:
         abstract = True
 
@@ -622,18 +308,34 @@ class PBSMMGenericCollection(PBSMMGenericObject, PBSMMObjectSlug, PBSMMImage):
 class PBSMMGenericFranchise(
     PBSMMGenericObject,
     PBSMMObjectSlug,
-    PBSMMFunder,
-    PBSMMNOLA,
-    PBSMMBroadcastDates,
-    PBSMMImage,
-    PBSMMPlatforms,
-    PBSMMLinks,
-    PBSMMHashtag,
-    PBSMMGoogleTracking,
-    PBSMMGenre,
-    PBSMMPlayerMetadata,
     Ingest,
 ):
     # There is no can_embed_player field - again, laziness (see above)
     class Meta:
         abstract = True
+
+
+class PBSMMBaseRecordManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            # api_data must be defined in its own annotate() call: the JSON
+            # transforms below resolve against it, and Django cannot reliably
+            # resolve transforms against an alias created in the same clause.
+            .annotate(api_data=models.F("mm_content__api_data"))
+            .annotate(
+                content_type=KT("api_data__data__type"),
+                description_short=KT("api_data__data__attributes__description_short"),
+                description_long=KT("api_data__data__attributes__description_long"),
+                updated_at=Cast(
+                    KT("api_data__data__attributes__updated_at"), models.DateTimeField()
+                ),
+                links=Cast(KT("api_data__links"), models.JSONField()),
+                api_endpoint=KT("api_data__links__self"),
+                images=Cast(
+                    KT("api_data__data__attributes__images"), models.JSONField()
+                ),
+                hashtag=KT("api_data__data__attributes__hashtag"),
+            )
+        )

@@ -1,13 +1,41 @@
 from django.db import models
+from django.db.models.fields.json import KT
+from django.db.models.functions import Cast
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
     GenericProvisional,
+    PBSMMBaseRecordManager,
     PBSMMGenericEpisode,
 )
 from pbsmmapi.api.api import PBSMM_EPISODE_ENDPOINT
+
+
+class PBSMMEpisodeManager(PBSMMBaseRecordManager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                nola=KT("api_data__data__attributes__nola"),
+                language=KT("api_data__data__attributes__language"),
+                internal_links=Cast(
+                    KT("api_data__data__attributes__links"), models.JSONField()
+                ),
+                premiered_on=Cast(
+                    KT("api_data__data__attributes__premiered_on"),
+                    models.DateField(),
+                ),
+                encored_on=Cast(
+                    KT("api_data__data__attributes__encored_on"), models.DateField()
+                ),
+                season_content_id=Cast(
+                    KT("api_data__data__attributes__season__id"), models.UUIDField()
+                ),
+            )
+        )
 
 
 class Episode(GenericProvisional, PBSMMGenericEpisode):
@@ -15,11 +43,8 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
     These are the fields that are unique to Episode records.
     """
 
-    encored_on = models.DateTimeField(
-        _("Encored On"),
-        blank=True,
-        null=True,
-    )
+    objects = PBSMMEpisodeManager()
+
     ordinal = models.PositiveIntegerField(
         _("Ordinal"),
         blank=True,
@@ -33,10 +58,11 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         null=True,
         blank=True,
     )
-    season_api_id = models.UUIDField(
-        _("Season Object ID"),
+    mm_content = models.OneToOneField(
+        "record.ContentRecord",
         null=True,
-        blank=True,  # does this work?
+        blank=True,
+        on_delete=models.SET_NULL,
     )
 
     @classmethod
@@ -52,16 +78,6 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
             episode.save(skip_ingest=skip_ingest)
         except cls.DoesNotExist:
             return
-
-    @property
-    def segment(self):
-        """
-        Return individual segments of a single episode.
-        """
-        try:
-            return self.json.get("data").get("attributes").get("segment")
-        except AttributeError:
-            return None
 
     @property
     def full_episode_code(self):
@@ -88,14 +104,6 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
 
     short_episode_code.short_description = "Ep #"
 
-    @property
-    def nola_code(self):
-        if self.nola is None or self.nola == "":
-            return None
-        if self.season.show.nola is None or self.season.show.nola == "":
-            return None
-        return f"{self.season.show.nola}{self.nola}"
-
     def create_table_line(self):
         """
         This just formats a line in a Table of Episodes.
@@ -110,7 +118,7 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         )
         out += '\n\t<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
         out += "\n\t<td>%d</td>" % self.assets.count()
-        out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
+        out += "\n\t<td>%s</td>" % self.last_updated_display()
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
         return mark_safe(out)
 

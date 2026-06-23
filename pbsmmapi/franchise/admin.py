@@ -1,7 +1,10 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
+from pbsmmapi.abstract.admin import (
+    AnnotatedReadonlyAdminMixin,
+    PBSMMAbstractAdmin,
+)
 from pbsmmapi.franchise.forms import (
     PBSMMFranchiseCreateForm,
     PBSMMFranchiseEditForm,
@@ -9,46 +12,36 @@ from pbsmmapi.franchise.forms import (
 from pbsmmapi.franchise.models import Franchise
 
 
-class PBSMMFranchiseAdmin(PBSMMAbstractAdmin):
+class PBSMMFranchiseAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     form = PBSMMFranchiseEditForm
     add_form = PBSMMFranchiseCreateForm
     model = Franchise
     list_display = (
         "pk",
         "slug",
-        "object_id",
-        "title_sortable",
-        "date_last_api_update",
-        "last_api_status_color",
+        "title",
     )
-    list_display_links = ("pk", "slug", "object_id")
-    readonly_fields = [
-        "api_endpoint",
-        "api_endpoint_link",
-        "assemble_asset_table",
-        "can_embed_player",
-        "date_created",
-        "date_last_api_update",
+    list_display_links = (
+        "pk",
+        "slug",
+    )
+    annotated_fields = [
         "description_long",
         "description_short",
-        "format_shows_list",
         "funder_message",
-        "ga_event",
-        "ga_page",
-        "genre",
-        "hashtag",
         "images",
-        "is_excluded_from_dfp",
-        "last_api_status_color",
+        "hashtag",
+        "tracking_ga_page",
+        "tracking_ga_event",
+        "genre",
         "links",
-        "nola",
-        "object_id",
         "platforms",
-        "premiered_on",
-        "pretty_image_list",
+    ]
+    readonly_fields = [
+        "assemble_asset_table",
+        "date_created",
+        "format_shows_list",
         "title",
-        "title_sortable",
-        "updated_at",
     ]
     add_readonly_fields = []
     add_fieldsets = (
@@ -73,16 +66,8 @@ class PBSMMFranchiseAdmin(PBSMMAbstractAdmin):
             None,
             {
                 "fields": (
-                    (
-                        "title",
-                        "title_sortable",
-                    ),
-                    (
-                        "object_id",
-                        "date_created",
-                        "api_endpoint_link",
-                    ),
-                    ("date_last_api_update", "updated_at", "last_api_status_color"),
+                    ("title",),
+                    ("date_created",),
                 ),
             },
         ),
@@ -127,10 +112,7 @@ class PBSMMFranchiseAdmin(PBSMMAbstractAdmin):
             "Images",
             {
                 "classes": ("collapse",),
-                "fields": (
-                    "images",
-                    "pretty_image_list",
-                ),
+                "fields": ("images",),
             },
         ),
         (
@@ -139,7 +121,7 @@ class PBSMMFranchiseAdmin(PBSMMAbstractAdmin):
                 "classes": ("collapse",),
                 "fields": (
                     "hashtag",
-                    ("ga_page", "ga_event"),
+                    ("tracking_ga_page", "tracking_ga_event"),
                     "genre",
                     "links",
                     "platforms",

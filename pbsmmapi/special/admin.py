@@ -1,6 +1,9 @@
 from django.contrib import admin
 
-from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
+from pbsmmapi.abstract.admin import (
+    AnnotatedReadonlyAdminMixin,
+    PBSMMAbstractAdmin,
+)
 from pbsmmapi.special.forms import (
     PBSMMSpecialCreateForm,
     PBSMMSpecialEditForm,
@@ -8,7 +11,7 @@ from pbsmmapi.special.forms import (
 from pbsmmapi.special.models import Special
 
 
-class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
+class PBSMMSpecialAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     model = Special
     form = PBSMMSpecialEditForm
     add_form = PBSMMSpecialCreateForm
@@ -16,33 +19,24 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
 
     list_display = (
         "pk",
-        "title_sortable",
-        "show",
-        "premiered_on",
-        "date_last_api_update",
-        "last_api_status_color",
-    )
-    list_display_links = ("pk", "title_sortable")
-    # Why so many readonly_fields?  Because we don't want to override what's
-    # coming from the API, but we do want to be able to view it in the context
-    # of the Django system.
-    #
-    # Most things here are fields, some are method output and some are properties.
-    readonly_fields = [
-        "date_created",
-        "date_last_api_update",
-        "last_api_status",
-        "api_endpoint_link",
-        "last_api_status_color",
         "title",
-        "title_sortable",
+        "show",
+    )
+    list_display_links = ("pk", "title")
+    # The metadata shown here is now exposed via queryset annotations; the
+    # mixin surfaces each annotated_fields name as a read-only value. We don't
+    # want to override what's coming from the API, but we do want to view it.
+    annotated_fields = [
         "description_long",
         "description_short",
-        "updated_at",
         "premiered_on",
-        "links",
-        "language",
         "nola",
+        "language",
+        "links",
+    ]
+    readonly_fields = [
+        "date_created",
+        "title",
         "assemble_asset_table",
     ]
 
@@ -63,13 +57,7 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
             {
                 "fields": (
                     "ingest_on_save",
-                    (
-                        "date_created",
-                        "date_last_api_update",
-                        "updated_at",
-                        "last_api_status_color",
-                    ),
-                    "object_id",
+                    ("date_created",),
                 ),
             },
         ),
@@ -78,9 +66,7 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
             {
                 "fields": (
                     "title",
-                    "title_sortable",
                     "slug",
-                    "api_endpoint_link",
                 ),
             },
         ),
