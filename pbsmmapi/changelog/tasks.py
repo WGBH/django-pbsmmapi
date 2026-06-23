@@ -217,8 +217,10 @@ def reingest_updated_objects():
     ):
         changelog = ChangeLog.objects.get(content_id=item.object_id)
         if changelog.latest_timestamp > item.date_last_api_update:
-            data = changelog.api_data["data"]
-            Asset.set(data, last_api_status=changelog.api_status)
+            _, data = get_PBSMM_record(
+                changelog.api_url
+            )  # actually get latest changelog data
+            Asset.set(data["data"], last_api_status=changelog.api_status)
 
     # Under some circumstances, an Asset can be updated without the change
     # being reflected by the parent object's ChangeLog.
