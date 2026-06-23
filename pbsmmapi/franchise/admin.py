@@ -1,7 +1,10 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
+from pbsmmapi.abstract.admin import (
+    AnnotatedReadonlyAdminMixin,
+    PBSMMAbstractAdmin,
+)
 from pbsmmapi.franchise.forms import (
     PBSMMFranchiseCreateForm,
     PBSMMFranchiseEditForm,
@@ -9,7 +12,7 @@ from pbsmmapi.franchise.forms import (
 from pbsmmapi.franchise.models import Franchise
 
 
-class PBSMMFranchiseAdmin(PBSMMAbstractAdmin):
+class PBSMMFranchiseAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     form = PBSMMFranchiseEditForm
     add_form = PBSMMFranchiseCreateForm
     model = Franchise
@@ -22,6 +25,18 @@ class PBSMMFranchiseAdmin(PBSMMAbstractAdmin):
         "pk",
         "slug",
     )
+    annotated_fields = [
+        "description_long",
+        "description_short",
+        "funder_message",
+        "images",
+        "hashtag",
+        "tracking_ga_page",
+        "tracking_ga_event",
+        "genre",
+        "links",
+        "platforms",
+    ]
     readonly_fields = [
         "assemble_asset_table",
         "date_created",
@@ -97,10 +112,7 @@ class PBSMMFranchiseAdmin(PBSMMAbstractAdmin):
             "Images",
             {
                 "classes": ("collapse",),
-                "fields": (
-                    "images",
-                    "pretty_image_list",
-                ),
+                "fields": ("images",),
             },
         ),
         (
@@ -109,7 +121,7 @@ class PBSMMFranchiseAdmin(PBSMMAbstractAdmin):
                 "classes": ("collapse",),
                 "fields": (
                     "hashtag",
-                    ("ga_page", "ga_event"),
+                    ("tracking_ga_page", "tracking_ga_event"),
                     "genre",
                     "links",
                     "platforms",

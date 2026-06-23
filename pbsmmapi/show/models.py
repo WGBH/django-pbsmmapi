@@ -62,6 +62,10 @@ class PBSMMShowManager(PBSMMBaseRecordManager):
                 franchise_content_id=Cast(
                     KT("api_data__data__attributes__franchise__id"), models.UUIDField()
                 ),
+                episode_count=Cast(
+                    KT("api_data__data__attributes__episodes_count"),
+                    models.IntegerField(),
+                ),
             )
         )
 
@@ -237,7 +241,7 @@ class Show(GenericProvisional, PBSMMGenericShow):
         )
         out += '<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
         out += "\n\t<td>%d</td>" % self.assets.count()
-        out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
+        out += "\n\t<td>%s</td>" % self.last_updated_display()
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
         return mark_safe(out)
 

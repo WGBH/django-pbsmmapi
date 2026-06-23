@@ -17,7 +17,10 @@ from pbsmmapi.abstract.models import (
     PBSMMBaseRecordManager,
     PBSMMGenericAsset,
 )
-from pbsmmapi.asset.helpers import SafeTranscriptWriter
+from pbsmmapi.asset.helpers import (
+    SafeTranscriptWriter,
+    check_asset_availability,
+)
 
 AVAILABILITY_GROUPS = (
     ("Station Members", "station_members"),
@@ -54,6 +57,9 @@ class AssetManager(PBSMMBaseRecordManager):
                 content_rating_description=KT(
                     "api_data__data__attributes__content_rating_description"
                 ),
+                language=KT("api_data__data__attributes__language"),
+                geo_profile=KT("api_data__data__attributes__geo_profile"),
+                can_embed_player=KT("api_data__data__attributes__can_embed_player"),
                 legacy_tp_media_id=KT("api_data__data__attributes__legacy_tp_media_id"),
                 tags=Cast(KT("api_data__data__attributes__tags"), models.JSONField()),
                 platforms=Cast(
@@ -186,6 +192,21 @@ class Asset(PBSMMGenericAsset):
                 sstr = "%ds" % seconds
             return " ".join((hstr, mstr, sstr))
         return ""
+
+    def asset_publicly_available(self):
+        """
+        Is the asset currently inside its public availability window? Reads the
+        ``availability`` annotation. Used by both the admin (wrapped with a
+        boolean display) and the asset relation tables.
+        """
+        if self.availability:
+            public_window = self.availability.get("public", None)
+            if public_window:
+                return check_asset_availability(
+                    start=public_window["start"],
+                    end=public_window["end"],
+                )[0]
+        return None
 
     @property
     def formatted_duration(self):

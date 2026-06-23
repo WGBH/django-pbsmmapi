@@ -26,7 +26,11 @@ class PBSMMEpisodeManager(PBSMMBaseRecordManager):
                 ),
                 premiered_on=Cast(
                     KT("api_data__data__attributes__premiered_on"),
+<<<<<<< Updated upstream
                     models.DateField(),
+=======
+                    models.DateTimeField(),
+>>>>>>> Stashed changes
                 ),
                 encored_on=Cast(
                     KT("api_data__data__attributes__encored_on"), models.DateField()
@@ -118,7 +122,7 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         )
         out += '\n\t<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
         out += "\n\t<td>%d</td>" % self.assets.count()
-        out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
+        out += "\n\t<td>%s</td>" % self.last_updated_display()
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
         return mark_safe(out)
 

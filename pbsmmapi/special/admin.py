@@ -1,6 +1,9 @@
 from django.contrib import admin
 
-from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
+from pbsmmapi.abstract.admin import (
+    AnnotatedReadonlyAdminMixin,
+    PBSMMAbstractAdmin,
+)
 from pbsmmapi.special.forms import (
     PBSMMSpecialCreateForm,
     PBSMMSpecialEditForm,
@@ -8,7 +11,7 @@ from pbsmmapi.special.forms import (
 from pbsmmapi.special.models import Special
 
 
-class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
+class PBSMMSpecialAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     model = Special
     form = PBSMMSpecialEditForm
     add_form = PBSMMSpecialCreateForm
@@ -20,11 +23,17 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
         "show",
     )
     list_display_links = ("pk", "title")
-    # Why so many readonly_fields?  Because we don't want to override what's
-    # coming from the API, but we do want to be able to view it in the context
-    # of the Django system.
-    #
-    # Most things here are fields, some are method output and some are properties.
+    # The metadata shown here is now exposed via queryset annotations; the
+    # mixin surfaces each annotated_fields name as a read-only value. We don't
+    # want to override what's coming from the API, but we do want to view it.
+    annotated_fields = [
+        "description_long",
+        "description_short",
+        "premiered_on",
+        "nola",
+        "language",
+        "links",
+    ]
     readonly_fields = [
         "date_created",
         "title",

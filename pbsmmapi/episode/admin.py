@@ -1,6 +1,9 @@
 from django.contrib import admin
 
-from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
+from pbsmmapi.abstract.admin import (
+    AnnotatedReadonlyAdminMixin,
+    PBSMMAbstractAdmin,
+)
 from pbsmmapi.episode.forms import (
     PBSMMEpisodeCreateForm,
     PBSMMEpisodeEditForm,
@@ -8,7 +11,7 @@ from pbsmmapi.episode.forms import (
 from pbsmmapi.episode.models import Episode
 
 
-class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
+class PBSMMEpisodeAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     model = Episode
     form = PBSMMEpisodeEditForm
     add_form = PBSMMEpisodeCreateForm
@@ -20,11 +23,18 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
     )
     list_display_links = ("pk", "title")
     list_filter = ("season__show__title",)
-    # Why so many readonly_fields?  Because we don't want to override what's
-    # coming from the API, but we do want to be able to view it in the context
-    # of the Django system.
-    #
-    # Most things here are fields, some are method output and some are properties.
+    # The metadata shown here is now exposed via queryset annotations; the
+    # mixin surfaces each annotated_fields name as a read-only value. We don't
+    # want to override what's coming from the API, but we do want to view it.
+    annotated_fields = [
+        "description_long",
+        "description_short",
+        "premiered_on",
+        "encored_on",
+        "nola",
+        "language",
+        "links",
+    ]
     readonly_fields = [
         "assemble_asset_table",
         "date_created",
@@ -112,12 +122,6 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
             )
         defaults.update(kwargs)
         return super().get_form(request, obj, **kwargs)
-
-    def get_readonly_fields(self, request, obj=None):
-        readonly_fields = super().get_readonly_fields(request, obj)
-        if obj:
-            return readonly_fields + ["legacy_tp_media_id"]
-        return self.readonly_fields
 
 
 admin.site.register(Episode, PBSMMEpisodeAdmin)

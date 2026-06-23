@@ -3,6 +3,7 @@ from http import HTTPStatus
 from django.db import models
 from django.db.models.fields.json import KT
 from django.db.models.functions import Cast
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from pbsmmapi.abstract.helpers import fix_non_aware_datetime
@@ -236,6 +237,27 @@ class PBSMMGenericObject(
     PBSMMObjectTitle,
     GenericObjectManagement,
 ):
+    def last_api_status_color(self):
+        """
+        Colorized rendering of the last API status, used by the admin asset/
+        relation tables. The status now lives on the related ContentRecord
+        (``mm_content``) rather than on a local field.
+        """
+        status = self.mm_content.last_api_status if self.mm_content_id else None
+        if status is None:
+            return mark_safe('<span style="color: #999;">&mdash;</span>')
+        color = "green" if int(status) == HTTPStatus.OK else "red"
+        return mark_safe(f'<span style="color: {color};">{status}</span>')
+
+    def last_updated_display(self):
+        """
+        Guarded rendering of the ``updated_at`` annotation (it may be NULL, and
+        is only present on instances loaded through the annotating manager).
+        Replaces the removed ``date_last_api_update`` field in admin tables.
+        """
+        updated = getattr(self, "updated_at", None)
+        return updated.strftime("%x %X") if updated else "—"
+
     class Meta:
         abstract = True
 
@@ -307,5 +329,10 @@ class PBSMMBaseRecordManager(models.Manager):
                     KT("api_data__data__attributes__updated_at"), models.DateTimeField()
                 ),
                 links=Cast(KT("api_data__links"), models.JSONField()),
+                api_endpoint=KT("api_data__links__self"),
+                images=Cast(
+                    KT("api_data__data__attributes__images"), models.JSONField()
+                ),
+                hashtag=KT("api_data__data__attributes__hashtag"),
             )
         )

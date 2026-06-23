@@ -1,27 +1,40 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from pbsmmapi.asset.helpers import check_asset_availability
+from pbsmmapi.abstract.admin import AnnotatedReadonlyAdminMixin
 from pbsmmapi.asset.models import Asset
 
 
-class PBSMMAssetAdmin(admin.ModelAdmin):
+class PBSMMAssetAdmin(AnnotatedReadonlyAdminMixin, admin.ModelAdmin):
     model = Asset
 
-    # Why so many readonly_fields?  Because we don't want to override what's
-    # coming from the API, but we do want to be able to view it in the context
-    # of the Django system.
-    #
-    # Most things here are annotated fields.
-    readonly_fields = [
-        "asset_publicly_available",
+    # Almost everything shown here is now a queryset annotation derived from
+    # mm_content.api_data rather than a model field. The mixin surfaces each
+    # annotated_fields name as a read-only value; we don't want to override
+    # what's coming from the API, but we do want to view it in Django.
+    annotated_fields = [
+        "asset_type",
+        "duration",
+        "can_embed_player",
+        "is_excluded_from_dfp",
+        "availability",
         "content_rating",
         "content_rating_description",
+        "language",
+        "topics",
+        "tags",
+        "player_code",
+        "links",
+        "geo_profile",
+        "platforms",
+        "images",
+    ]
+    readonly_fields = [
+        "asset_publicly_available",
         "date_created",
         "player_code_preview",
         "slug",
         "title",
-        "topics",
     ]
     search_fields = ("title",)
 
@@ -99,43 +112,12 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
             out += "</div>"
         return mark_safe(out)
 
-    def platforms(self, obj):
-        return obj.platforms
-
-    def topics(self, obj):
-        return obj.topics
-
-    def availability(self, obj):
-        return obj.availability
-
-    def player_code(self, obj):
-        return obj.player_code
-
-    def images(self, obj):
-        return obj.images
-
-    def content_rating(self, obj):
-        return obj.content_rating
-
-    def content_rating_description(self, obj):
-        return obj.content_rating_description
-
-    def is_excluded_from_dfp(self, obj):
-        return obj.is_excluded_from_dfp
-
     @admin.display(
         boolean=True,
         description="Pub. Avail.",
     )
     def asset_publicly_available(self, obj):
-        if obj.availability:
-            public_window = obj.availability.get("public", None)
-            if public_window:
-                return check_asset_availability(
-                    start=public_window["start"],
-                    end=public_window["end"],
-                )[0]
-        return None
+        return obj.asset_publicly_available()
 
 
 admin.site.register(Asset, PBSMMAssetAdmin)

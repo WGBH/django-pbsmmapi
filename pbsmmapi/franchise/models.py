@@ -35,6 +35,10 @@ class PBSMMFranchiseManager(PBSMMBaseRecordManager):
                 internal_links=Cast(
                     KT("api_data__data__attributes__links"), models.JSONField()
                 ),
+                genre=Cast(KT("api_data__data__attributes__genre"), models.JSONField()),
+                platforms=Cast(
+                    KT("api_data__data__attributes__platforms"), models.JSONField()
+                ),
             )
         )
 

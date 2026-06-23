@@ -1,7 +1,10 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
+from pbsmmapi.abstract.admin import (
+    AnnotatedReadonlyAdminMixin,
+    PBSMMAbstractAdmin,
+)
 from pbsmmapi.show.forms import (
     PBSMMShowCreateForm,
     PBSMMShowEditForm,
@@ -9,7 +12,7 @@ from pbsmmapi.show.forms import (
 from pbsmmapi.show.models import Show
 
 
-class PBSMMShowAdmin(PBSMMAbstractAdmin):
+class PBSMMShowAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     form = PBSMMShowEditForm
     add_form = PBSMMShowCreateForm
     model = Show
@@ -22,6 +25,27 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
         "pk",
         "slug",
     )
+    annotated_fields = [
+        "episode_count",
+        "display_episode_number",
+        "sort_episodes_descending",
+        "is_excluded_from_dfp",
+        "can_embed_player",
+        "nola",
+        "premiered_on",
+        "language",
+        "description_long",
+        "description_short",
+        "funder_message",
+        "images",
+        "audience",
+        "hashtag",
+        "tracking_ga_page",
+        "tracking_ga_event",
+        "genre",
+        "links",
+        "platforms",
+    ]
     readonly_fields = [
         "assemble_asset_table",
         "date_created",
@@ -119,7 +143,7 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
                 "fields": (
                     "audience",
                     "hashtag",
-                    ("ga_page", "ga_event"),
+                    ("tracking_ga_page", "tracking_ga_event"),
                     "genre",
                     "links",
                     "platforms",

@@ -8,6 +8,44 @@ from django.utils.safestring import mark_safe
 site.disable_action("delete_selected")
 
 
+class AnnotatedReadonlyAdminMixin:
+    """
+    Surface queryset annotations as read-only values in the admin detail page.
+
+    The model metadata now lives in ``mm_content.api_data`` and is exposed only
+    as queryset annotations, not as model attributes. Naming an annotation in
+    ``fieldsets`` therefore makes the change-form ``ModelForm`` raise
+    ``FieldError``. For each name in ``annotated_fields`` we attach a display
+    callable (an instance attribute, so ``hasattr(model_admin, name)`` passes
+    the admin system checks and ``lookup_field`` renders the value) and force
+    the name read-only on the edit form.
+    """
+
+    annotated_fields = ()
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for name in self.annotated_fields:
+            if name not in self.__dict__:
+                self.__dict__[name] = self._annotated_display(name)
+
+    @staticmethod
+    def _annotated_display(name):
+        def display(obj):
+            return getattr(obj, name, None)
+
+        display.short_description = name.replace("_", " ").title()
+        return display
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly = list(super().get_readonly_fields(request, obj))
+        # Annotations are never editable form fields (they are derived from
+        # api_data), so always force them read-only. On the add form they
+        # simply render empty.
+        readonly += [n for n in self.annotated_fields if n not in readonly]
+        return readonly
+
+
 class PBSMMAbstractAdmin(admin.ModelAdmin):
     actions = [
         "force_reingest",
