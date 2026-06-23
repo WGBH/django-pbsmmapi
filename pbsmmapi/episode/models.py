@@ -26,11 +26,7 @@ class PBSMMEpisodeManager(PBSMMBaseRecordManager):
                 ),
                 premiered_on=Cast(
                     KT("api_data__data__attributes__premiered_on"),
-<<<<<<< Updated upstream
                     models.DateField(),
-=======
-                    models.DateTimeField(),
->>>>>>> Stashed changes
                 ),
                 encored_on=Cast(
                     KT("api_data__data__attributes__encored_on"), models.DateField()
