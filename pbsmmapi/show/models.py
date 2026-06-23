@@ -1,12 +1,15 @@
 from http import HTTPStatus
 
 from django.db import models
+from django.db.models.fields.json import KT
+from django.db.models.functions import Cast
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
     GenericProvisional,
+    PBSMMBaseRecordManager,
     PBSMMGenericShow,
 )
 from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
@@ -14,7 +17,62 @@ from pbsmmapi.season.models import Season
 from pbsmmapi.special.models import Special
 
 
+class PBSMMShowManager(PBSMMBaseRecordManager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                nola=KT("api_data__data__attributes__nola"),
+                tms_id=KT("api_data__data__attributes__tms_id"),
+                premiered_on=Cast(
+                    KT("api_data__data__attributes__premiered_on"),
+                    models.DateField(),
+                ),
+                funder_message=KT("api_data__data__attributes__funder_message"),
+                tracking_ga_page=KT("api_data__data__attributes__tracking_ga_page"),
+                tracking_ga_event=KT("api_data__data__attributes__tracking_ga_event"),
+                is_excluded_from_dfp=Cast(
+                    KT("api_data__data__attributes__is_excluded_from_dfp"),
+                    models.BooleanField(),
+                ),
+                can_embed_player=Cast(
+                    KT("api_data__data__attributes__can_embed_player"),
+                    models.BooleanField(),
+                ),
+                language=KT("api_data__data__attributes__language"),
+                genre=Cast(KT("api_data__data__attributes__genre"), models.JSONField()),
+                internal_links=Cast(
+                    KT("api_data__data__attributes__links"), models.JSONField()
+                ),
+                audience=Cast(
+                    KT("api_data__data__attributes__audience"), models.JSONField()
+                ),
+                sort_episodes_descending=Cast(
+                    KT("api_data__data__attributes__sort_episodes_descending"),
+                    models.BooleanField(),
+                ),
+                display_episode_number=Cast(
+                    KT("api_data__data__attributes__display_episode_number"),
+                    models.BooleanField(),
+                ),
+                platforms=Cast(
+                    KT("api_data__data__attributes__platforms"), models.JSONField()
+                ),
+                franchise_content_id=Cast(
+                    KT("api_data__data__attributes__franchise__id"), models.UUIDField()
+                ),
+                episode_count=Cast(
+                    KT("api_data__data__attributes__episodes_count"),
+                    models.IntegerField(),
+                ),
+            )
+        )
+
+
 class Show(GenericProvisional, PBSMMGenericShow):
+    objects = PBSMMShowManager()
+
     ingest_seasons = models.BooleanField(
         _("Ingest Seasons"),
         default=False,
@@ -50,20 +108,11 @@ class Show(GenericProvisional, PBSMMGenericShow):
         default=True,
         help_text="Use incrementing integer or current year when creating a Season",
     )
-
-    # TODO revisit these fields - are they useful?
-    episode_count = models.PositiveIntegerField(
-        _("Episode Count"),
+    mm_content = models.OneToOneField(
+        "record.ContentRecord",
         null=True,
         blank=True,
-    )
-    display_episode_number = models.BooleanField(
-        _("Display Episode Number"),
-        default=False,
-    )
-    sort_episodes_descending = models.BooleanField(
-        _("Sort Episodes Descending"),
-        default=False,
+        on_delete=models.SET_NULL,
     )
 
     @classmethod
@@ -192,7 +241,7 @@ class Show(GenericProvisional, PBSMMGenericShow):
         )
         out += '<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
         out += "\n\t<td>%d</td>" % self.assets.count()
-        out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
+        out += "\n\t<td>%s</td>" % self.last_updated_display()
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
         return mark_safe(out)
 

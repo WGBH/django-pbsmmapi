@@ -1,7 +1,10 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
+from pbsmmapi.abstract.admin import (
+    AnnotatedReadonlyAdminMixin,
+    PBSMMAbstractAdmin,
+)
 from pbsmmapi.show.forms import (
     PBSMMShowCreateForm,
     PBSMMShowEditForm,
@@ -9,53 +12,47 @@ from pbsmmapi.show.forms import (
 from pbsmmapi.show.models import Show
 
 
-class PBSMMShowAdmin(PBSMMAbstractAdmin):
+class PBSMMShowAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     form = PBSMMShowEditForm
     add_form = PBSMMShowCreateForm
     model = Show
     list_display = (
         "pk",
         "slug",
-        "object_id",
-        "title_sortable",
-        "date_last_api_update",
-        "last_api_status_color",
+        "title",
     )
-    list_display_links = ("pk", "slug", "object_id")
-    readonly_fields = [
-        "api_endpoint",
-        "api_endpoint_link",
-        "assemble_asset_table",
-        "audience",
+    list_display_links = (
+        "pk",
+        "slug",
+    )
+    annotated_fields = [
+        "episode_count",
+        "display_episode_number",
+        "sort_episodes_descending",
+        "is_excluded_from_dfp",
         "can_embed_player",
-        "date_created",
-        "date_last_api_update",
+        "nola",
+        "premiered_on",
+        "language",
         "description_long",
         "description_short",
-        "display_episode_number",
-        "episode_count",
+        "funder_message",
+        "images",
+        "audience",
+        "hashtag",
+        "tracking_ga_page",
+        "tracking_ga_event",
+        "genre",
+        "links",
+        "platforms",
+    ]
+    readonly_fields = [
+        "assemble_asset_table",
+        "date_created",
         "format_seasons_list",
         "format_specials_list",
-        "funder_message",
-        "ga_event",
-        "ga_page",
-        "genre",
-        "hashtag",
-        "images",
-        "is_excluded_from_dfp",
-        "language",
-        "last_api_status_color",
-        "links",
-        "nola",
-        "object_id",
         "ordinal_season",
-        "platforms",
-        "premiered_on",
-        "pretty_image_list",
-        "sort_episodes_descending",
         "title",
-        "title_sortable",
-        "updated_at",
     ]
     add_readonly_fields = []
     add_fieldsets = (
@@ -75,16 +72,8 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
             None,
             {
                 "fields": (
-                    (
-                        "title",
-                        "title_sortable",
-                    ),
-                    (
-                        "object_id",
-                        "date_created",
-                        "api_endpoint_link",
-                    ),
-                    ("date_last_api_update", "updated_at", "last_api_status_color"),
+                    ("title",),
+                    ("date_created",),
                 ),
             },
         ),
@@ -144,10 +133,7 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
             "Images",
             {
                 "classes": ("collapse",),
-                "fields": (
-                    "images",
-                    "pretty_image_list",
-                ),
+                "fields": ("images",),
             },
         ),
         (
@@ -157,7 +143,7 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
                 "fields": (
                     "audience",
                     "hashtag",
-                    ("ga_page", "ga_event"),
+                    ("tracking_ga_page", "tracking_ga_event"),
                     "genre",
                     "links",
                     "platforms",

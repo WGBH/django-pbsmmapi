@@ -1,29 +1,44 @@
 from django.db import models
+from django.db.models.fields.json import KT
+from django.db.models.functions import Cast
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
     GenericProvisional,
+    PBSMMBaseRecordManager,
     PBSMMGenericSeason,
 )
 from pbsmmapi.api.api import PBSMM_SEASON_ENDPOINT
 from pbsmmapi.episode.models import Episode
 
 
+class PBSMMSeasonManager(PBSMMBaseRecordManager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                internal_links=Cast(
+                    KT("api_data__data__attributes__links"), models.JSONField()
+                ),
+                show_content_id=Cast(
+                    KT("api_data__data__attributes__show__id"), models.UUIDField()
+                ),
+            )
+        )
+
+
 class Season(GenericProvisional, PBSMMGenericSeason):
+    objects = PBSMMSeasonManager()
+
     ordinal = models.PositiveIntegerField(
         _("Ordinal"),
         null=True,
         blank=True,
     )
 
-    # This is the parental Show
-    show_api_id = models.UUIDField(
-        _("Show Object ID"),
-        null=True,
-        blank=True,  # does this work?
-    )
     show = models.ForeignKey(
         "show.Show",
         related_name="seasons",
@@ -40,6 +55,13 @@ class Season(GenericProvisional, PBSMMGenericSeason):
         help_text="Also ingest all Episodes (for each Season)",
     )
 
+    mm_content = models.OneToOneField(
+        "record.ContentRecord",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
+
     def create_table_line(self):
         this_title = "Season %d: %s" % (self.ordinal, self.title)
         out = '<tr style="background-color: #ddd;">'
@@ -50,7 +72,7 @@ class Season(GenericProvisional, PBSMMGenericSeason):
         )
         out += '<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
         out += "\n\t<td>%d</td>" % self.assets.count()
-        out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
+        out += "\n\t<td>%s</td>" % self.last_updated_display()
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
         return mark_safe(out)
 

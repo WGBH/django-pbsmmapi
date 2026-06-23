@@ -1,27 +1,59 @@
 from django.db import models
+from django.db.models.fields.json import KT
+from django.db.models.functions import Cast
 from django.utils.safestring import mark_safe
-from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
     GenericProvisional,
+    PBSMMBaseRecordManager,
     PBSMMGenericSpecial,
 )
 from pbsmmapi.api.api import PBSMM_SPECIAL_ENDPOINT
 
 
+class PBSMMSpecialManager(PBSMMBaseRecordManager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                nola=KT("api_data__data__attributes__nola"),
+                language=KT("api_data__data__attributes__language"),
+                tms_id=KT("api_data__data__attributes__tms_id"),
+                internal_links=Cast(
+                    KT("api_data__data__attributes__links"), models.JSONField()
+                ),
+                premiered_on=Cast(
+                    KT("api_data__data__attributes__premiered_on"),
+                    models.DateField(),
+                ),
+                encored_on=Cast(
+                    KT("api_data__data__attributes__encored_on"),
+                    models.DateField(),
+                ),
+                show_content_id=Cast(
+                    KT("api_data__data__attributes__show__id"), models.UUIDField()
+                ),
+            )
+        )
+
+
 class Special(GenericProvisional, PBSMMGenericSpecial):
-    show_api_id = models.UUIDField(
-        _("Show Object ID"),
-        null=True,
-        blank=True,  # does this work?
-    )
+    objects = PBSMMSpecialManager()
+
     show = models.ForeignKey(
         "show.Show",
         related_name="specials",
         on_delete=models.CASCADE,
         null=True,
         blank=True,
+    )
+    mm_content = models.OneToOneField(
+        "record.ContentRecord",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
     )
 
     @classmethod
@@ -52,7 +84,7 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
         out += f'/change/"><B>{self.title}</b></a></td>'
         out += f'\n\t<td><a href="{self.api_endpoint}" target="_new">API</a></td>'
         out += f"\n\t<td>{self.assets.count()}</td>"
-        out += f"\n\t<td>{self.date_last_api_update.strftime('%x %X')}</td>"
+        out += f"\n\t<td>{self.last_updated_display()}</td>"
         out += f"\n\t<td>{self.last_api_status_color()}</td>"
         out += "\n</tr>"
         return mark_safe(out)

@@ -1,7 +1,10 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from pbsmmapi.abstract.admin import PBSMMAbstractAdmin
+from pbsmmapi.abstract.admin import (
+    AnnotatedReadonlyAdminMixin,
+    PBSMMAbstractAdmin,
+)
 from pbsmmapi.season.forms import (
     PBSMMSeasonCreateForm,
     PBSMMSeasonEditForm,
@@ -9,7 +12,7 @@ from pbsmmapi.season.forms import (
 from pbsmmapi.season.models import Season
 
 
-class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
+class PBSMMSeasonAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     form = PBSMMSeasonEditForm
     add_form = PBSMMSeasonCreateForm
     model = Season
@@ -18,42 +21,32 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
         "printable_title",
         "show",
         "ordinal",
-        "date_last_api_update",
-        "last_api_status_color",
     )
     list_display_links = ("pk", "printable_title")
-    list_filter = ("show__title_sortable",)
-    # Why so many readonly_fields?  Because we don't want to override what's
-    # coming from the API, but we do want to be able to view it in the context
-    # of the Django system.
-    #
-    # Most things here are fields, some are method output and some are properties.
-    readonly_fields = [
-        "api_endpoint",
-        "api_endpoint_link",
-        "assemble_asset_table",
-        "date_created",
-        "date_last_api_update",
+    list_filter = ("show__title",)
+    # The metadata shown here is now exposed via queryset annotations; the
+    # mixin surfaces each annotated_fields name as a read-only value. We don't
+    # want to override what's coming from the API, but we do want to view it.
+    annotated_fields = [
         "description_long",
         "description_short",
-        "format_episode_list",
         "images",
-        "last_api_status",
-        "last_api_status_color",
         "links",
+        "show_content_id",
+    ]
+    readonly_fields = [
+        "assemble_asset_table",
+        "date_created",
+        "format_episode_list",
         "ordinal",
-        "pretty_image_list",
-        "show_api_id",
         "title",
-        "title_sortable",
-        "updated_at",
     ]
 
     add_fieldsets = (
         (
             None,
             {
-                "fields": ("object_id", "show", "ingest_episodes"),
+                "fields": ("show", "ingest_episodes"),
             },
         ),
     )
@@ -64,14 +57,7 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
             {
                 "fields": (
                     ("ingest_on_save", "ingest_episodes"),
-                    (
-                        "date_created",
-                        "date_last_api_update",
-                        "updated_at",
-                        "last_api_status",
-                        "last_api_status_color",
-                    ),
-                    "api_endpoint_link",
+                    ("date_created",),
                 ),
             },
         ),
@@ -81,7 +67,7 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
         ),
         (
             "Season Metadata",
-            {"fields": ("ordinal", "show_api_id")},
+            {"fields": ("ordinal", "show_content_id")},
         ),
         (
             "Assets",
@@ -101,10 +87,7 @@ class PBSMMSeasonAdmin(PBSMMAbstractAdmin):
             "Images",
             {
                 "classes": ("collapse",),
-                "fields": (
-                    "images",
-                    "pretty_image_list",
-                ),
+                "fields": ("images",),
             },
         ),
         (

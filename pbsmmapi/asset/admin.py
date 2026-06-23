@@ -1,46 +1,40 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
+from pbsmmapi.abstract.admin import AnnotatedReadonlyAdminMixin
 from pbsmmapi.asset.models import Asset
 
 
-class PBSMMAssetAdmin(admin.ModelAdmin):
+class PBSMMAssetAdmin(AnnotatedReadonlyAdminMixin, admin.ModelAdmin):
     model = Asset
 
-    # Why so many readonly_fields?  Because we don't want to override what's
-    # coming from the API, but we do want to be able to view it in the context
-    # of the Django system.
-    #
-    # Most things here are fields, some are method output and some are properties.
-    readonly_fields = [
-        "api_endpoint_link",
-        "asset_publicly_available",
-        "availability",
+    # Almost everything shown here is now a queryset annotation derived from
+    # mm_content.api_data rather than a model field. The mixin surfaces each
+    # annotated_fields name as a read-only value; we don't want to override
+    # what's coming from the API, but we do want to view it in Django.
+    annotated_fields = [
+        "asset_type",
+        "duration",
         "can_embed_player",
+        "is_excluded_from_dfp",
+        "availability",
         "content_rating",
         "content_rating_description",
-        "date_created",
-        "date_last_api_update",
-        "description_long",
-        "description_short",
-        "duration",
-        "geo_profile",
-        "images",
-        "pretty_image_list",
-        "is_excluded_from_dfp",
         "language",
-        "last_api_status_color",
-        "links",
-        "asset_type",
-        "platforms",
+        "topics",
+        "tags",
         "player_code",
+        "links",
+        "geo_profile",
+        "platforms",
+        "images",
+    ]
+    readonly_fields = [
+        "asset_publicly_available",
+        "date_created",
         "player_code_preview",
         "slug",
-        "tags",
         "title",
-        "title_sortable",
-        "topics",
-        "updated_at",
     ]
     search_fields = ("title",)
 
@@ -51,46 +45,28 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
             {
                 "fields": (
                     "ingest_on_save",
-                    (
-                        "date_created",
-                        "date_last_api_update",
-                        "updated_at",
-                        "last_api_status_color",
-                    ),
-                    "api_endpoint_link",
-                    ("object_id", "legacy_tp_media_id"),
+                    ("date_created",),
                 ),
             },
         ),
         (
             "Title and Availability",
             {
-                "fields": (
-                    "title",
-                    "title_sortable",
-                    "asset_publicly_available",
-                ),
+                "fields": ("title", "asset_publicly_available"),
             },
         ),
         (
             "Images",
             {
                 "classes": ("collapse",),
-                "fields": (
-                    "images",
-                    "pretty_image_list",
-                ),
+                "fields": ("images",),
             },
         ),
         (
             "Description",
             {
                 "classes": ("collapse",),
-                "fields": (
-                    "slug",
-                    "description_long",
-                    "description_short",
-                ),
+                "fields": ("slug",),
             },
         ),
         (
@@ -135,6 +111,13 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
             out += obj.player_code
             out += "</div>"
         return mark_safe(out)
+
+    @admin.display(
+        boolean=True,
+        description="Pub. Avail.",
+    )
+    def asset_publicly_available(self, obj):
+        return obj.asset_publicly_available()
 
 
 admin.site.register(Asset, PBSMMAssetAdmin)
