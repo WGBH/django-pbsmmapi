@@ -1,5 +1,6 @@
 import re
 from typing import TYPE_CHECKING
+from uuid import UUID
 
 from django.db import models
 from django.db.models.fields.json import KT
@@ -99,7 +100,6 @@ class AssetManager(PBSMMBaseRecordManager):
                     ),
                     models.Value([], models.JSONField()),
                 ),
-                # TODO figure out correct format
                 data_format=models.Case(
                     models.When(
                         models.Q(api_data__data__attributes__has_key="captions"),
@@ -323,3 +323,5 @@ class Asset(PBSMMGenericAsset):
         is_excluded_from_dfp: bool
         platforms: list[dict]
         availability: dict
+        legacy_tp_media_id: int
+        mm_content_id: UUID
