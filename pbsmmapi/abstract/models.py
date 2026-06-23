@@ -320,8 +320,11 @@ class PBSMMBaseRecordManager(models.Manager):
         return (
             super()
             .get_queryset()
+            # api_data must be defined in its own annotate() call: the JSON
+            # transforms below resolve against it, and Django cannot reliably
+            # resolve transforms against an alias created in the same clause.
+            .annotate(api_data=models.F("mm_content__api_data"))
             .annotate(
-                api_data=models.F("mm_content__api_data"),
                 content_type=KT("api_data__data__type"),
                 description_short=KT("api_data__data__attributes__description_short"),
                 description_long=KT("api_data__data__attributes__description_long"),

@@ -311,7 +311,7 @@ class Asset(PBSMMGenericAsset):
         return part_of_player_code.group(1)
 
     def __str__(self):
-        return f"{self.pk} | {self.mm_content.pk} ({self.legacy_tp_media_id}) | {self.title}"
+        return f"{self.pk} | {self.mm_content_id} ({self.legacy_tp_media_id}) | {self.title}"
 
     if TYPE_CHECKING:
         api_data: dict

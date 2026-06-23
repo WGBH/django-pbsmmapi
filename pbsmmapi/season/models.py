@@ -31,6 +31,8 @@ class PBSMMSeasonManager(PBSMMBaseRecordManager):
 
 
 class Season(GenericProvisional, PBSMMGenericSeason):
+    objects = PBSMMSeasonManager()
+
     ordinal = models.PositiveIntegerField(
         _("Ordinal"),
         null=True,

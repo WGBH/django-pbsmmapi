@@ -7,4 +7,6 @@ class ContentRecord(models.Model):
     api_data = models.JSONField()
     last_api_status = models.PositiveIntegerField(
         _("Last API Status"),
+        null=True,
+        blank=True,
     )

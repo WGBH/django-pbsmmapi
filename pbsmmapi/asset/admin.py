@@ -52,7 +52,7 @@ class PBSMMAssetAdmin(AnnotatedReadonlyAdminMixin, admin.ModelAdmin):
         (
             "Title and Availability",
             {
-                "fields": ("title",),
+                "fields": ("title", "asset_publicly_available"),
             },
         ),
         (

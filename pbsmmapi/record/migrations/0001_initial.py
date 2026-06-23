@@ -87,7 +87,9 @@ class Migration(migrations.Migration):
                 ("api_data", models.JSONField()),
                 (
                     "last_api_status",
-                    models.PositiveIntegerField(verbose_name="Last API Status"),
+                    models.PositiveIntegerField(
+                        blank=True, null=True, verbose_name="Last API Status"
+                    ),
                 ),
             ],
         ),
