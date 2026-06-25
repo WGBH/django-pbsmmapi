@@ -94,36 +94,21 @@ class GenericProvisional(models.Model):
 class Ingest(models.Model):
     def __init__(self, *args, **kwargs):
         self.ingest_on_save = None
-        self.object_id = None
+        self.content_id = None
         self.slug = None
-        self.last_api_status = None
-        self.updated_at = None
-        self.api_endpoint = None
-        self.json = None
         # above fields are overridden by child classes
         super().__init__(*args, **kwargs)
         self.scraped_object_ids = []
 
-    def process(self, endpoint, query_param=None):
-        identifier = str(self.object_id or "").strip() or self.slug
+    def process(self, endpoint, query_param=None, content_id=None):
+        identifier = str(content_id or self.content_id or "").strip() or self.slug
         if not identifier and not self.ingest_on_save:
             return  # stop processing if we don't have clearance
         if query_param is None:
             query_param = ""
-        status, json = get_PBSMM_record(f"{endpoint}{identifier}/{query_param}")
-        self.last_api_status = status  # stop post_save in case of 4xx status
-        if status != HTTPStatus.OK:
-            return
-        self.object_id = json.get("id", json["data"]["id"])
-        attrs = json.get("attributes", json["data"].get("attributes"))
-        for field in self._meta.get_fields():
-            value = attrs.get(field.name)
-            self.set_attribute(field, value)
-        self.updated_at = fix_non_aware_datetime(attrs.get("updated_at"))
-        self.api_endpoint = json["links"].get("self")
-        self.json = json
+        status, json_data = get_PBSMM_record(f"{endpoint}{identifier}/{query_param}")
         self.ingest_on_save = False
-        return attrs
+        return status, json_data
 
     def set_attribute(self, field, value):
         """
@@ -325,6 +310,7 @@ class PBSMMBaseRecordManager(models.Manager):
             # resolve transforms against an alias created in the same clause.
             .annotate(api_data=models.F("mm_content__api_data"))
             .annotate(
+                content_id=models.F("mm_content__content_id"),
                 content_type=KT("api_data__data__type"),
                 description_short=KT("api_data__data__attributes__description_short"),
                 description_long=KT("api_data__data__attributes__description_long"),

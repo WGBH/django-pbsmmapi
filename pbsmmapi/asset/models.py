@@ -163,36 +163,6 @@ class Asset(PBSMMGenericAsset):
         on_delete=models.SET_NULL,
     )
 
-    @property
-    def duration_hms(self):
-        # TODO rewrite this
-        """
-        Show the asset's duration as #h ##m ##s.
-        """
-        if self.duration:
-            d = self.duration
-            hours = d // 3600
-            if hours > 0:
-                hstr = "%dh" % hours
-            else:
-                hstr = ""
-            d %= 3600
-            minutes = d // 60
-            if hours > 0:
-                mstr = "%02dm" % minutes
-            else:
-                if minutes > 0:
-                    mstr = "%2dm" % minutes
-                else:
-                    mstr = ""
-            seconds = d % 60
-            if minutes > 0:
-                sstr = "%02ds" % seconds
-            else:
-                sstr = "%ds" % seconds
-            return " ".join((hstr, mstr, sstr))
-        return ""
-
     def asset_publicly_available(self):
         """
         Is the asset currently inside its public availability window? Reads the

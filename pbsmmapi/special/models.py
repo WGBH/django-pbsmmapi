@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from django.db import models
 from django.db.models.fields.json import KT
 from django.db.models.functions import Cast
@@ -10,6 +12,7 @@ from pbsmmapi.abstract.models import (
     PBSMMGenericSpecial,
 )
 from pbsmmapi.api.api import PBSMM_SPECIAL_ENDPOINT
+from pbsmmapi.record.models import ContentRecord
 
 
 class PBSMMSpecialManager(PBSMMBaseRecordManager):
@@ -91,28 +94,45 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
 
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False)
+        content_id = kwargs.pop("content_id", None)
         if skip_ingest:
             super().save(*args, **kwargs)
         else:
-            self.pre_save()
+            self.pre_save(content_id)
             super().save(*args, **kwargs)
             self.post_save(self.id)
 
-    def pre_save(self):
-        self.process(PBSMM_SPECIAL_ENDPOINT)
+    def pre_save(self, content_id=None):
+        status, json_data = self.process(PBSMM_SPECIAL_ENDPOINT, content_id=content_id)
+        if status != HTTPStatus.OK:
+            if self.mm_content is not None:
+                self.mm_content.last_api_status = status
+                self.mm_content.save()
+            return status
+
+        content_id = json_data["data"]["id"]
+        content = ContentRecord.update_or_create(
+            content_id=content_id,
+            last_api_status=status,
+            api_data=json_data,
+        )
+        if self.mm_content is None:
+            self.title = json_data["data"]["attributes"]["title"]
+            self.mm_content = content
+        return status
 
     @staticmethod
     @db_task()
     def post_save(special_id):
         special = Special.objects.get(id=special_id)
         endpoint = None
-        if assets := special.json["links"].get("assets"):
+        if assets := special.links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"
         special.process_assets(endpoint, special_id=special_id)
         special.delete_stale_assets(special_id=special_id)
 
     def __str__(self):
-        return f"{self.object_id} | {self.show} | {self.title} "
+        return f"{self.content_id} | {self.show} | {self.title} "
 
     class Meta:
         verbose_name = "PBS MM Special"

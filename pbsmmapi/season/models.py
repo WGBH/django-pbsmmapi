@@ -1,3 +1,5 @@
+from http import HTTPStatus
+
 from django.db import models
 from django.db.models.fields.json import KT
 from django.db.models.functions import Cast
@@ -12,6 +14,7 @@ from pbsmmapi.abstract.models import (
 )
 from pbsmmapi.api.api import PBSMM_SEASON_ENDPOINT
 from pbsmmapi.episode.models import Episode
+from pbsmmapi.record.models import ContentRecord
 
 
 class PBSMMSeasonManager(PBSMMBaseRecordManager):
@@ -109,23 +112,32 @@ class Season(GenericProvisional, PBSMMGenericSeason):
 
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False)
+        content_id = kwargs.pop("content_id", None)
         if skip_ingest:
             super().save(*args, **kwargs)
         else:
-            self.pre_save()
+            self.pre_save(content_id)
             super().save(*args, **kwargs)
             self.post_save(self.id)
 
-    def pre_save(self):
-        attrs = self.process(PBSMM_SEASON_ENDPOINT)
-        if not attrs:
-            return
-        self.ga_page = attrs.get("tracking_ga_page")
-        self.ga_event = attrs.get("tracking_ga_event")
-        # The canonical image used for this is
-        # the one that has 'mezzanine' in it
-        if self.images is None:  # try latest_asset_images
-            self.images = attrs.get("latest_asset_images")
+    def pre_save(self, content_id=None):
+        status, json_data = self.process(PBSMM_SEASON_ENDPOINT, content_id=content_id)
+        if status != HTTPStatus.OK:
+            if self.mm_content is not None:
+                self.mm_content.last_api_status = status
+                self.mm_content.save()
+            return status
+
+        content_id = json_data["data"]["id"]
+        content = ContentRecord.update_or_create(
+            content_id=content_id,
+            last_api_status=status,
+            api_data=json_data,
+        )
+        if self.mm_content is None:
+            self.title = json_data["data"]["attributes"]["title"]
+            self.mm_content = content
+        return status
 
     @staticmethod
     @db_task()
@@ -136,36 +148,39 @@ class Season(GenericProvisional, PBSMMGenericSeason):
         Also, always ingest the Assets associated with this Season.
         """
         season = Season.objects.get(id=season_id)
-        links = season.json.get("links", dict())
+        links = season.links
         season.process_episodes(links.get("episodes"))
         endpoint = None
         if assets := links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"
-        season.process_assets(endpoint, season_id=season_id)
+        # season.process_assets(endpoint, season_id=season_id)
         season.stop_ingestion_restart()
-        season.delete_stale_assets(season_id=season_id)
+        # season.delete_stale_assets(season_id=season_id)
 
     def process_episodes(self, endpoint):
         if not self.ingest_episodes:
             return
 
-        def set_episode(episode: dict, _):
+        def set_episode(mm_episode_data: dict, _):
             # If a provisional Episode exists for this ordinal, realize it first
             # so its object_id is set. Otherwise the get_or_create() below would
             # create a duplicate and later changelog realization would raise an
             # IntegrityError on the unique object_id constraint. Promote without
             # ingesting (skip_ingest=True); the save() below runs the single
             # ingest pass.
-            attributes = episode.setdefault("attributes", {})
-            season_ref = {"id": str(self.object_id)}
-            attributes.setdefault("season", season_ref)
-            Episode.realize({"data": episode}, skip_ingest=True)
-            obj, created = Episode.objects.get_or_create(
-                object_id=episode["id"],
-            )
-            obj.season_id = self.id
-            obj.season_api_id = self.object_id
-            obj.save()
+            # attributes = episode.setdefault("attributes", {})
+            # season_ref = {"id": str(self.object_id)}
+            # attributes.setdefault("season", season_ref)
+            # Episode.realize({"data": episode}, skip_ingest=True)
+            try:
+                episode = Episode.objects.get(content_id=mm_episode_data["id"])
+                episode.save()
+            except Episode.DoesNotExist:
+                episode = Episode(
+                    season_id=self.id,
+                    ingest_on_save=True,
+                )
+                episode.save(content_id=mm_episode_data["id"])
 
         self.flip_api_pages(endpoint, set_episode)
 
@@ -175,7 +190,7 @@ class Season(GenericProvisional, PBSMMGenericSeason):
         )
 
     def __str__(self):
-        return f"{self.object_id} | {self.ordinal} | {self.title}"
+        return f"{self.content_id} | {self.ordinal} | {self.title}"
 
     class Meta:
         verbose_name = "PBS MM Season"
