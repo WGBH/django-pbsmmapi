@@ -159,6 +159,7 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         )
         if self.mm_content is None:
             self.title = json_data["data"]["attributes"]["title"]
+            self.slug = json_data["data"]["attributes"]["slug"]
             self.mm_content = content
         return status
 
@@ -173,4 +174,4 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
             endpoint,
             episode_id=episode_id,
         )
-        episode.delete_stale_assets(episode_id=episode_id)
+        # episode.delete_stale_assets(episode_id=episode_id)

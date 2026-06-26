@@ -118,6 +118,7 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
         )
         if self.mm_content is None:
             self.title = json_data["data"]["attributes"]["title"]
+            self.slug = json_data["data"]["attributes"]["slug"]
             self.mm_content = content
         return status
 

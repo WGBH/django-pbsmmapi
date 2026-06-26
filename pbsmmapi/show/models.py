@@ -169,6 +169,7 @@ class Show(GenericProvisional, PBSMMGenericShow):
         )
         if self.mm_content is None:
             self.title = json_data["data"]["attributes"]["title"]
+            self.slug = json_data["data"]["attributes"]["slug"]
             self.mm_content = content
         return status
 
@@ -181,7 +182,7 @@ class Show(GenericProvisional, PBSMMGenericShow):
         endpoint = None
         if assets := show.links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"
-        # show.process_assets(endpoint, show_id=show_id)
+        show.process_assets(endpoint, show_id=show_id)
         show.process_seasons()
         show.process_specials()
         # show.delete_stale_assets(show_id=show_id)

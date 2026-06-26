@@ -1,3 +1,4 @@
+from http import HTTPStatus
 import re
 from typing import TYPE_CHECKING
 from uuid import UUID
@@ -8,20 +9,20 @@ from django.db.models.functions import (
     Cast,
     Coalesce,
 )
-from huey.contrib.djhuey import db_task
 from pycaption import detect_format
 import requests
 
 from pbsmmapi.abstract.constants import PBSMM_BASE_URL
-from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import (
     PBSMMBaseRecordManager,
     PBSMMGenericAsset,
 )
+from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.asset.helpers import (
     SafeTranscriptWriter,
     check_asset_availability,
 )
+from pbsmmapi.record.models import ContentRecord
 
 AVAILABILITY_GROUPS = (
     ("Station Members", "station_members"),
@@ -33,7 +34,7 @@ PBSMM_ASSET_ENDPOINT = f"{PBSMM_BASE_URL}api/v1/assets/"
 PBSMM_LEGACY_ASSET_ENDPOINT = f"{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id="
 
 
-class AssetManager(PBSMMBaseRecordManager):
+class PBSMMAssetManager(PBSMMBaseRecordManager):
     def get_queryset(self):
         return (
             super()
@@ -113,7 +114,7 @@ class AssetManager(PBSMMBaseRecordManager):
 
 
 class Asset(PBSMMGenericAsset):
-    objects = AssetManager()
+    objects = PBSMMAssetManager()
 
     # Relationships
     mm_content = models.OneToOneField(
@@ -199,41 +200,26 @@ class Asset(PBSMMGenericAsset):
         db_table = "pbsmm_asset"
         base_manager_name = "objects"
 
-    @staticmethod
-    @db_task()
-    def set(asset: dict, **kwargs):
-        """
-        Update or creates an asset
-        """
-        attrs = asset["attributes"]
-        links = asset.get("links", dict())
-
-        def make_fields():
-            for f in (f.name for f in Asset._meta.get_fields()):
-                # temporary workaround to make Asset updates from ChangeLog ingest & get_complete_asset_data ingest work
-                # until we can refactor PBSMMAPI modeling in the next sprints
-                if f in ("franchise", "show", "season", "episode", "special"):
-                    continue
-                value = attrs.get(f)
-                if value is not None:
-                    yield f, value
-
-        fields = dict(make_fields())
-        fields.update(
-            object_id=asset["id"],
-            api_endpoint=links.get("self"),
-            availability=attrs.get("availabilities"),
-            asset_type=attrs.get("object_type"),
-            date_last_api_update=time_zone_aware_now(),
-            ingest_on_save=True,
-            json=asset,
-            links=links,
-            **kwargs,
-        )
-        Asset.objects.update_or_create(
-            defaults=fields,
-            object_id=asset["id"],
-        )[0]
+    def save(self, *args, **kwargs):
+        endpoint = kwargs.pop("endpoint", None)
+        if endpoint is not None:
+            status, json_data = get_PBSMM_record(endpoint)
+            if status != HTTPStatus.OK:
+                if self.mm_content is not None:
+                    self.mm_content.last_api_status = status
+                    self.mm_content.save()
+            else:
+                content_id = json_data["data"]["id"]
+                content = ContentRecord.update_or_create(
+                    content_id=content_id,
+                    last_api_status=status,
+                    api_data=json_data,
+                )
+                if self.mm_content is None:
+                    self.title = json_data["data"]["attributes"]["title"]
+                    self.slug = json_data["data"]["attributes"]["slug"]
+                    self.mm_content = content
+                super().save(*args, **kwargs)
 
     @property
     def transcript_url(self) -> str | None:

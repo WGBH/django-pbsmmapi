@@ -168,9 +168,15 @@ class Ingest(models.Model):
             Asset,
         )
 
-        def set_asset(asset: dict, status: int):
-            self.scraped_object_ids.append(asset["id"])
-            Asset.set(asset, last_api_status=status, **kwargs)
+        def set_asset(mm_asset_data: dict, _):
+            self.scraped_object_ids.append(mm_asset_data["id"])
+            link = mm_asset_data["links"]["self"]
+            try:
+                asset = Asset.objects.get(content_id=mm_asset_data["id"])
+                asset.save(endpoint=link)
+            except Asset.DoesNotExist:
+                asset = Asset(**kwargs)
+                asset.save(endpoint=link)
 
         self.flip_api_pages(endpoint, set_asset)
 

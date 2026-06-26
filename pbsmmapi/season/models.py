@@ -153,7 +153,7 @@ class Season(GenericProvisional, PBSMMGenericSeason):
         endpoint = None
         if assets := links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"
-        # season.process_assets(endpoint, season_id=season_id)
+        season.process_assets(endpoint, season_id=season_id)
         season.stop_ingestion_restart()
         # season.delete_stale_assets(season_id=season_id)
 
