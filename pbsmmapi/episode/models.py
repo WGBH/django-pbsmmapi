@@ -1,5 +1,3 @@
-from http import HTTPStatus
-
 from django.db import models
 from django.db.models.fields.json import KT
 from django.db.models.functions import Cast
@@ -9,11 +7,13 @@ from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
     GenericProvisional,
-    PBSMMBaseRecordManager,
     PBSMMGenericEpisode,
 )
 from pbsmmapi.api.api import PBSMM_EPISODE_ENDPOINT
-from pbsmmapi.record.models import ContentRecord
+from pbsmmapi.record.models import (
+    ContentRecord,
+    PBSMMBaseRecordManager,
+)
 
 
 class PBSMMEpisodeManager(PBSMMBaseRecordManager):
@@ -47,6 +47,7 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
     """
 
     objects = PBSMMEpisodeManager()
+    Record = ContentRecord
 
     ordinal = models.PositiveIntegerField(
         _("Ordinal"),
@@ -133,6 +134,14 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         verbose_name_plural = "PBS MM Episodes"
         db_table = "pbsmm_episode"
 
+    @property
+    def query_param(self):
+        return None
+
+    @property
+    def endpoint(self):
+        return PBSMM_EPISODE_ENDPOINT
+
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False)
         content_id = kwargs.pop("content_id", None)
@@ -143,30 +152,10 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
             super().save(*args, **kwargs)
             self.post_save(self.id)
 
-    def pre_save(self, content_id=None):
-        status, json_data = self.process(PBSMM_EPISODE_ENDPOINT, content_id=content_id)
-        if status != HTTPStatus.OK:
-            if self.mm_content is not None:
-                self.mm_content.last_api_status = status
-                self.mm_content.save()
-            return status
-
-        content_id = json_data["data"]["id"]
-        content = ContentRecord.update_or_create(
-            content_id=content_id,
-            last_api_status=status,
-            api_data=json_data,
-        )
-        if self.mm_content is None:
-            self.title = json_data["data"]["attributes"]["title"]
-            self.slug = json_data["data"]["attributes"]["slug"]
-            self.mm_content = content
-        return status
-
-    @staticmethod
+    @classmethod
     @db_task()
-    def post_save(episode_id):
-        episode = Episode.objects.get(id=episode_id)
+    def post_save(cls, episode_id):
+        episode = cls.objects.get(id=episode_id)
         endpoint = None
         if assets := episode.links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"

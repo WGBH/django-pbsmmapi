@@ -6,12 +6,12 @@ from django.db.models.functions import Cast
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
-from pbsmmapi.abstract.models import (
-    PBSMMBaseRecordManager,
-    PBSMMGenericFranchise,
-)
+from pbsmmapi.abstract.models import PBSMMGenericFranchise
 from pbsmmapi.api.api import PBSMM_FRANCHISE_ENDPOINT
-from pbsmmapi.record.models import ContentRecord
+from pbsmmapi.record.models import (
+    ContentRecord,
+    PBSMMBaseRecordManager,
+)
 from pbsmmapi.show.models import Show
 
 
@@ -46,6 +46,7 @@ class PBSMMFranchiseManager(PBSMMBaseRecordManager):
 
 class Franchise(PBSMMGenericFranchise):
     objects = PBSMMFranchiseManager()
+    Record = ContentRecord
 
     ingest_shows = models.BooleanField(
         _("Ingest Shows"),
@@ -74,6 +75,14 @@ class Franchise(PBSMMGenericFranchise):
         on_delete=models.SET_NULL,
     )
 
+    @property
+    def query_param(self):
+        return "?platform-slug=partnerplayer"
+
+    @property
+    def endpoint(self):
+        return PBSMM_FRANCHISE_ENDPOINT
+
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False)
         content_id = kwargs.pop("content_id", False)
@@ -84,34 +93,10 @@ class Franchise(PBSMMGenericFranchise):
             super().save(*args, **kwargs)
             self.post_save(self.id, status)
 
-    def pre_save(self, content_id=None):
-        status, json_data = self.process(
-            PBSMM_FRANCHISE_ENDPOINT,
-            "?platform-slug=partnerplayer",
-            content_id=content_id,
-        )
-        if status != HTTPStatus.OK:
-            if self.mm_content is not None:
-                self.mm_content.last_api_status = status
-                self.mm_content.save()
-            return status
-
-        content_id = json_data["data"]["id"]
-        content = ContentRecord.update_or_create(
-            content_id=content_id,
-            last_api_status=status,
-            api_data=json_data,
-        )
-        if self.mm_content is None:
-            self.title = json_data["data"]["attributes"]["title"]
-            self.slug = json_data["data"]["attributes"]["slug"]
-            self.mm_content = content
-        return status
-
-    @staticmethod
+    @classmethod
     @db_task()
-    def post_save(franchise_id, status):
-        franchise = Franchise.objects.get(id=franchise_id)
+    def post_save(cls, franchise_id, status):
+        franchise = cls.objects.get(id=franchise_id)
         if status != HTTPStatus.OK:
             return  # run only new object or had previous api call success
 

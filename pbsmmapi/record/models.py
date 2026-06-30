@@ -1,5 +1,31 @@
 from django.db import models
+from django.db.models.fields.json import KT
+from django.db.models.functions import Cast
 from django.utils.translation import gettext_lazy as _
+
+
+class PBSMMBaseRecordManager(models.Manager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(api_data=models.F("mm_content__api_data"))
+            .annotate(
+                content_id=models.F("mm_content__content_id"),
+                content_type=KT("api_data__data__type"),
+                description_short=KT("api_data__data__attributes__description_short"),
+                description_long=KT("api_data__data__attributes__description_long"),
+                updated_at=Cast(
+                    KT("api_data__data__attributes__updated_at"), models.DateTimeField()
+                ),
+                links=Cast(KT("api_data__links"), models.JSONField()),
+                api_endpoint=KT("api_data__links__self"),
+                images=Cast(
+                    KT("api_data__data__attributes__images"), models.JSONField()
+                ),
+                hashtag=KT("api_data__data__attributes__hashtag"),
+            )
+        )
 
 
 class ContentRecord(models.Model):

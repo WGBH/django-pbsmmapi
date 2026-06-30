@@ -1,5 +1,3 @@
-from http import HTTPStatus
-
 from django.db import models
 from django.db.models.fields.json import KT
 from django.db.models.functions import Cast
@@ -9,12 +7,14 @@ from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
     GenericProvisional,
-    PBSMMBaseRecordManager,
     PBSMMGenericSeason,
 )
 from pbsmmapi.api.api import PBSMM_SEASON_ENDPOINT
 from pbsmmapi.episode.models import Episode
-from pbsmmapi.record.models import ContentRecord
+from pbsmmapi.record.models import (
+    ContentRecord,
+    PBSMMBaseRecordManager,
+)
 
 
 class PBSMMSeasonManager(PBSMMBaseRecordManager):
@@ -35,6 +35,7 @@ class PBSMMSeasonManager(PBSMMBaseRecordManager):
 
 class Season(GenericProvisional, PBSMMGenericSeason):
     objects = PBSMMSeasonManager()
+    Record = ContentRecord
 
     ordinal = models.PositiveIntegerField(
         _("Ordinal"),
@@ -110,6 +111,18 @@ class Season(GenericProvisional, PBSMMGenericSeason):
             return f"{self.show.title} Season {self.ordinal}"
         return f"Season {self.ordinal}"
 
+    @property
+    def query_param(self):
+        return None
+
+    @property
+    def endpoint(self):
+        return PBSMM_SEASON_ENDPOINT
+
+    def _pre_save_update_fields(self, json_data, content):
+        self.title = json_data["data"]["attributes"]["title"]
+        self.mm_content = content
+
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False)
         content_id = kwargs.pop("content_id", None)
@@ -120,34 +133,15 @@ class Season(GenericProvisional, PBSMMGenericSeason):
             super().save(*args, **kwargs)
             self.post_save(self.id)
 
-    def pre_save(self, content_id=None):
-        status, json_data = self.process(PBSMM_SEASON_ENDPOINT, content_id=content_id)
-        if status != HTTPStatus.OK:
-            if self.mm_content is not None:
-                self.mm_content.last_api_status = status
-                self.mm_content.save()
-            return status
-
-        content_id = json_data["data"]["id"]
-        content = ContentRecord.update_or_create(
-            content_id=content_id,
-            last_api_status=status,
-            api_data=json_data,
-        )
-        if self.mm_content is None:
-            self.title = json_data["data"]["attributes"]["title"]
-            self.mm_content = content
-        return status
-
-    @staticmethod
+    @classmethod
     @db_task()
-    def post_save(season_id):
+    def post_save(cls, season_id):
         """
         If the ingest_episodes flag is set, then also ingest every
         episode for this Season.
         Also, always ingest the Assets associated with this Season.
         """
-        season = Season.objects.get(id=season_id)
+        season = cls.objects.get(id=season_id)
         links = season.links
         season.process_episodes(links.get("episodes"))
         endpoint = None

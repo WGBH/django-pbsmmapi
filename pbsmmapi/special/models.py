@@ -1,5 +1,3 @@
-from http import HTTPStatus
-
 from django.db import models
 from django.db.models.fields.json import KT
 from django.db.models.functions import Cast
@@ -8,11 +6,13 @@ from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
     GenericProvisional,
-    PBSMMBaseRecordManager,
     PBSMMGenericSpecial,
 )
 from pbsmmapi.api.api import PBSMM_SPECIAL_ENDPOINT
-from pbsmmapi.record.models import ContentRecord
+from pbsmmapi.record.models import (
+    ContentRecord,
+    PBSMMBaseRecordManager,
+)
 
 
 class PBSMMSpecialManager(PBSMMBaseRecordManager):
@@ -44,6 +44,7 @@ class PBSMMSpecialManager(PBSMMBaseRecordManager):
 
 class Special(GenericProvisional, PBSMMGenericSpecial):
     objects = PBSMMSpecialManager()
+    Record = ContentRecord
 
     show = models.ForeignKey(
         "show.Show",
@@ -92,6 +93,14 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
         out += "\n</tr>"
         return mark_safe(out)
 
+    @property
+    def query_param(self):
+        return None
+
+    @property
+    def endpoint(self):
+        return PBSMM_SPECIAL_ENDPOINT
+
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False)
         content_id = kwargs.pop("content_id", None)
@@ -102,30 +111,10 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
             super().save(*args, **kwargs)
             self.post_save(self.id)
 
-    def pre_save(self, content_id=None):
-        status, json_data = self.process(PBSMM_SPECIAL_ENDPOINT, content_id=content_id)
-        if status != HTTPStatus.OK:
-            if self.mm_content is not None:
-                self.mm_content.last_api_status = status
-                self.mm_content.save()
-            return status
-
-        content_id = json_data["data"]["id"]
-        content = ContentRecord.update_or_create(
-            content_id=content_id,
-            last_api_status=status,
-            api_data=json_data,
-        )
-        if self.mm_content is None:
-            self.title = json_data["data"]["attributes"]["title"]
-            self.slug = json_data["data"]["attributes"]["slug"]
-            self.mm_content = content
-        return status
-
-    @staticmethod
+    @classmethod
     @db_task()
-    def post_save(special_id):
-        special = Special.objects.get(id=special_id)
+    def post_save(cls, special_id):
+        special = cls.objects.get(id=special_id)
         endpoint = None
         if assets := special.links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"

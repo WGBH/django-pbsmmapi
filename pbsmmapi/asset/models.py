@@ -1,4 +1,3 @@
-from http import HTTPStatus
 import re
 from typing import TYPE_CHECKING
 from uuid import UUID
@@ -12,26 +11,22 @@ from django.db.models.functions import (
 from pycaption import detect_format
 import requests
 
-from pbsmmapi.abstract.constants import PBSMM_BASE_URL
-from pbsmmapi.abstract.models import (
-    PBSMMBaseRecordManager,
-    PBSMMGenericAsset,
-)
-from pbsmmapi.api.api import get_PBSMM_record
+from pbsmmapi.abstract.models import PBSMMGenericAsset
+from pbsmmapi.api.api import PBSMM_ASSET_ENDPOINT
 from pbsmmapi.asset.helpers import (
     SafeTranscriptWriter,
     check_asset_availability,
 )
-from pbsmmapi.record.models import ContentRecord
+from pbsmmapi.record.models import (
+    ContentRecord,
+    PBSMMBaseRecordManager,
+)
 
 AVAILABILITY_GROUPS = (
     ("Station Members", "station_members"),
     ("All Members", "all_members"),
     ("Public", "public"),
 )
-
-PBSMM_ASSET_ENDPOINT = f"{PBSMM_BASE_URL}api/v1/assets/"
-PBSMM_LEGACY_ASSET_ENDPOINT = f"{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id="
 
 
 class PBSMMAssetManager(PBSMMBaseRecordManager):
@@ -115,6 +110,7 @@ class PBSMMAssetManager(PBSMMBaseRecordManager):
 
 class Asset(PBSMMGenericAsset):
     objects = PBSMMAssetManager()
+    Record = ContentRecord
 
     # Relationships
     mm_content = models.OneToOneField(
@@ -200,26 +196,18 @@ class Asset(PBSMMGenericAsset):
         db_table = "pbsmm_asset"
         base_manager_name = "objects"
 
+    @property
+    def query_param(self):
+        return None
+
+    @property
+    def endpoint(self):
+        return PBSMM_ASSET_ENDPOINT
+
     def save(self, *args, **kwargs):
-        endpoint = kwargs.pop("endpoint", None)
-        if endpoint is not None:
-            status, json_data = get_PBSMM_record(endpoint)
-            if status != HTTPStatus.OK:
-                if self.mm_content is not None:
-                    self.mm_content.last_api_status = status
-                    self.mm_content.save()
-            else:
-                content_id = json_data["data"]["id"]
-                content = ContentRecord.update_or_create(
-                    content_id=content_id,
-                    last_api_status=status,
-                    api_data=json_data,
-                )
-                if self.mm_content is None:
-                    self.title = json_data["data"]["attributes"]["title"]
-                    self.slug = json_data["data"]["attributes"]["slug"]
-                    self.mm_content = content
-                super().save(*args, **kwargs)
+        content_id = kwargs.pop("content_id", None)
+        self.pre_save(content_id)
+        super().save(*args, **kwargs)
 
     @property
     def transcript_url(self) -> str | None:

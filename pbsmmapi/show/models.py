@@ -9,11 +9,13 @@ from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
     GenericProvisional,
-    PBSMMBaseRecordManager,
     PBSMMGenericShow,
 )
 from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
-from pbsmmapi.record.models import ContentRecord
+from pbsmmapi.record.models import (
+    ContentRecord,
+    PBSMMBaseRecordManager,
+)
 from pbsmmapi.season.models import Season
 from pbsmmapi.special.models import Special
 
@@ -73,6 +75,7 @@ class PBSMMShowManager(PBSMMBaseRecordManager):
 
 class Show(GenericProvisional, PBSMMGenericShow):
     objects = PBSMMShowManager()
+    Record = ContentRecord
 
     ingest_seasons = models.BooleanField(
         _("Ingest Seasons"),
@@ -141,6 +144,14 @@ class Show(GenericProvisional, PBSMMGenericShow):
         except cls.DoesNotExist:
             return None
 
+    @property
+    def query_param(self):
+        return "?platform-slug=partnerplayer"
+
+    @property
+    def endpoint(self):
+        return PBSMM_SHOW_ENDPOINT
+
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False)
         content_id = kwargs.pop("content_id", None)
@@ -152,9 +163,7 @@ class Show(GenericProvisional, PBSMMGenericShow):
             self.post_save(self.id, status)
 
     def pre_save(self, content_id=None):
-        status, json_data = self.process(
-            PBSMM_SHOW_ENDPOINT, "?platform-slug=partnerplayer", content_id=content_id
-        )
+        status, json_data = self.process(content_id=content_id)
         if status != HTTPStatus.OK:
             if self.mm_content is not None:
                 self.mm_content.last_api_status = status
@@ -173,12 +182,12 @@ class Show(GenericProvisional, PBSMMGenericShow):
             self.mm_content = content
         return status
 
-    @staticmethod
+    @classmethod
     @db_task()
-    def post_save(show_id, status):
-        show = Show.objects.get(id=show_id)
+    def post_save(cls, show_id, status):
         if status != HTTPStatus.OK:
             return  # run only new object or had previous api call success
+        show = cls.objects.get(id=show_id)
         endpoint = None
         if assets := show.links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"
