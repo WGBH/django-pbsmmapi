@@ -1,12 +1,9 @@
 from http import HTTPStatus
 
 from django.db import models
-from django.db.models.fields.json import KT
-from django.db.models.functions import Cast
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
-from pbsmmapi.abstract.helpers import fix_non_aware_datetime
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.api.helpers import check_pagination
 
@@ -21,28 +18,6 @@ class GenericObjectManagement(models.Model):
         _("Ingest on Save"),
         default=False,
         help_text="If true, then will update values from the PBSMM API on save()",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMObjectID(models.Model):
-    """
-    In most parallel universes, we'd use this as the PRIMARY KEY. However,
-    given the periodic necessity of having to EDIT records or manipulate them
-    in the database, the issue of having to juggle 32-length random characters
-    instead of a nice integer ID would be a PITA.
-
-    So I'm being "un-pure".  Sue me.   RAD 31-Jan-2018
-    """
-
-    # TODO rename to cid
-    object_id = models.UUIDField(
-        _("Object ID"),
-        unique=True,
-        null=True,
-        blank=True,  # does this work?
     )
 
     class Meta:
@@ -92,102 +67,62 @@ class GenericProvisional(models.Model):
 
 
 class Ingest(models.Model):
+    Record = None
+
     def __init__(self, *args, **kwargs):
         self.ingest_on_save = None
-        self.object_id = None
+        self.content_id = None
         self.slug = None
-        self.last_api_status = None
-        self.updated_at = None
-        self.api_endpoint = None
-        self.json = None
         # above fields are overridden by child classes
         super().__init__(*args, **kwargs)
         self.scraped_object_ids = []
 
-    def process(self, endpoint, query_param=None):
-        identifier = str(self.object_id or "").strip() or self.slug
+    @property
+    def query_param(self):
+        raise NotImplementedError
+
+    @property
+    def endpoint(self):
+        raise NotImplementedError
+
+    def process(self, query_param=None, content_id=None):
+        identifier = str(content_id or self.content_id or "").strip() or self.slug
+        query_param = query_param or self.query_param
         if not identifier and not self.ingest_on_save:
-            return  # stop processing if we don't have clearance
+            return None, None  # stop processing if we don't have clearance
         if query_param is None:
             query_param = ""
-        status, json = get_PBSMM_record(f"{endpoint}{identifier}/{query_param}")
-        self.last_api_status = status  # stop post_save in case of 4xx status
-        if status != HTTPStatus.OK:
-            return
-        self.object_id = json.get("id", json["data"]["id"])
-        attrs = json.get("attributes", json["data"].get("attributes"))
-        for field in self._meta.get_fields():
-            value = attrs.get(field.name)
-            self.set_attribute(field, value)
-        self.updated_at = fix_non_aware_datetime(attrs.get("updated_at"))
-        self.api_endpoint = json["links"].get("self")
-        self.json = json
-        self.ingest_on_save = False
-        return attrs
-
-    def set_attribute(self, field, value):
-        """
-        Do some special processing for some fields
-        """
-        if value is None:
-            return
-        if self.is_excluded_field(field):
-            return
-        if self.ingest_object_flag(field):
-            return
-        if self.solve_datetime_field(field, value):
-            return
-        if self.check_for_api_id(field, value):
-            return
-        setattr(self, field.name, value)
-
-    @staticmethod
-    def is_excluded_field(field):
-        exclude = {"AutoField", "ForeignKey"}
-        return field.get_internal_type() in exclude
-
-    def ingest_object_flag(self, field):
-        """
-        Ensure ingest bools are not None
-        """
-        if field.name.startswith("ingest_"):
-            setattr(self, field.name, getattr(self, field.name) or False)
-            return True
-
-    def solve_datetime_field(self, field, value):
-        if "DateTimeField" in field.get_internal_type():
-            setattr(self, field.name, fix_non_aware_datetime(value))
-            return True
-
-    def check_for_api_id(self, field, value):
-        """
-        Sets <entity>_api_id property and retrieves name of property
-
-        e.g. if it finds `show_api_id` will set
-        self.show_api_id = json['data]['attributes]['id']
-        and returns "show"
-        """
-        if "_api_id" not in field.name or value is None:
-            return
-        entity = field.name.replace("_api_id", "")
-        setattr(self, field.name, value["id"])
-        return entity
-
-    def process_assets(self, endpoint, **kwargs):
-        """
-        Ingest Asset page by page
-        kwargs: extra params send to Asset object
-        """
-        # prevent circular import
-        from pbsmmapi.asset.models import (  # pylint: disable=import-outside-toplevel
-            Asset,
+        status, json_data = get_PBSMM_record(
+            f"{self.endpoint}{identifier}/{query_param}"
         )
+        self.ingest_on_save = False
+        return status, json_data
 
-        def set_asset(asset: dict, status: int):
-            self.scraped_object_ids.append(asset["id"])
-            Asset.set(asset, last_api_status=status, **kwargs)
+    def _pre_save_update_fields(self, json_data, content):
+        self.title = json_data["data"]["attributes"]["title"]
+        self.slug = json_data["data"]["attributes"]["slug"]
+        self.mm_content = content
 
-        self.flip_api_pages(endpoint, set_asset)
+    def pre_save(self, content_id=None):
+        status, json_data = self.process(
+            content_id=content_id,
+        )
+        if status != HTTPStatus.OK:
+            if self.mm_content is not None:
+                self.mm_content.last_api_status = status
+                self.mm_content.save()
+            return status
+
+        content_id = json_data["data"]["id"]
+        content = self.Record.update_or_create(
+            content_id=content_id,
+            last_api_status=status,
+            api_data=json_data,
+        )
+        if self.mm_content is None:
+            self._pre_save_update_fields(json_data, content)
+
+        return status
 
     def flip_api_pages(self, endpoint, func):
         """
@@ -205,6 +140,33 @@ class Ingest(models.Model):
         keep_going, endpoint = check_pagination(json)
         if keep_going:
             self.flip_api_pages(endpoint, func)
+
+    class Meta:
+        abstract = True
+
+
+class IngestWithAssets(Ingest):
+    def process_assets(self, endpoint, **kwargs):
+        """
+        Ingest Asset page by page
+        kwargs: extra params send to Asset object
+        """
+        # prevent circular import
+        from pbsmmapi.asset.models import (  # pylint: disable=import-outside-toplevel
+            Asset,
+        )
+
+        def set_asset(mm_asset_data: dict, _):
+            self.scraped_object_ids.append(mm_asset_data["id"])
+            try:
+                asset = Asset.objects.get(content_id=mm_asset_data["id"])
+                asset.save()
+            except Asset.DoesNotExist:
+                asset = Asset(**kwargs)
+                asset.ingest_on_save = True
+                asset.save(content_id=mm_asset_data["id"])
+
+        self.flip_api_pages(endpoint, set_asset)
 
     def delete_stale_assets(self, **filters):
         """
@@ -265,6 +227,7 @@ class PBSMMGenericObject(
 class PBSMMGenericAsset(
     PBSMMGenericObject,
     PBSMMObjectSlug,
+    Ingest,
 ):
     class Meta:
         abstract = True
@@ -273,7 +236,7 @@ class PBSMMGenericAsset(
 class PBSMMGenericShow(
     PBSMMGenericObject,
     PBSMMObjectSlug,
-    Ingest,
+    IngestWithAssets,
 ):
     class Meta:
         abstract = True
@@ -282,7 +245,7 @@ class PBSMMGenericShow(
 class PBSMMGenericEpisode(
     PBSMMGenericObject,
     PBSMMObjectSlug,
-    Ingest,
+    IngestWithAssets,
 ):
     class Meta:
         abstract = True
@@ -290,7 +253,7 @@ class PBSMMGenericEpisode(
 
 class PBSMMGenericSeason(
     PBSMMGenericObject,
-    Ingest,
+    IngestWithAssets,
 ):
     class Meta:
         abstract = True
@@ -299,7 +262,7 @@ class PBSMMGenericSeason(
 class PBSMMGenericSpecial(
     PBSMMGenericObject,
     PBSMMObjectSlug,
-    Ingest,
+    IngestWithAssets,
 ):
     class Meta:
         abstract = True
@@ -308,34 +271,7 @@ class PBSMMGenericSpecial(
 class PBSMMGenericFranchise(
     PBSMMGenericObject,
     PBSMMObjectSlug,
-    Ingest,
+    IngestWithAssets,
 ):
-    # There is no can_embed_player field - again, laziness (see above)
     class Meta:
         abstract = True
-
-
-class PBSMMBaseRecordManager(models.Manager):
-    def get_queryset(self):
-        return (
-            super()
-            .get_queryset()
-            # api_data must be defined in its own annotate() call: the JSON
-            # transforms below resolve against it, and Django cannot reliably
-            # resolve transforms against an alias created in the same clause.
-            .annotate(api_data=models.F("mm_content__api_data"))
-            .annotate(
-                content_type=KT("api_data__data__type"),
-                description_short=KT("api_data__data__attributes__description_short"),
-                description_long=KT("api_data__data__attributes__description_long"),
-                updated_at=Cast(
-                    KT("api_data__data__attributes__updated_at"), models.DateTimeField()
-                ),
-                links=Cast(KT("api_data__links"), models.JSONField()),
-                api_endpoint=KT("api_data__links__self"),
-                images=Cast(
-                    KT("api_data__data__attributes__images"), models.JSONField()
-                ),
-                hashtag=KT("api_data__data__attributes__hashtag"),
-            )
-        )

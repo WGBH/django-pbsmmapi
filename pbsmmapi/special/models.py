@@ -1,15 +1,21 @@
 from django.db import models
 from django.db.models.fields.json import KT
-from django.db.models.functions import Cast
+from django.db.models.functions import (
+    Cast,
+    Coalesce,
+)
 from django.utils.safestring import mark_safe
 from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
     GenericProvisional,
-    PBSMMBaseRecordManager,
     PBSMMGenericSpecial,
 )
 from pbsmmapi.api.api import PBSMM_SPECIAL_ENDPOINT
+from pbsmmapi.record.models import (
+    ContentRecord,
+    PBSMMBaseRecordManager,
+)
 
 
 class PBSMMSpecialManager(PBSMMBaseRecordManager):
@@ -21,8 +27,9 @@ class PBSMMSpecialManager(PBSMMBaseRecordManager):
                 nola=KT("api_data__data__attributes__nola"),
                 language=KT("api_data__data__attributes__language"),
                 tms_id=KT("api_data__data__attributes__tms_id"),
-                internal_links=Cast(
-                    KT("api_data__data__attributes__links"), models.JSONField()
+                internal_links=Coalesce(
+                    Cast(KT("api_data__data__attributes__links"), models.JSONField()),
+                    models.Value([], models.JSONField()),
                 ),
                 premiered_on=Cast(
                     KT("api_data__data__attributes__premiered_on"),
@@ -41,6 +48,7 @@ class PBSMMSpecialManager(PBSMMBaseRecordManager):
 
 class Special(GenericProvisional, PBSMMGenericSpecial):
     objects = PBSMMSpecialManager()
+    Record = ContentRecord
 
     show = models.ForeignKey(
         "show.Show",
@@ -89,30 +97,36 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
         out += "\n</tr>"
         return mark_safe(out)
 
+    @property
+    def query_param(self):
+        return None
+
+    @property
+    def endpoint(self):
+        return PBSMM_SPECIAL_ENDPOINT
+
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False)
+        content_id = kwargs.pop("content_id", None)
         if skip_ingest:
             super().save(*args, **kwargs)
         else:
-            self.pre_save()
+            self.pre_save(content_id)
             super().save(*args, **kwargs)
             self.post_save(self.id)
 
-    def pre_save(self):
-        self.process(PBSMM_SPECIAL_ENDPOINT)
-
-    @staticmethod
+    @classmethod
     @db_task()
-    def post_save(special_id):
-        special = Special.objects.get(id=special_id)
+    def post_save(cls, special_id):
+        special = cls.objects.get(id=special_id)
         endpoint = None
-        if assets := special.json["links"].get("assets"):
+        if assets := special.links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"
         special.process_assets(endpoint, special_id=special_id)
         special.delete_stale_assets(special_id=special_id)
 
     def __str__(self):
-        return f"{self.object_id} | {self.show} | {self.title} "
+        return f"{self.content_id} | {self.show} | {self.title} "
 
     class Meta:
         verbose_name = "PBS MM Special"

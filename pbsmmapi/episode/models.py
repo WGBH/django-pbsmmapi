@@ -1,16 +1,22 @@
 from django.db import models
 from django.db.models.fields.json import KT
-from django.db.models.functions import Cast
+from django.db.models.functions import (
+    Cast,
+    Coalesce,
+)
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
     GenericProvisional,
-    PBSMMBaseRecordManager,
     PBSMMGenericEpisode,
 )
 from pbsmmapi.api.api import PBSMM_EPISODE_ENDPOINT
+from pbsmmapi.record.models import (
+    ContentRecord,
+    PBSMMBaseRecordManager,
+)
 
 
 class PBSMMEpisodeManager(PBSMMBaseRecordManager):
@@ -21,8 +27,9 @@ class PBSMMEpisodeManager(PBSMMBaseRecordManager):
             .annotate(
                 nola=KT("api_data__data__attributes__nola"),
                 language=KT("api_data__data__attributes__language"),
-                internal_links=Cast(
-                    KT("api_data__data__attributes__links"), models.JSONField()
+                internal_links=Coalesce(
+                    Cast(KT("api_data__data__attributes__links"), models.JSONField()),
+                    models.Value([], models.JSONField()),
                 ),
                 premiered_on=Cast(
                     KT("api_data__data__attributes__premiered_on"),
@@ -44,6 +51,7 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
     """
 
     objects = PBSMMEpisodeManager()
+    Record = ContentRecord
 
     ordinal = models.PositiveIntegerField(
         _("Ordinal"),
@@ -130,27 +138,33 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         verbose_name_plural = "PBS MM Episodes"
         db_table = "pbsmm_episode"
 
+    @property
+    def query_param(self):
+        return None
+
+    @property
+    def endpoint(self):
+        return PBSMM_EPISODE_ENDPOINT
+
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False)
+        content_id = kwargs.pop("content_id", None)
         if skip_ingest:
             super().save(*args, **kwargs)
         else:
-            self.pre_save()
+            self.pre_save(content_id)
             super().save(*args, **kwargs)
             self.post_save(self.id)
 
-    def pre_save(self):
-        self.process(PBSMM_EPISODE_ENDPOINT)
-
-    @staticmethod
+    @classmethod
     @db_task()
-    def post_save(episode_id):
-        episode = Episode.objects.get(id=episode_id)
+    def post_save(cls, episode_id):
+        episode = cls.objects.get(id=episode_id)
         endpoint = None
-        if assets := episode.json["links"].get("assets"):
+        if assets := episode.links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"
         episode.process_assets(
             endpoint,
             episode_id=episode_id,
         )
-        episode.delete_stale_assets(episode_id=episode_id)
+        # episode.delete_stale_assets(episode_id=episode_id)

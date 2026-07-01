@@ -2,15 +2,19 @@ from http import HTTPStatus
 
 from django.db import models
 from django.db.models.fields.json import KT
-from django.db.models.functions import Cast
+from django.db.models.functions import (
+    Cast,
+    Coalesce,
+)
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
-from pbsmmapi.abstract.models import (
-    PBSMMBaseRecordManager,
-    PBSMMGenericFranchise,
-)
+from pbsmmapi.abstract.models import PBSMMGenericFranchise
 from pbsmmapi.api.api import PBSMM_FRANCHISE_ENDPOINT
+from pbsmmapi.record.models import (
+    ContentRecord,
+    PBSMMBaseRecordManager,
+)
 from pbsmmapi.show.models import Show
 
 
@@ -32,12 +36,19 @@ class PBSMMFranchiseManager(PBSMMBaseRecordManager):
                     KT("api_data__data__attributes__is_excluded_from_dfp"),
                     models.BooleanField(),
                 ),
-                internal_links=Cast(
-                    KT("api_data__data__attributes__links"), models.JSONField()
+                internal_links=Coalesce(
+                    Cast(KT("api_data__data__attributes__links"), models.JSONField()),
+                    models.Value([], models.JSONField()),
                 ),
-                genre=Cast(KT("api_data__data__attributes__genre"), models.JSONField()),
-                platforms=Cast(
-                    KT("api_data__data__attributes__platforms"), models.JSONField()
+                genre=Coalesce(
+                    Cast(KT("api_data__data__attributes__genre"), models.JSONField()),
+                    models.Value({}, models.JSONField()),
+                ),
+                platforms=Coalesce(
+                    Cast(
+                        KT("api_data__data__attributes__platforms"), models.JSONField()
+                    ),
+                    models.Value([], models.JSONField()),
                 ),
             )
         )
@@ -45,6 +56,7 @@ class PBSMMFranchiseManager(PBSMMBaseRecordManager):
 
 class Franchise(PBSMMGenericFranchise):
     objects = PBSMMFranchiseManager()
+    Record = ContentRecord
 
     ingest_shows = models.BooleanField(
         _("Ingest Shows"),
@@ -73,60 +85,64 @@ class Franchise(PBSMMGenericFranchise):
         on_delete=models.SET_NULL,
     )
 
+    @property
+    def query_param(self):
+        return "?platform-slug=partnerplayer"
+
+    @property
+    def endpoint(self):
+        return PBSMM_FRANCHISE_ENDPOINT
+
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False)
+        content_id = kwargs.pop("content_id", False)
         if skip_ingest:
             super().save(*args, **kwargs)
         else:
-            self.pre_save()
+            status = self.pre_save(content_id=content_id)
             super().save(*args, **kwargs)
-            self.post_save(self.id)
+            self.post_save(self.id, status)
 
-    def pre_save(self):
-        attrs = self.process(PBSMM_FRANCHISE_ENDPOINT)
-        if not attrs:
-            return
-        self.ga_page = attrs.get("tracking_ga_page")
-        self.ga_event = attrs.get("tracking_ga_event")
-
-    @staticmethod
+    @classmethod
     @db_task()
-    def post_save(franchise_id):
-        franchise = Franchise.objects.get(id=franchise_id)
-        if int(franchise.last_api_status or 200) != HTTPStatus.OK:
+    def post_save(cls, franchise_id, status):
+        franchise = cls.objects.get(id=franchise_id)
+        if status != HTTPStatus.OK:
             return  # run only new object or had previous api call success
 
         franchise.process_assets(
-            franchise.json["links"].get("assets"), franchise_id=franchise_id
+            franchise.links.get("assets"), franchise_id=franchise_id
         )
         franchise.process_shows()
+        franchise.stop_ingestion_restart()
         franchise.delete_stale_assets(franchise_id=franchise_id)
 
     def process_shows(self):
         if not self.ingest_shows:
             return
 
-        def set_show(show: dict, _):
+        def set_show(mm_show_data: dict, _):
             # Realize any provisional Show with this title first so its object_id
             # is set; otherwise update_or_create() keyed on object_id would
             # create a duplicate and later changelog realization would raise an
             # IntegrityError on the unique object_id constraint. Promote without
             # ingesting (skip_ingest=True) and let the update_or_create() below
             # run the single ingest pass with the correct ingest flags.
-            Show.realize({"data": show}, skip_ingest=True)
-            Show.objects.update_or_create(
-                defaults=dict(
-                    franchise_id=self.id,
+            try:
+                show = Show.objects.get(content_id=mm_show_data["id"])
+                show.save()
+            except Show.DoesNotExist:
+                show = Show(
+                    show_id=self.id,
+                    ingest_on_save=True,
                     ingest_seasons=self.ingest_seasons,
-                    ingest_episodes=self.ingest_episodes,
                     ingest_specials=self.ingest_specials,
-                    franchise_api_id=self.object_id,
-                ),
-                object_id=show["id"],
-            )
+                    ingest_episodes=self.ingest_episodes,
+                )
+                show.save(content_id=mm_show_data["id"])
 
         endpoint = None
-        if shows := self.json["links"].get("shows"):
+        if shows := self.links.get("shows"):
             endpoint = f"{shows}?platform-slug=partnerplayer"
         self.flip_api_pages(endpoint, set_show)
 
