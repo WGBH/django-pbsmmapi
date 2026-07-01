@@ -1,6 +1,9 @@
 from django.db import models
 from django.db.models.fields.json import KT
-from django.db.models.functions import Cast
+from django.db.models.functions import (
+    Cast,
+    Coalesce,
+)
 from django.utils.translation import gettext_lazy as _
 
 
@@ -18,10 +21,14 @@ class PBSMMBaseRecordManager(models.Manager):
                 updated_at=Cast(
                     KT("api_data__data__attributes__updated_at"), models.DateTimeField()
                 ),
-                links=Cast(KT("api_data__links"), models.JSONField()),
+                links=Coalesce(
+                    Cast(KT("api_data__links"), models.JSONField()),
+                    models.Value({}, models.JSONField()),
+                ),
                 api_endpoint=KT("api_data__links__self"),
-                images=Cast(
-                    KT("api_data__data__attributes__images"), models.JSONField()
+                images=Coalesce(
+                    Cast(KT("api_data__data__attributes__images"), models.JSONField()),
+                    models.Value([], models.JSONField()),
                 ),
                 hashtag=KT("api_data__data__attributes__hashtag"),
             )

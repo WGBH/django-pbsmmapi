@@ -24,28 +24,6 @@ class GenericObjectManagement(models.Model):
         abstract = True
 
 
-class PBSMMObjectID(models.Model):
-    """
-    In most parallel universes, we'd use this as the PRIMARY KEY. However,
-    given the periodic necessity of having to EDIT records or manipulate them
-    in the database, the issue of having to juggle 32-length random characters
-    instead of a nice integer ID would be a PITA.
-
-    So I'm being "un-pure".  Sue me.   RAD 31-Jan-2018
-    """
-
-    # TODO rename to cid
-    object_id = models.UUIDField(
-        _("Object ID"),
-        unique=True,
-        null=True,
-        blank=True,  # does this work?
-    )
-
-    class Meta:
-        abstract = True
-
-
 class PBSMMObjectTitle(models.Model):
     """Exists for all objects"""
 
@@ -111,7 +89,7 @@ class Ingest(models.Model):
         identifier = str(content_id or self.content_id or "").strip() or self.slug
         query_param = query_param or self.query_param
         if not identifier and not self.ingest_on_save:
-            return  # stop processing if we don't have clearance
+            return None, None  # stop processing if we don't have clearance
         if query_param is None:
             query_param = ""
         status, json_data = get_PBSMM_record(

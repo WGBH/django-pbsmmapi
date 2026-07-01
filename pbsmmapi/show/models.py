@@ -2,7 +2,10 @@ from http import HTTPStatus
 
 from django.db import models
 from django.db.models.fields.json import KT
-from django.db.models.functions import Cast
+from django.db.models.functions import (
+    Cast,
+    Coalesce,
+)
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
@@ -44,12 +47,19 @@ class PBSMMShowManager(PBSMMBaseRecordManager):
                     models.BooleanField(),
                 ),
                 language=KT("api_data__data__attributes__language"),
-                genre=Cast(KT("api_data__data__attributes__genre"), models.JSONField()),
-                internal_links=Cast(
-                    KT("api_data__data__attributes__links"), models.JSONField()
+                genre=Coalesce(
+                    Cast(KT("api_data__data__attributes__genre"), models.JSONField()),
+                    models.Value({}, models.JSONField()),
                 ),
-                audience=Cast(
-                    KT("api_data__data__attributes__audience"), models.JSONField()
+                internal_links=Coalesce(
+                    Cast(KT("api_data__data__attributes__links"), models.JSONField()),
+                    models.Value([], models.JSONField()),
+                ),
+                audience=Coalesce(
+                    Cast(
+                        KT("api_data__data__attributes__audience"), models.JSONField()
+                    ),
+                    models.Value([], models.JSONField()),
                 ),
                 sort_episodes_descending=Cast(
                     KT("api_data__data__attributes__sort_episodes_descending"),
@@ -59,8 +69,11 @@ class PBSMMShowManager(PBSMMBaseRecordManager):
                     KT("api_data__data__attributes__display_episode_number"),
                     models.BooleanField(),
                 ),
-                platforms=Cast(
-                    KT("api_data__data__attributes__platforms"), models.JSONField()
+                platforms=Coalesce(
+                    Cast(
+                        KT("api_data__data__attributes__platforms"), models.JSONField()
+                    ),
+                    models.Value([], models.JSONField()),
                 ),
                 franchise_content_id=Cast(
                     KT("api_data__data__attributes__franchise__id"), models.UUIDField()

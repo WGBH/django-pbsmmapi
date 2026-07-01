@@ -1,6 +1,9 @@
 from django.db import models
 from django.db.models.fields.json import KT
-from django.db.models.functions import Cast
+from django.db.models.functions import (
+    Cast,
+    Coalesce,
+)
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
@@ -23,8 +26,9 @@ class PBSMMSeasonManager(PBSMMBaseRecordManager):
             super()
             .get_queryset()
             .annotate(
-                internal_links=Cast(
-                    KT("api_data__data__attributes__links"), models.JSONField()
+                internal_links=Coalesce(
+                    Cast(KT("api_data__data__attributes__links"), models.JSONField()),
+                    models.Value([], models.JSONField()),
                 ),
                 show_content_id=Cast(
                     KT("api_data__data__attributes__show__id"), models.UUIDField()
