@@ -15,10 +15,7 @@ from pbsmmapi.abstract.models import (
     PBSMMGenericShow,
 )
 from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
-from pbsmmapi.record.models import (
-    ContentRecord,
-    PBSMMBaseRecordManager,
-)
+from pbsmmapi.record.models import PBSMMBaseRecordManager
 from pbsmmapi.season.models import Season
 from pbsmmapi.special.models import Special
 
@@ -51,7 +48,7 @@ class PBSMMShowManager(PBSMMBaseRecordManager):
                     Cast(KT("api_data__data__attributes__genre"), models.JSONField()),
                     models.Value({}, models.JSONField()),
                 ),
-                internal_links=Coalesce(
+                links=Coalesce(
                     Cast(KT("api_data__data__attributes__links"), models.JSONField()),
                     models.Value([], models.JSONField()),
                 ),
@@ -88,7 +85,6 @@ class PBSMMShowManager(PBSMMBaseRecordManager):
 
 class Show(GenericProvisional, PBSMMGenericShow):
     objects = PBSMMShowManager()
-    Record = ContentRecord
 
     ingest_seasons = models.BooleanField(
         _("Ingest Seasons"),
@@ -175,26 +171,6 @@ class Show(GenericProvisional, PBSMMGenericShow):
             super().save(*args, **kwargs)
             self.post_save(self.id, status)
 
-    def pre_save(self, content_id=None):
-        status, json_data = self.process(content_id=content_id)
-        if status != HTTPStatus.OK:
-            if self.mm_content is not None:
-                self.mm_content.last_api_status = status
-                self.mm_content.save()
-            return status
-
-        content_id = json_data["data"]["id"]
-        content = ContentRecord.update_or_create(
-            content_id=content_id,
-            last_api_status=status,
-            api_data=json_data,
-        )
-        if self.mm_content is None:
-            self.title = json_data["data"]["attributes"]["title"]
-            self.slug = json_data["data"]["attributes"]["slug"]
-            self.mm_content = content
-        return status
-
     @classmethod
     @db_task()
     def post_save(cls, show_id, status):
@@ -202,7 +178,7 @@ class Show(GenericProvisional, PBSMMGenericShow):
             return  # run only new object or had previous api call success
         show = cls.objects.get(id=show_id)
         endpoint = None
-        if assets := show.links.get("assets"):
+        if assets := show.api_links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"
         show.process_assets(endpoint, show_id=show_id)
         show.process_seasons()
@@ -237,7 +213,7 @@ class Show(GenericProvisional, PBSMMGenericShow):
                 )
                 season.save(content_id=mm_season_data["id"])
 
-        self.flip_api_pages(self.links.get("seasons"), set_season)
+        self.flip_api_pages(self.api_links.get("seasons"), set_season)
 
     def process_specials(self):
         if not self.ingest_specials:
@@ -265,7 +241,7 @@ class Show(GenericProvisional, PBSMMGenericShow):
                 special.save(content_id=mm_special_data["id"])
 
         self.flip_api_pages(
-            f"{self.links.get('specials')}?platform-slug=partnerplayer",
+            f"{self.api_links.get('specials')}?platform-slug=partnerplayer",
             set_special,
         )
 

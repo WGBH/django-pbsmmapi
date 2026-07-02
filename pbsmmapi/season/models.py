@@ -14,10 +14,7 @@ from pbsmmapi.abstract.models import (
 )
 from pbsmmapi.api.api import PBSMM_SEASON_ENDPOINT
 from pbsmmapi.episode.models import Episode
-from pbsmmapi.record.models import (
-    ContentRecord,
-    PBSMMBaseRecordManager,
-)
+from pbsmmapi.record.models import PBSMMBaseRecordManager
 
 
 class PBSMMSeasonManager(PBSMMBaseRecordManager):
@@ -26,7 +23,7 @@ class PBSMMSeasonManager(PBSMMBaseRecordManager):
             super()
             .get_queryset()
             .annotate(
-                internal_links=Coalesce(
+                links=Coalesce(
                     Cast(KT("api_data__data__attributes__links"), models.JSONField()),
                     models.Value([], models.JSONField()),
                 ),
@@ -39,7 +36,6 @@ class PBSMMSeasonManager(PBSMMBaseRecordManager):
 
 class Season(GenericProvisional, PBSMMGenericSeason):
     objects = PBSMMSeasonManager()
-    Record = ContentRecord
 
     ordinal = models.PositiveIntegerField(
         _("Ordinal"),
@@ -146,7 +142,7 @@ class Season(GenericProvisional, PBSMMGenericSeason):
         Also, always ingest the Assets associated with this Season.
         """
         season = cls.objects.get(id=season_id)
-        links = season.links
+        links = season.api_links
         season.process_episodes(links.get("episodes"))
         endpoint = None
         if assets := links.get("assets"):

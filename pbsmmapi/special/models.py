@@ -12,10 +12,7 @@ from pbsmmapi.abstract.models import (
     PBSMMGenericSpecial,
 )
 from pbsmmapi.api.api import PBSMM_SPECIAL_ENDPOINT
-from pbsmmapi.record.models import (
-    ContentRecord,
-    PBSMMBaseRecordManager,
-)
+from pbsmmapi.record.models import PBSMMBaseRecordManager
 
 
 class PBSMMSpecialManager(PBSMMBaseRecordManager):
@@ -27,7 +24,7 @@ class PBSMMSpecialManager(PBSMMBaseRecordManager):
                 nola=KT("api_data__data__attributes__nola"),
                 language=KT("api_data__data__attributes__language"),
                 tms_id=KT("api_data__data__attributes__tms_id"),
-                internal_links=Coalesce(
+                links=Coalesce(
                     Cast(KT("api_data__data__attributes__links"), models.JSONField()),
                     models.Value([], models.JSONField()),
                 ),
@@ -48,7 +45,6 @@ class PBSMMSpecialManager(PBSMMBaseRecordManager):
 
 class Special(GenericProvisional, PBSMMGenericSpecial):
     objects = PBSMMSpecialManager()
-    Record = ContentRecord
 
     show = models.ForeignKey(
         "show.Show",
@@ -120,7 +116,7 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
     def post_save(cls, special_id):
         special = cls.objects.get(id=special_id)
         endpoint = None
-        if assets := special.links.get("assets"):
+        if assets := special.api_links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"
         special.process_assets(endpoint, special_id=special_id)
         special.delete_stale_assets(special_id=special_id)

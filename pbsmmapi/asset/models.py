@@ -17,10 +17,7 @@ from pbsmmapi.asset.helpers import (
     SafeTranscriptWriter,
     check_asset_availability,
 )
-from pbsmmapi.record.models import (
-    ContentRecord,
-    PBSMMBaseRecordManager,
-)
+from pbsmmapi.record.models import PBSMMBaseRecordManager
 
 AVAILABILITY_GROUPS = (
     ("Station Members", "station_members"),
@@ -110,7 +107,6 @@ class PBSMMAssetManager(PBSMMBaseRecordManager):
 
 class Asset(PBSMMGenericAsset):
     objects = PBSMMAssetManager()
-    Record = ContentRecord
 
     # Relationships
     mm_content = models.OneToOneField(
@@ -198,7 +194,7 @@ class Asset(PBSMMGenericAsset):
 
     @property
     def query_param(self):
-        return None
+        return "?platform-slug=partnerplayer"
 
     @property
     def endpoint(self):

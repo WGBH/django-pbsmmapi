@@ -6,6 +6,9 @@ from django.utils.translation import gettext_lazy as _
 
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.api.helpers import check_pagination
+from pbsmmapi.record.models import (  # this works at the moment, but it feels wrong to import it
+    ContentRecord,
+)
 
 
 class GenericObjectManagement(models.Model):
@@ -67,7 +70,6 @@ class GenericProvisional(models.Model):
 
 
 class Ingest(models.Model):
-    Record = None
 
     def __init__(self, *args, **kwargs):
         self.ingest_on_save = None
@@ -114,10 +116,12 @@ class Ingest(models.Model):
             return status
 
         content_id = json_data["data"]["id"]
-        content = self.Record.update_or_create(
+        content, _ = ContentRecord.objects.update_or_create(
             content_id=content_id,
-            last_api_status=status,
-            api_data=json_data,
+            defaults={
+                "last_api_status": status,
+                "api_data": json_data,
+            },
         )
         if self.mm_content is None:
             self._pre_save_update_fields(json_data, content)

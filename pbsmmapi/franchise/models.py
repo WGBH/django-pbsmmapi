@@ -11,10 +11,7 @@ from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import PBSMMGenericFranchise
 from pbsmmapi.api.api import PBSMM_FRANCHISE_ENDPOINT
-from pbsmmapi.record.models import (
-    ContentRecord,
-    PBSMMBaseRecordManager,
-)
+from pbsmmapi.record.models import PBSMMBaseRecordManager
 from pbsmmapi.show.models import Show
 
 
@@ -36,7 +33,7 @@ class PBSMMFranchiseManager(PBSMMBaseRecordManager):
                     KT("api_data__data__attributes__is_excluded_from_dfp"),
                     models.BooleanField(),
                 ),
-                internal_links=Coalesce(
+                links=Coalesce(
                     Cast(KT("api_data__data__attributes__links"), models.JSONField()),
                     models.Value([], models.JSONField()),
                 ),
@@ -56,7 +53,6 @@ class PBSMMFranchiseManager(PBSMMBaseRecordManager):
 
 class Franchise(PBSMMGenericFranchise):
     objects = PBSMMFranchiseManager()
-    Record = ContentRecord
 
     ingest_shows = models.BooleanField(
         _("Ingest Shows"),
@@ -111,7 +107,7 @@ class Franchise(PBSMMGenericFranchise):
             return  # run only new object or had previous api call success
 
         franchise.process_assets(
-            franchise.links.get("assets"), franchise_id=franchise_id
+            franchise.api_links.get("assets"), franchise_id=franchise_id
         )
         franchise.process_shows()
         franchise.stop_ingestion_restart()
@@ -142,7 +138,7 @@ class Franchise(PBSMMGenericFranchise):
                 show.save(content_id=mm_show_data["id"])
 
         endpoint = None
-        if shows := self.links.get("shows"):
+        if shows := self.api_links.get("shows"):
             endpoint = f"{shows}?platform-slug=partnerplayer"
         self.flip_api_pages(endpoint, set_show)
 

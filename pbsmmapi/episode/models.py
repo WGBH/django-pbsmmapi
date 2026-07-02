@@ -13,10 +13,7 @@ from pbsmmapi.abstract.models import (
     PBSMMGenericEpisode,
 )
 from pbsmmapi.api.api import PBSMM_EPISODE_ENDPOINT
-from pbsmmapi.record.models import (
-    ContentRecord,
-    PBSMMBaseRecordManager,
-)
+from pbsmmapi.record.models import PBSMMBaseRecordManager
 
 
 class PBSMMEpisodeManager(PBSMMBaseRecordManager):
@@ -27,7 +24,7 @@ class PBSMMEpisodeManager(PBSMMBaseRecordManager):
             .annotate(
                 nola=KT("api_data__data__attributes__nola"),
                 language=KT("api_data__data__attributes__language"),
-                internal_links=Coalesce(
+                links=Coalesce(
                     Cast(KT("api_data__data__attributes__links"), models.JSONField()),
                     models.Value([], models.JSONField()),
                 ),
@@ -51,7 +48,6 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
     """
 
     objects = PBSMMEpisodeManager()
-    Record = ContentRecord
 
     ordinal = models.PositiveIntegerField(
         _("Ordinal"),
@@ -161,7 +157,7 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
     def post_save(cls, episode_id):
         episode = cls.objects.get(id=episode_id)
         endpoint = None
-        if assets := episode.links.get("assets"):
+        if assets := episode.api_links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"
         episode.process_assets(
             endpoint,
