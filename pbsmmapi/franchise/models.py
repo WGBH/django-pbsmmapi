@@ -129,7 +129,7 @@ class Franchise(PBSMMGenericFranchise):
                 show.save()
             except Show.DoesNotExist:
                 show = Show(
-                    show_id=self.id,
+                    franchise_id=self.id,
                     ingest_on_save=True,
                     ingest_seasons=self.ingest_seasons,
                     ingest_specials=self.ingest_specials,
