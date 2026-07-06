@@ -105,6 +105,8 @@ class Ingest(models.Model):
         self.scraped_object_ids = []
 
     def process(self, endpoint, query_param=None):
+        if self.deleted:
+            return  # object was deleted upstream; don't refetch
         identifier = str(self.object_id or "").strip() or self.slug
         if not identifier and not self.ingest_on_save:
             return  # stop processing if we don't have clearance
@@ -257,6 +259,24 @@ class PBSMMGenericObject(
         """
         updated = getattr(self, "updated_at", None)
         return updated.strftime("%x %X") if updated else "—"
+
+    @property
+    def deleted(self):
+        """
+        Deletion timestamp from the related ContentRecord (``mm_content``),
+        set when the PBS changelog reports the object deleted upstream.
+        """
+        return self.mm_content.deleted if self.mm_content_id else None
+
+    def deleted_flag(self):
+        if self.deleted:
+            return mark_safe(
+                '<b><span style="color:#f00;">%s</span></b>'
+                % self.deleted.strftime("%Y-%m-%d %H:%M")
+            )
+        return ""
+
+    deleted_flag.short_description = "Deleted"
 
     class Meta:
         abstract = True

@@ -15,12 +15,16 @@ class PBSMMSpecialAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     model = Special
     form = PBSMMSpecialEditForm
     add_form = PBSMMSpecialCreateForm
-    list_filter = ("show__slug",)
+    list_filter = (
+        "show__slug",
+        ("mm_content__deleted", admin.EmptyFieldListFilter),
+    )
 
     list_display = (
         "pk",
         "title",
         "show",
+        "deleted_flag",
     )
     list_display_links = ("pk", "title")
     # The metadata shown here is now exposed via queryset annotations; the
@@ -36,6 +40,7 @@ class PBSMMSpecialAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     ]
     readonly_fields = [
         "date_created",
+        "deleted_flag",
         "title",
         "assemble_asset_table",
     ]
@@ -57,7 +62,7 @@ class PBSMMSpecialAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
             {
                 "fields": (
                     "ingest_on_save",
-                    ("date_created",),
+                    ("date_created", "deleted_flag"),
                 ),
             },
         ),

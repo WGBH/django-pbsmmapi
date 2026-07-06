@@ -41,6 +41,9 @@ class ChangeLog(models.Model):
     api_status = models.IntegerField(null=True)
     api_data = models.JSONField(default=dict)
 
+    # set when the latest changelog entry action is "delete"
+    deleted = models.DateTimeField(null=True)
+
     @property
     def api_url(self):
         return f"{PBSMM_BASE_URL}api/v1/{self.resource_type}s/{self.content_id}/"
@@ -72,7 +75,7 @@ class ChangeLog(models.Model):
         model = self.get_model_class()
         assert model is not None
         try:
-            return model.objects.get(object_id=self.content_id)
+            return model.objects.get(mm_content_id=self.content_id)
         except model.DoesNotExist:
             return None
 

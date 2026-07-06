@@ -32,11 +32,14 @@ class PBSMMAssetAdmin(AnnotatedReadonlyAdminMixin, admin.ModelAdmin):
     readonly_fields = [
         "asset_publicly_available",
         "date_created",
+        "deleted_flag",
         "player_code_preview",
         "slug",
         "title",
     ]
     search_fields = ("title",)
+    list_display = ("__str__", "deleted_flag")
+    list_filter = (("mm_content__deleted", admin.EmptyFieldListFilter),)
 
     # If we're viewing a record, make it pretty.
     fieldsets = [
@@ -45,7 +48,7 @@ class PBSMMAssetAdmin(AnnotatedReadonlyAdminMixin, admin.ModelAdmin):
             {
                 "fields": (
                     "ingest_on_save",
-                    ("date_created",),
+                    ("date_created", "deleted_flag"),
                 ),
             },
         ),

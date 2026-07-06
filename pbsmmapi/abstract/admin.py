@@ -2,6 +2,9 @@ from django.contrib import admin
 from django.contrib.admin import site
 from django.utils.safestring import mark_safe
 
+from pbsmmapi.changelog.models import ChangeLog
+from pbsmmapi.record.models import ContentRecord
+
 # This removed the delete function from the Admin action dropdown.
 # You can 're-add' it, if necessary, by explicitly adding it to the
 # actions parameter for a given ModelAdmin instance.
@@ -57,6 +60,14 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
     def force_reingest(self, request, queryset):
         # queryset is the list of Asset items that were selected.
         for item in queryset:
+            # explicit human override: un-delete so save() re-ingests
+            if item.mm_content_id:
+                ContentRecord.objects.filter(pk=item.mm_content_id).update(
+                    deleted=None
+                )
+                ChangeLog.objects.filter(content_id=item.mm_content_id).update(
+                    deleted=None
+                )
             item.ingest_on_save = True
             # HOW DO I FIND OUT IF THE save() was successful?
             item.save()

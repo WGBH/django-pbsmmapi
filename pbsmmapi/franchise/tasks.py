@@ -11,6 +11,8 @@ def scrape_media_manager_franchises():
     for slug in franchise_slugs:
         try:
             franchise = Franchise.objects.get(slug=slug)
+            if franchise.deleted:  # deleted upstream, don't resurrect
+                continue
             if franchise.shows.exists():  # already ingested
                 continue
         except Franchise.DoesNotExist:
