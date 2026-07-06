@@ -19,6 +19,8 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
     def force_reingest(self, request, queryset):
         # queryset is the list of Asset items that were selected.
         for item in queryset:
+            # explicit human override: un-delete so save() re-ingests
+            item.deleted = None
             item.ingest_on_save = True
             # HOW DO I FIND OUT IF THE save() was successful?
             item.save()

@@ -20,8 +20,10 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
         "title_sortable",
         "date_last_api_update",
         "last_api_status_color",
+        "deleted_flag",
     )
     list_display_links = ("pk", "slug", "object_id")
+    list_filter = (("deleted", admin.EmptyFieldListFilter),)
     readonly_fields = [
         "api_endpoint",
         "api_endpoint_link",
@@ -30,6 +32,7 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
         "can_embed_player",
         "date_created",
         "date_last_api_update",
+        "deleted",
         "description_long",
         "description_short",
         "display_episode_number",
@@ -84,7 +87,12 @@ class PBSMMShowAdmin(PBSMMAbstractAdmin):
                         "date_created",
                         "api_endpoint_link",
                     ),
-                    ("date_last_api_update", "updated_at", "last_api_status_color"),
+                    (
+                        "date_last_api_update",
+                        "updated_at",
+                        "last_api_status_color",
+                        "deleted",
+                    ),
                 ),
             },
         ),

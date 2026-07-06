@@ -7,6 +7,14 @@ from pbsmmapi.asset.models import Asset
 class PBSMMAssetAdmin(admin.ModelAdmin):
     model = Asset
 
+    list_display = (
+        "__str__",
+        "date_last_api_update",
+        "last_api_status_color",
+        "deleted_flag",
+    )
+    list_filter = (("deleted", admin.EmptyFieldListFilter),)
+
     # Why so many readonly_fields?  Because we don't want to override what's
     # coming from the API, but we do want to be able to view it in the context
     # of the Django system.
@@ -21,6 +29,7 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
         "content_rating_description",
         "date_created",
         "date_last_api_update",
+        "deleted",
         "description_long",
         "description_short",
         "duration",
@@ -56,6 +65,7 @@ class PBSMMAssetAdmin(admin.ModelAdmin):
                         "date_last_api_update",
                         "updated_at",
                         "last_api_status_color",
+                        "deleted",
                     ),
                     "api_endpoint_link",
                     ("object_id", "legacy_tp_media_id"),

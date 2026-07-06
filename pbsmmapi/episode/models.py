@@ -123,7 +123,7 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         db_table = "pbsmm_episode"
 
     def save(self, *args, **kwargs):
-        skip_ingest = kwargs.pop("skip_ingest", False)
+        skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
         if skip_ingest:
             super().save(*args, **kwargs)
         else:

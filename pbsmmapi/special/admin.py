@@ -12,7 +12,10 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
     model = Special
     form = PBSMMSpecialEditForm
     add_form = PBSMMSpecialCreateForm
-    list_filter = ("show__slug",)
+    list_filter = (
+        "show__slug",
+        ("deleted", admin.EmptyFieldListFilter),
+    )
 
     list_display = (
         "pk",
@@ -21,6 +24,7 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
         "premiered_on",
         "date_last_api_update",
         "last_api_status_color",
+        "deleted_flag",
     )
     list_display_links = ("pk", "title_sortable")
     # Why so many readonly_fields?  Because we don't want to override what's
@@ -31,6 +35,7 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
     readonly_fields = [
         "date_created",
         "date_last_api_update",
+        "deleted",
         "last_api_status",
         "api_endpoint_link",
         "last_api_status_color",
@@ -68,6 +73,7 @@ class PBSMMSpecialAdmin(PBSMMAbstractAdmin):
                         "date_last_api_update",
                         "updated_at",
                         "last_api_status_color",
+                        "deleted",
                     ),
                     "object_id",
                 ),

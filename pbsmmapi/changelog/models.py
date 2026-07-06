@@ -41,6 +41,9 @@ class ChangeLog(models.Model):
     api_status = models.IntegerField(null=True)
     api_data = models.JSONField(default=dict)
 
+    # set when the latest changelog entry action is "delete"
+    deleted = models.DateTimeField(null=True)
+
     @property
     def api_url(self):
         return f"{PBSMM_BASE_URL}api/v1/{self.resource_type}s/{self.content_id}/"

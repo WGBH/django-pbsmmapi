@@ -15,6 +15,8 @@ from django.db.models import (
     Exists,
     F,
     OuterRef,
+    Q,
+    QuerySet,
 )
 from django.db.models.lookups import LessThan
 from huey import crontab
@@ -72,6 +74,124 @@ def prep_changelog_data(entries: Iterable[dict]) -> dict:
     return combined
 
 
+def parse_changelog_timestamp(timestamp: str) -> datetime:
+    return datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+
+
+def latest_changelog_entry(log: ChangeLog) -> tuple[str | None, dict | None]:
+    timestamp = max(log.entries.keys(), default=None)
+    if timestamp is None:
+        return None, None
+    return timestamp, log.entries[timestamp]
+
+
+def descendant_querysets(resource_type: str, content_id) -> list[QuerySet]:
+    """
+    Querysets of every object that becomes unreachable in the API when the
+    given object is deleted.
+    """
+    if resource_type == "franchise":
+        return [
+            Show.objects.filter(franchise__object_id=content_id),
+            Season.objects.filter(show__franchise__object_id=content_id),
+            Episode.objects.filter(season__show__franchise__object_id=content_id),
+            Special.objects.filter(show__franchise__object_id=content_id),
+            Asset.objects.filter(
+                Q(franchise__object_id=content_id)
+                | Q(show__franchise__object_id=content_id)
+                | Q(season__show__franchise__object_id=content_id)
+                | Q(episode__season__show__franchise__object_id=content_id)
+                | Q(special__show__franchise__object_id=content_id)
+            ),
+        ]
+    if resource_type == "show":
+        return [
+            Season.objects.filter(show__object_id=content_id),
+            Episode.objects.filter(season__show__object_id=content_id),
+            Special.objects.filter(show__object_id=content_id),
+            Asset.objects.filter(
+                Q(show__object_id=content_id)
+                | Q(season__show__object_id=content_id)
+                | Q(episode__season__show__object_id=content_id)
+                | Q(special__show__object_id=content_id)
+            ),
+        ]
+    if resource_type == "season":
+        return [
+            Episode.objects.filter(season__object_id=content_id),
+            Asset.objects.filter(
+                Q(season__object_id=content_id)
+                | Q(episode__season__object_id=content_id)
+            ),
+        ]
+    if resource_type == "episode":
+        return [Asset.objects.filter(episode__object_id=content_id)]
+    if resource_type == "special":
+        return [Asset.objects.filter(special__object_id=content_id)]
+    return []
+
+
+def mark_deleted(log: ChangeLog, deleted_at: datetime):
+    """
+    Mark the object, its descendants, and the ChangeLog itself deleted.
+
+    Invariant: all three levels carry the timestamp of the *first* delete.
+    Every write below only touches rows that aren't marked yet, so a repeated
+    delete entry (with no restore in between) is a no-op and never advances
+    the recorded timestamp. That keeps the ChangeLog and the cascade-marked
+    descendants in agreement, which is what clear_deleted's exact-timestamp
+    match relies on — and it preserves the own (earlier) timestamp of a
+    descendant that was individually deleted before its parent.
+
+    Everything uses queryset .update(): no save()/ingest side effects, and
+    auto_now on date_last_api_update stays untouched so a later un-delete
+    still triggers reingest.
+    """
+    model = log.get_model_class()
+    if model is not None:
+        model.objects.filter(
+            object_id=log.content_id,
+            deleted__isnull=True,
+        ).update(deleted=deleted_at)
+    for queryset in descendant_querysets(log.resource_type, log.content_id):
+        queryset.filter(deleted__isnull=True).update(deleted=deleted_at)
+    if log.deleted is None:
+        ChangeLog.objects.filter(pk=log.pk).update(deleted=deleted_at)
+
+
+def clear_deleted(log: ChangeLog):
+    """
+    Un-delete after a changelog entry newer than the delete: clear the object
+    itself unconditionally, but clear descendants only where their timestamp
+    exactly matches this object's recorded delete timestamp — i.e. only the
+    rows mark_deleted cascaded to. A descendant deleted by its own changelog
+    entry carries a different timestamp and stays deleted; a parent's restore
+    must not resurrect it.
+    """
+    previous = log.deleted
+    model = log.get_model_class()
+    if model is not None:
+        model.objects.filter(object_id=log.content_id).update(deleted=None)
+    for queryset in descendant_querysets(log.resource_type, log.content_id):
+        queryset.filter(deleted=previous).update(deleted=None)
+    ChangeLog.objects.filter(pk=log.pk).update(deleted=None)
+
+
+def sync_deleted_state(log: ChangeLog):
+    """
+    Mark the object (and its descendants) deleted when the latest changelog
+    entry action is "delete"; clear the mark when a newer entry supersedes
+    the delete. Idempotent.
+    """
+    timestamp, entry = latest_changelog_entry(log)
+    if entry is None:
+        return
+    if entry.get("action") == "delete":
+        mark_deleted(log, parse_changelog_timestamp(timestamp))
+    elif log.deleted:
+        clear_deleted(log)
+
+
 @db_task(retries=3)
 def save_changelog_entries(combined: dict):
     """
@@ -89,6 +209,7 @@ def save_changelog_entries(combined: dict):
         for timestamp, entry in data["changelogs"].items():
             log.entries[timestamp] = entry
         log.save()
+        sync_deleted_state(log)
 
 
 @task(retries=3, retry_delay=10)
@@ -191,19 +312,24 @@ def reingest_updated_objects():
     """
     querysets = [
         Franchise.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id"))),
+            deleted__isnull=True,
         ),
         Show.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id"))),
+            deleted__isnull=True,
         ),
         Special.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id"))),
+            deleted__isnull=True,
         ),
         Season.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id"))),
+            deleted__isnull=True,
         ),
         Episode.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id"))),
+            deleted__isnull=True,
         ),
     ]
     for queryset in querysets:
@@ -213,7 +339,8 @@ def reingest_updated_objects():
                 item.ingest_on_save = True
                 item.save()
     for item in Asset.objects.filter(
-        Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id")))
+        Exists(ChangeLog.objects.filter(content_id=OuterRef("object_id"))),
+        deleted__isnull=True,
     ):
         changelog = ChangeLog.objects.get(content_id=item.object_id)
         if changelog.latest_timestamp > item.date_last_api_update:
@@ -224,9 +351,13 @@ def reingest_updated_objects():
 
     # Under some circumstances, an Asset can be updated without the change
     # being reflected by the parent object's ChangeLog.
-    for item in AssetChangeLog.objects.filter(ingested=False, api_status=200):
+    for item in AssetChangeLog.objects.filter(
+        ingested=False,
+        api_status=200,
+        deleted__isnull=True,
+    ):
         parent = item.get_parent_instance()
-        if parent is not None:
+        if parent is not None and not parent.deleted:
             parent.ingest_on_save = True
             parent.save()
 
@@ -241,7 +372,10 @@ def realize_provisional_objects():
     realized_shows = []
     for show in Show.objects.filter(provisional=True):
         try:
-            changelog = ShowChangeLog.objects.get(title=show.title)
+            changelog = ShowChangeLog.objects.get(
+                title=show.title,
+                deleted__isnull=True,
+            )
             realized_show = Show.realize(changelog.api_data)
             realized_shows.append(realized_show)
         except ShowChangeLog.DoesNotExist:
@@ -253,6 +387,7 @@ def realize_provisional_objects():
             changelog = SeasonChangeLog.objects.get(
                 show_id=season.show_api_id,
                 ordinal=season.ordinal,
+                deleted__isnull=True,
             )
             realized_season = Season.realize(changelog.api_data)
             realized_seasons.append(realized_season)
@@ -264,6 +399,7 @@ def realize_provisional_objects():
             changelog = EpisodeChangeLog.objects.get(
                 season_id=episode.season_api_id,
                 ordinal=episode.ordinal,
+                deleted__isnull=True,
             )
             Episode.realize(changelog.api_data)
         except EpisodeChangeLog.DoesNotExist:
@@ -276,6 +412,7 @@ def realize_provisional_objects():
             changelog = SpecialChangeLog.objects.get(
                 show_id=special.show_api_id,
                 title=special.title,
+                deleted__isnull=True,
             )
             Special.realize(changelog.api_data)
 
@@ -301,10 +438,11 @@ def get_changelog_data(limit: int):
     need to fetch the API data in order to determine whether to ingest
     the object.
     """
-    # for changelogs without API data
+    # for changelogs without API data (deleted objects would 404)
     logs = ChangeLog.objects.filter(
         api_status__isnull=True,
         ingested=False,
+        deleted__isnull=True,
     )
     if logs.count() > limit:
         logs = logs[:limit]
@@ -319,6 +457,7 @@ def get_changelog_data(limit: int):
     asset_logs = AssetChangeLog.objects.filter(
         ingested=True,
         api_status__isnull=True,
+        deleted__isnull=True,
     )
     if asset_logs.count() > limit:
         asset_logs = asset_logs[:limit]
@@ -332,6 +471,7 @@ def get_changelog_data(limit: int):
     if limit > 0:
         logs = ChangeLog.objects.filter(
             api_status__in=[403, 404],
+            deleted__isnull=True,
         ).filter(
             LessThan(
                 F("api_crawled"),

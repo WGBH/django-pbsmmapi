@@ -19,9 +19,13 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
         "full_episode_code",
         "date_last_api_update",
         "last_api_status_color",
+        "deleted_flag",
     )
     list_display_links = ("pk", "title_sortable")
-    list_filter = ("season__show__title_sortable",)
+    list_filter = (
+        "season__show__title_sortable",
+        ("deleted", admin.EmptyFieldListFilter),
+    )
     # Why so many readonly_fields?  Because we don't want to override what's
     # coming from the API, but we do want to be able to view it in the context
     # of the Django system.
@@ -32,6 +36,7 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
         "assemble_asset_table",
         "date_created",
         "date_last_api_update",
+        "deleted",
         "description_long",
         "description_short",
         "encored_on",
@@ -66,7 +71,12 @@ class PBSMMEpisodeAdmin(PBSMMAbstractAdmin):
             {
                 "fields": (
                     ("object_id", "date_created"),
-                    ("date_last_api_update", "updated_at", "last_api_status_color"),
+                    (
+                        "date_last_api_update",
+                        "updated_at",
+                        "last_api_status_color",
+                        "deleted",
+                    ),
                 ),
             },
         ),

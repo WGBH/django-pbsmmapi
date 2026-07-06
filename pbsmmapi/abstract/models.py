@@ -31,6 +31,12 @@ class GenericObjectManagement(models.Model):
         null=True,
         blank=True,
     )
+    deleted = models.DateTimeField(
+        _("Deleted"),
+        null=True,
+        blank=True,
+        help_text="Set from the PBS changelog timestamp when the object was deleted upstream.",
+    )
     json = models.JSONField(
         _("JSON"),
         default=dict,
@@ -47,6 +53,16 @@ class GenericObjectManagement(models.Model):
         return mark_safe(self.last_api_status)
 
     last_api_status_color.short_description = "Status"
+
+    def deleted_flag(self):
+        if self.deleted:
+            return mark_safe(
+                '<b><span style="color:#f00;">%s</span></b>'
+                % self.deleted.strftime("%Y-%m-%d %H:%M")
+            )
+        return ""
+
+    deleted_flag.short_description = "Deleted"
 
     class Meta:
         abstract = True
@@ -392,6 +408,8 @@ class Ingest(models.Model):
         self.scraped_object_ids = []
 
     def process(self, endpoint, query_param=None):
+        if self.deleted:
+            return  # object was deleted upstream; don't refetch
         identifier = str(self.object_id or "").strip() or self.slug
         if not identifier and not self.ingest_on_save:
             return  # stop processing if we don't have clearance
