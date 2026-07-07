@@ -13,6 +13,7 @@ from pbsmmapi.asset.models import Asset
 from pbsmmapi.changelog.models import ChangeLog
 from pbsmmapi.changelog.tasks import (
     get_changelog_data,
+    mark_deleted,
     parse_changelog_timestamp,
     reingest_updated_objects,
     save_changelog_entries,
@@ -166,6 +167,20 @@ class ChangelogDeletedTestCase(TestCase):
         )
         sync_deleted_state(log)
         self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T4))
+
+    def test_repeated_delete_on_stale_instance_keeps_first_timestamp(self):
+        self.make_show()
+        log = make_changelog(SHOW_ID, {T1: "delete"})
+        sync_deleted_state(log)
+        # mark_deleted wrote via .update(), so the in-memory instance is now
+        # stale (log.deleted is still None). A repeated delete arriving
+        # through a stale instance must not advance any recorded timestamp.
+        self.assertIsNone(log.deleted)
+        mark_deleted(log, parse_changelog_timestamp(T2))
+
+        self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T1))
+        log.refresh_from_db()
+        self.assertEqual(log.deleted, parse_changelog_timestamp(T1))
 
     def test_missing_object_marks_changelog_only(self):
         log = make_changelog(SHOW_ID, {T1: "delete"})

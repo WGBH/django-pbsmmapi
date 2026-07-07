@@ -153,9 +153,10 @@ def mark_deleted(log: ChangeLog, deleted_at: datetime):
     match relies on — and it preserves the own (earlier) timestamp of a
     descendant that was individually deleted before its parent.
 
-    Everything uses queryset .update(): no save()/ingest side effects.
-    A descendant whose ``mm_content`` is NULL has no record to mark and is
-    skipped (nothing populates ContentRecord at runtime yet).
+    Everything uses queryset .update() with the guard in the WHERE clause:
+    no save()/ingest side effects, and correct even when the caller holds a
+    stale instance or runs concurrently. A descendant whose ``mm_content``
+    is NULL has no record to mark and is skipped.
     """
     ContentRecord.objects.filter(
         pk=log.content_id,
@@ -166,8 +167,10 @@ def mark_deleted(log: ChangeLog, deleted_at: datetime):
             pk__in=descendant_record_ids(queryset),
             deleted__isnull=True,
         ).update(deleted=deleted_at)
-    if log.deleted is None:
-        ChangeLog.objects.filter(pk=log.pk).update(deleted=deleted_at)
+    ChangeLog.objects.filter(
+        pk=log.pk,
+        deleted__isnull=True,
+    ).update(deleted=deleted_at)
 
 
 def clear_deleted(log: ChangeLog):
@@ -178,8 +181,15 @@ def clear_deleted(log: ChangeLog):
     timestamp — i.e. only the rows mark_deleted cascaded to. A descendant
     deleted by its own changelog entry carries a different timestamp and
     stays deleted; a parent's restore must not resurrect it.
+
+    The reference timestamp is read from the DB row, not the possibly stale
+    in-memory instance (all delete bookkeeping is written via .update()).
     """
-    previous = log.deleted
+    previous = (
+        ChangeLog.objects.filter(pk=log.pk).values_list("deleted", flat=True).first()
+    )
+    if previous is None:
+        return
     ContentRecord.objects.filter(pk=log.content_id).update(deleted=None)
     for queryset in descendant_querysets(log.resource_type, log.content_id):
         ContentRecord.objects.filter(
@@ -200,7 +210,7 @@ def sync_deleted_state(log: ChangeLog):
         return
     if entry.get("action") == "delete":
         mark_deleted(log, parse_changelog_timestamp(timestamp))
-    elif log.deleted:
+    elif ChangeLog.objects.filter(pk=log.pk, deleted__isnull=False).exists():
         clear_deleted(log)
 
 

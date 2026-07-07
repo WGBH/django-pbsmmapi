@@ -16,6 +16,14 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="changelog",
             name="deleted",
-            field=models.DateTimeField(null=True),
+            field=models.DateTimeField(
+                blank=True,
+                help_text=(
+                    "Set from the entry timestamp when the latest changelog"
+                    " action is 'delete'."
+                ),
+                null=True,
+                verbose_name="Deleted",
+            ),
         ),
     ]

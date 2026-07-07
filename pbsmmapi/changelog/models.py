@@ -41,8 +41,12 @@ class ChangeLog(models.Model):
     api_status = models.IntegerField(null=True)
     api_data = models.JSONField(default=dict)
 
-    # set when the latest changelog entry action is "delete"
-    deleted = models.DateTimeField(null=True)
+    deleted = models.DateTimeField(
+        _("Deleted"),
+        null=True,
+        blank=True,
+        help_text="Set from the entry timestamp when the latest changelog action is 'delete'.",
+    )
 
     @property
     def api_url(self):
