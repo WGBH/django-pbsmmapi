@@ -2,17 +2,20 @@ from http import HTTPStatus
 
 from django.db import models
 from django.db.models.fields.json import KT
-from django.db.models.functions import Cast
+from django.db.models.functions import (
+    Cast,
+    Coalesce,
+)
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
     GenericProvisional,
-    PBSMMBaseRecordManager,
     PBSMMGenericShow,
 )
 from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
+from pbsmmapi.record.models import PBSMMBaseRecordManager
 from pbsmmapi.season.models import Season
 from pbsmmapi.special.models import Special
 
@@ -41,12 +44,19 @@ class PBSMMShowManager(PBSMMBaseRecordManager):
                     models.BooleanField(),
                 ),
                 language=KT("api_data__data__attributes__language"),
-                genre=Cast(KT("api_data__data__attributes__genre"), models.JSONField()),
-                internal_links=Cast(
-                    KT("api_data__data__attributes__links"), models.JSONField()
+                genre=Coalesce(
+                    Cast(KT("api_data__data__attributes__genre"), models.JSONField()),
+                    models.Value({}, models.JSONField()),
                 ),
-                audience=Cast(
-                    KT("api_data__data__attributes__audience"), models.JSONField()
+                links=Coalesce(
+                    Cast(KT("api_data__data__attributes__links"), models.JSONField()),
+                    models.Value([], models.JSONField()),
+                ),
+                audience=Coalesce(
+                    Cast(
+                        KT("api_data__data__attributes__audience"), models.JSONField()
+                    ),
+                    models.Value([], models.JSONField()),
                 ),
                 sort_episodes_descending=Cast(
                     KT("api_data__data__attributes__sort_episodes_descending"),
@@ -56,8 +66,11 @@ class PBSMMShowManager(PBSMMBaseRecordManager):
                     KT("api_data__data__attributes__display_episode_number"),
                     models.BooleanField(),
                 ),
-                platforms=Cast(
-                    KT("api_data__data__attributes__platforms"), models.JSONField()
+                platforms=Coalesce(
+                    Cast(
+                        KT("api_data__data__attributes__platforms"), models.JSONField()
+                    ),
+                    models.Value([], models.JSONField()),
                 ),
                 franchise_content_id=Cast(
                     KT("api_data__data__attributes__franchise__id"), models.UUIDField()
@@ -140,43 +153,44 @@ class Show(GenericProvisional, PBSMMGenericShow):
         except cls.DoesNotExist:
             return None
 
+    @property
+    def query_param(self):
+        return "?platform-slug=partnerplayer"
+
+    @property
+    def endpoint(self):
+        return PBSMM_SHOW_ENDPOINT
+
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
+        content_id = kwargs.pop("content_id", None)
         if skip_ingest:
             super().save(*args, **kwargs)
         else:
-            self.pre_save()
+            status = self.pre_save(content_id)
             super().save(*args, **kwargs)
-            self.post_save(self.id)
+            self.post_save(self.id, status)
 
-    def pre_save(self):
-        attrs = self.process(PBSMM_SHOW_ENDPOINT, "?platform-slug=partnerplayer")
-        if not attrs:
-            return
-        self.ga_page = attrs.get("tracking_ga_page")
-        self.ga_event = attrs.get("tracking_ga_event")
-        self.episode_count = attrs.get("episodes_count")
-
-    @staticmethod
+    @classmethod
     @db_task()
-    def post_save(show_id):
-        show = Show.objects.get(id=show_id)
-        if int(show.last_api_status or 200) != HTTPStatus.OK:
+    def post_save(cls, show_id, status):
+        if status != HTTPStatus.OK:
             return  # run only new object or had previous api call success
+        show = cls.objects.get(id=show_id)
         endpoint = None
-        if assets := show.json["links"].get("assets"):
+        if assets := show.api_links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"
         show.process_assets(endpoint, show_id=show_id)
         show.process_seasons()
         show.process_specials()
-        show.delete_stale_assets(show_id=show_id)
+        # show.delete_stale_assets(show_id=show_id)
         show.stop_ingestion_restart()
 
     def process_seasons(self):
         if not self.ingest_seasons:
             return
 
-        def set_season(season: dict, _):
+        def set_season(mm_season_data: dict, _):
             # Realize any provisional Season for this ordinal first so its
             # object_id is set; otherwise update_or_create() keyed on object_id
             # would create a duplicate and later changelog realization would
@@ -184,43 +198,50 @@ class Show(GenericProvisional, PBSMMGenericShow):
             # Promote without ingesting (skip_ingest=True) and let the
             # update_or_create() below run the single ingest pass with the
             # correct ingest flags.
-            attributes = season.setdefault("attributes", {})
-            show_ref = {"id": str(self.object_id)}
-            attributes.setdefault("show", show_ref)
-            Season.realize({"data": season}, skip_ingest=True)
-            Season.objects.update_or_create(
-                defaults=dict(
+            # attributes = season.setdefault("attributes", {})
+            # show_ref = {"id": str(self.object_id)}
+            # attributes.setdefault("show", show_ref)
+            # Season.realize({"data": season}, skip_ingest=True)
+            try:
+                season = Season.objects.get(content_id=mm_season_data["id"])
+                season.save()
+            except Season.DoesNotExist:
+                season = Season(
                     show_id=self.id,
+                    ingest_on_save=True,
                     ingest_episodes=self.ingest_episodes,
-                    show_api_id=self.object_id,
-                ),
-                object_id=season["id"],
-            )
+                )
+                season.save(content_id=mm_season_data["id"])
 
-        self.flip_api_pages(self.json["links"].get("seasons"), set_season)
+        self.flip_api_pages(self.api_links.get("seasons"), set_season)
 
     def process_specials(self):
         if not self.ingest_specials:
             return
 
-        def set_special(special: dict, _):
+        def set_special(mm_special_data: dict, _):
             # Realize any provisional Special with this title first so its
             # object_id is set; otherwise update_or_create() keyed on object_id
             # would create a duplicate and later changelog realization would
             # raise an IntegrityError on the unique object_id constraint.
             # Promote without ingesting (skip_ingest=True) and let the
             # update_or_create() below run the single ingest pass.
-            attributes = special.setdefault("attributes", {})
-            show_ref = {"id": str(self.object_id)}
-            attributes.setdefault("show", show_ref)
-            Special.realize({"data": special}, skip_ingest=True)
-            Special.objects.update_or_create(
-                defaults=dict(show_id=self.id, ingest_on_save=True),
-                object_id=special["id"],
-            )
+            # attributes = special.setdefault("attributes", {})
+            # show_ref = {"id": str(self.content_id)}
+            # attributes.setdefault("show", show_ref)
+            # Special.realize({"data": special}, skip_ingest=True)
+            try:
+                special = Special.objects.get(content_id=mm_special_data["id"])
+                special.save()
+            except Special.DoesNotExist:
+                special = Special(
+                    show_id=self.id,
+                    ingest_on_save=True,
+                )
+                special.save(content_id=mm_special_data["id"])
 
         self.flip_api_pages(
-            f"{self.json['links'].get('specials')}?platform-slug=partnerplayer",
+            f"{self.api_links.get('specials')}?platform-slug=partnerplayer",
             set_special,
         )
 

@@ -10,6 +10,8 @@ PBSMM_SHOW_ENDPOINT = f"{PBSMM_BASE_URL}api/v1/shows/"
 PBSMM_SEASON_ENDPOINT = f"{PBSMM_BASE_URL}api/v1/seasons/"
 PBSMM_EPISODE_ENDPOINT = f"{PBSMM_BASE_URL}api/v1/episodes/"
 PBSMM_SPECIAL_ENDPOINT = f"{PBSMM_BASE_URL}api/v1/specials/"
+PBSMM_ASSET_ENDPOINT = f"{PBSMM_BASE_URL}api/v1/assets/"
+PBSMM_LEGACY_ASSET_ENDPOINT = f"{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id="
 
 
 def get_PBSMM_record(url: str) -> tuple[int, dict]:
