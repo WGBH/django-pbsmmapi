@@ -58,13 +58,6 @@ class GenericProvisional(models.Model):
         default=False,
     )
 
-    @classmethod
-    def realize(cls, data: dict):
-        """
-        Class method to be called from the Huey task processing ChangeLog objects
-        """
-        raise NotImplementedError
-
     class Meta:
         abstract = True
 

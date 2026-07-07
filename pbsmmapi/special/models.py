@@ -60,20 +60,6 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
         on_delete=models.SET_NULL,
     )
 
-    @classmethod
-    def realize(cls, data: dict, skip_ingest: bool = False):
-        try:
-            special = cls.objects.get(
-                show_api_id=data["data"]["attributes"]["show"]["id"],
-                title=data["data"]["attributes"]["title"],
-                provisional=True,
-            )
-            special.object_id = data["data"]["id"]
-            special.provisional = False
-            special.save(skip_ingest=skip_ingest)
-        except cls.DoesNotExist:
-            return
-
     @property
     def nola_code(self):
         if self.nola is None or self.nola == "":

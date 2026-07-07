@@ -69,20 +69,6 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         on_delete=models.SET_NULL,
     )
 
-    @classmethod
-    def realize(cls, data: dict, skip_ingest: bool = False):
-        try:
-            episode = cls.objects.get(
-                season_api_id=data["data"]["attributes"]["season"]["id"],
-                ordinal=data["data"]["attributes"]["ordinal"],
-                provisional=True,
-            )
-            episode.object_id = data["data"]["id"]
-            episode.provisional = False
-            episode.save(skip_ingest=skip_ingest)
-        except cls.DoesNotExist:
-            return
-
     @property
     def full_episode_code(self):
         """

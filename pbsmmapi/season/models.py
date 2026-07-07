@@ -14,7 +14,9 @@ from pbsmmapi.abstract.models import (
 )
 from pbsmmapi.api.api import PBSMM_SEASON_ENDPOINT
 from pbsmmapi.episode.models import Episode
-from pbsmmapi.record.models import PBSMMBaseRecordManager
+from pbsmmapi.record.models import (
+    PBSMMBaseRecordManager,
+)
 
 
 class PBSMMSeasonManager(PBSMMBaseRecordManager):
@@ -79,27 +81,6 @@ class Season(GenericProvisional, PBSMMGenericSeason):
         out += "\n\t<td>%s</td>" % self.last_updated_display()
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
         return mark_safe(out)
-
-    @classmethod
-    def realize(cls, data: dict, skip_ingest: bool = False):
-        try:
-            season = cls.objects.get(
-                show_api_id=data["data"]["attributes"]["show"]["id"],
-                ordinal=data["data"]["attributes"]["ordinal"],
-                provisional=True,
-            )
-            object_id = data["data"]["id"]
-            season.object_id = object_id
-            season.provisional = False
-            season.save(skip_ingest=skip_ingest)
-            Episode.objects.filter(
-                provisional=True,
-                season=season,
-                season_api_id__isnull=True,
-            ).update(season_api_id=object_id)
-            return season
-        except cls.DoesNotExist:
-            return
 
     @property
     def printable_title(self):

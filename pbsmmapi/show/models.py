@@ -15,7 +15,9 @@ from pbsmmapi.abstract.models import (
     PBSMMGenericShow,
 )
 from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
-from pbsmmapi.record.models import PBSMMBaseRecordManager
+from pbsmmapi.record.models import (
+    PBSMMBaseRecordManager,
+)
 from pbsmmapi.season.models import Season
 from pbsmmapi.special.models import Special
 
@@ -102,12 +104,6 @@ class Show(GenericProvisional, PBSMMGenericShow):
         help_text="Also ingest all Episodes (for each Season)",
     )
 
-    # This is the parental Franchise
-    franchise_api_id = models.UUIDField(
-        _("Franchise Object ID"),
-        null=True,
-        blank=True,
-    )
     franchise = models.ForeignKey(
         "franchise.Franchise",
         related_name="shows",
@@ -127,31 +123,6 @@ class Show(GenericProvisional, PBSMMGenericShow):
         blank=True,
         on_delete=models.SET_NULL,
     )
-
-    @classmethod
-    def realize(cls, data: dict, skip_ingest: bool = False):
-        try:
-            show = cls.objects.get(
-                title=data["data"]["attributes"]["title"],
-                provisional=True,
-            )
-            object_id = data["data"]["id"]
-            show.object_id = object_id
-            show.provisional = False
-            show.save(skip_ingest=skip_ingest)
-            Season.objects.filter(
-                provisional=True,
-                show=show,
-                show_api_id__isnull=True,
-            ).update(show_api_id=object_id)
-            Special.objects.filter(
-                provisional=True,
-                show=show,
-                show_api_id__isnull=True,
-            ).update(show_api_id=object_id)
-            return show
-        except cls.DoesNotExist:
-            return None
 
     @property
     def query_param(self):
