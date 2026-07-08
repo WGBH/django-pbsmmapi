@@ -10,9 +10,7 @@ import django.db.models.deletion
 def update_changelogs(apps, schema_editor):
     ChangeLog = apps.get_model("changelog", "ChangeLog")
     ContentRecord = apps.get_model("record", "ContentRecord")
-    content_record_ids = [
-        content_record.content_id for content_record in ContentRecord.objects.all()
-    ]
+    content_record_ids = ContentRecord.objects.values_list("content_id", flat=True)
     ChangeLog.objects.filter(object_id__in=content_record_ids).update(
         mm_content_id=models.F("object_id")
     )

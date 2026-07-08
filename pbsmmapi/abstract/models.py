@@ -58,6 +58,13 @@ class GenericProvisional(models.Model):
         default=False,
     )
 
+    @classmethod
+    def realize(cls, data: dict, parent_id: int):
+        """
+        Method to call on child instances when the parent processes a list of children during ingest
+        """
+        raise NotImplementedError
+
     class Meta:
         abstract = True
 

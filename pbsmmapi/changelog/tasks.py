@@ -235,7 +235,7 @@ def realize_provisional_objects():
     ):
         try:
             changelog = SpecialChangeLog.objects.get(
-                show_content_id=special.show_api_id,
+                show_content_id=special.show_content_id,
                 title=special.title,
             )
             special.mm_content = changelog.mm_content

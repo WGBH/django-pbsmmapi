@@ -68,6 +68,20 @@ class Season(GenericProvisional, PBSMMGenericSeason):
         on_delete=models.SET_NULL,
     )
 
+    @classmethod
+    def realize(cls, data: dict, parent_id: int):
+        try:
+            season = cls.objects.get(
+                show_id=parent_id,
+                ordinal=data["attributes"]["ordinal"],
+                provisional=True,
+            )
+            season.provisional = False
+            season.save(content_id=data["id"])
+            return season
+        except cls.DoesNotExist:
+            return None
+
     def create_table_line(self):
         this_title = "Season %d: %s" % (self.ordinal, self.title)
         out = '<tr style="background-color: #ddd;">'
@@ -137,25 +151,17 @@ class Season(GenericProvisional, PBSMMGenericSeason):
             return
 
         def set_episode(mm_episode_data: dict, _):
-            # If a provisional Episode exists for this ordinal, realize it first
-            # so its object_id is set. Otherwise the get_or_create() below would
-            # create a duplicate and later changelog realization would raise an
-            # IntegrityError on the unique object_id constraint. Promote without
-            # ingesting (skip_ingest=True); the save() below runs the single
-            # ingest pass.
-            # attributes = episode.setdefault("attributes", {})
-            # season_ref = {"id": str(self.object_id)}
-            # attributes.setdefault("season", season_ref)
-            # Episode.realize({"data": episode}, skip_ingest=True)
             try:
                 episode = Episode.objects.get(content_id=mm_episode_data["id"])
                 episode.save()
             except Episode.DoesNotExist:
-                episode = Episode(
-                    season_id=self.id,
-                    ingest_on_save=True,
-                )
-                episode.save(content_id=mm_episode_data["id"])
+                episode = Episode.realize(mm_episode_data, self.id)
+                if episode is None:
+                    episode = Episode(
+                        season_id=self.id,
+                        ingest_on_save=True,
+                    )
+                    episode.save(content_id=mm_episode_data["id"])
 
         self.flip_api_pages(endpoint, set_episode)
 

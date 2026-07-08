@@ -124,6 +124,20 @@ class Show(GenericProvisional, PBSMMGenericShow):
         on_delete=models.SET_NULL,
     )
 
+    @classmethod
+    def realize(cls, data: dict, parent_id: int):
+        try:
+            show = cls.objects.get(
+                title=data["attributes"]["title"],
+                franchise_id=parent_id,
+                provisional=True,
+            )
+            show.provisional = False
+            show.save(content_id=data["id"])
+            return show
+        except cls.DoesNotExist:
+            return None
+
     @property
     def query_param(self):
         return "?platform-slug=partnerplayer"
@@ -162,27 +176,18 @@ class Show(GenericProvisional, PBSMMGenericShow):
             return
 
         def set_season(mm_season_data: dict, _):
-            # Realize any provisional Season for this ordinal first so its
-            # object_id is set; otherwise update_or_create() keyed on object_id
-            # would create a duplicate and later changelog realization would
-            # raise an IntegrityError on the unique object_id constraint.
-            # Promote without ingesting (skip_ingest=True) and let the
-            # update_or_create() below run the single ingest pass with the
-            # correct ingest flags.
-            # attributes = season.setdefault("attributes", {})
-            # show_ref = {"id": str(self.object_id)}
-            # attributes.setdefault("show", show_ref)
-            # Season.realize({"data": season}, skip_ingest=True)
             try:
                 season = Season.objects.get(content_id=mm_season_data["id"])
                 season.save()
             except Season.DoesNotExist:
-                season = Season(
-                    show_id=self.id,
-                    ingest_on_save=True,
-                    ingest_episodes=self.ingest_episodes,
-                )
-                season.save(content_id=mm_season_data["id"])
+                season = Season.realize(mm_season_data, self.id)
+                if season is None:
+                    season = Season(
+                        show_id=self.id,
+                        ingest_on_save=True,
+                        ingest_episodes=self.ingest_episodes,
+                    )
+                    season.save(content_id=mm_season_data["id"])
 
         self.flip_api_pages(self.api_links.get("seasons"), set_season)
 
@@ -191,25 +196,17 @@ class Show(GenericProvisional, PBSMMGenericShow):
             return
 
         def set_special(mm_special_data: dict, _):
-            # Realize any provisional Special with this title first so its
-            # object_id is set; otherwise update_or_create() keyed on object_id
-            # would create a duplicate and later changelog realization would
-            # raise an IntegrityError on the unique object_id constraint.
-            # Promote without ingesting (skip_ingest=True) and let the
-            # update_or_create() below run the single ingest pass.
-            # attributes = special.setdefault("attributes", {})
-            # show_ref = {"id": str(self.content_id)}
-            # attributes.setdefault("show", show_ref)
-            # Special.realize({"data": special}, skip_ingest=True)
             try:
                 special = Special.objects.get(content_id=mm_special_data["id"])
                 special.save()
             except Special.DoesNotExist:
-                special = Special(
-                    show_id=self.id,
-                    ingest_on_save=True,
-                )
-                special.save(content_id=mm_special_data["id"])
+                special = Special.realize(mm_special_data, self.id)
+                if special is None:
+                    special = Special(
+                        show_id=self.id,
+                        ingest_on_save=True,
+                    )
+                    special.save(content_id=mm_special_data["id"])
 
         self.flip_api_pages(
             f"{self.api_links.get('specials')}?platform-slug=partnerplayer",
