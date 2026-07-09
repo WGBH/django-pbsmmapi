@@ -190,7 +190,7 @@ class IngestWithAssets(Ingest):
         return (
             Asset.objects.filter(**filters)
             .exclude(
-                object_id__in=self.scraped_object_ids,
+                mm_content_id__in=self.scraped_object_ids,
             )
             .delete()
         )

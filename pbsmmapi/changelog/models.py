@@ -17,7 +17,6 @@ class PBSMMResourceType(models.TextChoices):
 
 
 class ChangeLog(models.Model):
-    # Let's try one instance per resource type/CID
     objects = PBSMMBaseRecordManager()
 
     resource_type = models.CharField(

@@ -15,9 +15,7 @@ from pbsmmapi.abstract.models import (
     PBSMMGenericShow,
 )
 from pbsmmapi.api.api import PBSMM_SHOW_ENDPOINT
-from pbsmmapi.record.models import (
-    PBSMMBaseRecordManager,
-)
+from pbsmmapi.record.models import PBSMMBaseRecordManager
 from pbsmmapi.season.models import Season
 from pbsmmapi.special.models import Special
 
