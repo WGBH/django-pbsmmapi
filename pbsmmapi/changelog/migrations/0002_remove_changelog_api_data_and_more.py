@@ -21,6 +21,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("changelog", "0001_initial"),
+        ("record", "0001_initial"),
         ("franchise", "0003_remove_franchise_api_endpoint_and_more"),
         ("show", "0014_remove_show_api_endpoint_remove_show_audience_and_more"),
         ("season", "0019_remove_season_api_endpoint_and_more"),
