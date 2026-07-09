@@ -56,7 +56,6 @@ class ShowIngestTestCase(TestCase):
         except ObjectDoesNotExist:
             nova = Show()
             nova.slug = "nova"
-            nova.save()
             nova.ingest_on_save = True
             nova.ingest_seasons = True
             nova.ingest_specials = True
@@ -81,7 +80,7 @@ class ShowIngestTestCase(TestCase):
     @mock.patch("pbsmmapi.api.api.requests.get", side_effect=mocked_requests_get)
     def test_show_ingested(self, mock_get):
         nova = Show.objects.get(slug="nova")
-        self.assertEqual(nova.object_id, UUID("adfb2f9d-f61e-4613-ac58-ab3bde582afb"))
+        self.assertEqual(nova.content_id, UUID("adfb2f9d-f61e-4613-ac58-ab3bde582afb"))
 
     @mock.patch("pbsmmapi.api.api.requests.get", side_effect=mocked_requests_get)
     def test_show_asset(self, mock_get):
@@ -90,7 +89,7 @@ class ShowIngestTestCase(TestCase):
         self.reingest()
         nova_show_asset = Asset.objects.get(slug="nova-switching-genes-on-and-off")
         self.assertEqual(
-            nova_show_asset.object_id, UUID("bae3b21e-2465-4629-afce-1f192c7a11c9")
+            nova_show_asset.content_id, UUID("bae3b21e-2465-4629-afce-1f192c7a11c9")
         )
         data_set = assets_deleted_data_set
         self.reingest()

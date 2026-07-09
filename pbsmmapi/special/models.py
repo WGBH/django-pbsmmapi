@@ -61,18 +61,18 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
     )
 
     @classmethod
-    def realize(cls, data: dict, skip_ingest: bool = False):
+    def realize(cls, data: dict, parent_id: int):
         try:
             special = cls.objects.get(
-                show_api_id=data["data"]["attributes"]["show"]["id"],
-                title=data["data"]["attributes"]["title"],
+                show_id=parent_id,
+                title=data["attributes"]["title"],
                 provisional=True,
             )
-            special.object_id = data["data"]["id"]
             special.provisional = False
-            special.save(skip_ingest=skip_ingest)
+            special.save(content_id=data["id"])
+            return special
         except cls.DoesNotExist:
-            return
+            return None
 
     @property
     def nola_code(self):

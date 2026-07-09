@@ -4,6 +4,7 @@ from django.db.models.fields.json import KT
 from django.utils.translation import gettext_lazy as _
 
 from pbsmmapi.abstract.constants import PBSMM_BASE_URL
+from pbsmmapi.record.models import PBSMMBaseRecordManager
 
 
 class PBSMMResourceType(models.TextChoices):
@@ -16,17 +17,13 @@ class PBSMMResourceType(models.TextChoices):
 
 
 class ChangeLog(models.Model):
-    # Let's try one instance per resource type/CID
+    objects = PBSMMBaseRecordManager()
+
     resource_type = models.CharField(
         max_length=200,
         null=True,
         blank=True,
-        choices=PBSMMResourceType.choices,
-    )
-    content_id = models.UUIDField(
-        _("Content ID"),
-        null=True,
-        unique=True,
+        choices=PBSMMResourceType,
     )
 
     # dict where keys are timestamps and values are the remaining
@@ -38,8 +35,12 @@ class ChangeLog(models.Model):
     ingested = models.BooleanField(default=False)
 
     api_crawled = models.DateTimeField(null=True)
-    api_status = models.IntegerField(null=True)
-    api_data = models.JSONField(default=dict)
+    mm_content = models.OneToOneField(
+        "record.ContentRecord",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
 
     @property
     def api_url(self):
@@ -71,13 +72,14 @@ class ChangeLog(models.Model):
         # try to get a previously saved instance
         model = self.get_model_class()
         assert model is not None
+        assert self.mm_content is not None
         try:
-            return model.objects.get(object_id=self.content_id)
+            return model.objects.get(content_id=self.mm_content.content_id)
         except model.DoesNotExist:
             return None
 
     def __str__(self):
-        return f"Changelog for {self.resource_type} {self.content_id}"
+        return f"Changelog for {self.resource_type} {self.mm_content.content_id}"
 
     class Meta:
         verbose_name = "PBS MM Changelog"
@@ -86,13 +88,15 @@ class ChangeLog(models.Model):
         ordering = ["latest_timestamp"]
 
 
-class ShowChangeLogManager(models.Manager):
+class ShowChangeLogManager(PBSMMBaseRecordManager):
     def get_queryset(self):
         return (
             super()
             .get_queryset()
             .filter(resource_type="show")
-            .annotate(franchise_id=KT("api_data__data__attributes__franchise__id"))
+            .annotate(
+                franchise_content_id=KT("api_data__data__attributes__franchise__id")
+            )
             .annotate(title=KT("api_data__data__attributes__title"))
         )
 
@@ -104,13 +108,13 @@ class ShowChangeLog(ChangeLog):
         proxy = True
 
 
-class SeasonChangeLogManager(models.Manager):
+class SeasonChangeLogManager(PBSMMBaseRecordManager):
     def get_queryset(self):
         return (
             super()
             .get_queryset()
             .filter(resource_type="season")
-            .annotate(show_id=KT("api_data__data__attributes__show__id"))
+            .annotate(show_content_id=KT("api_data__data__attributes__show__id"))
             .annotate(ordinal=KT("api_data__data__attributes__ordinal"))
         )
 
@@ -122,14 +126,14 @@ class SeasonChangeLog(ChangeLog):
         proxy = True
 
 
-class EpisodeChangeLogManager(models.Manager):
+class EpisodeChangeLogManager(PBSMMBaseRecordManager):
     def get_queryset(self):
         return (
             super()
             .get_queryset()
             .filter(resource_type="episode")
-            .annotate(show_id=KT("api_data__data__attributes__show__id"))
-            .annotate(season_id=KT("api_data__data__attributes__season__id"))
+            .annotate(show_content_id=KT("api_data__data__attributes__show__id"))
+            .annotate(season_content_id=KT("api_data__data__attributes__season__id"))
             .annotate(ordinal=KT("api_data__data__attributes__ordinal"))
         )
 
@@ -141,13 +145,13 @@ class EpisodeChangeLog(ChangeLog):
         proxy = True
 
 
-class SpecialChangeLogManager(models.Manager):
+class SpecialChangeLogManager(PBSMMBaseRecordManager):
     def get_queryset(self):
         return (
             super()
             .get_queryset()
             .filter(resource_type="special")
-            .annotate(show_id=KT("api_data__data__attributes__show__id"))
+            .annotate(show_content_id=KT("api_data__data__attributes__show__id"))
             .annotate(title=KT("api_data__data__attributes__title"))
         )
 
@@ -159,7 +163,7 @@ class SpecialChangeLog(ChangeLog):
         proxy = True
 
 
-class AssetChangeLogManager(models.Manager):
+class AssetChangeLogManager(PBSMMBaseRecordManager):
     def get_queryset(self):
         return (
             super()

@@ -59,9 +59,9 @@ class GenericProvisional(models.Model):
     )
 
     @classmethod
-    def realize(cls, data: dict):
+    def realize(cls, data: dict, parent_id: int):
         """
-        Class method to be called from the Huey task processing ChangeLog objects
+        Method to call on child instances when the parent processes a list of children during ingest
         """
         raise NotImplementedError
 
@@ -190,7 +190,7 @@ class IngestWithAssets(Ingest):
         return (
             Asset.objects.filter(**filters)
             .exclude(
-                object_id__in=self.scraped_object_ids,
+                mm_content_id__in=self.scraped_object_ids,
             )
             .delete()
         )
