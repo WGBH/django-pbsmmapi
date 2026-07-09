@@ -206,10 +206,10 @@ def realize_provisional_objects():
             continue
 
     realized_seasons = []
-    for season in Season.objects.filter(provisional=True):
+    for season in Season.objects.filter(provisional=True).select_related("show"):
         try:
             changelog = SeasonChangeLog.objects.get(
-                show_content_id=season.show_content_id,
+                show_content_id=season.show.content_id,
                 ordinal=season.ordinal,
             )
             season.mm_content = changelog.mm_content
@@ -218,10 +218,10 @@ def realize_provisional_objects():
         except SeasonChangeLog.DoesNotExist:
             continue
 
-    for episode in Episode.objects.filter(provisional=True):
+    for episode in Episode.objects.filter(provisional=True).select_related("season"):
         try:
             changelog = EpisodeChangeLog.objects.get(
-                season_content_id=episode.season_content_id,
+                season_content_id=episode.season.content_id,
                 ordinal=episode.ordinal,
             )
             episode.provisional = False
@@ -232,10 +232,10 @@ def realize_provisional_objects():
 
     for special in Special.objects.filter(
         provisional=True,
-    ):
+    ).select_related("show"):
         try:
             changelog = SpecialChangeLog.objects.get(
-                show_content_id=special.show_content_id,
+                show_content_id=special.show.content_id,
                 title=special.title,
             )
             special.mm_content = changelog.mm_content
