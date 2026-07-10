@@ -5,6 +5,7 @@ from django.test import TestCase
 
 from pbsmmapi.episode.models import Episode
 from pbsmmapi.franchise.models import Franchise
+from pbsmmapi.record.models import ContentRecord
 from pbsmmapi.season.models import Season
 from pbsmmapi.show.models import Show
 from pbsmmapi.special.models import Special
@@ -42,17 +43,21 @@ def mocked_requests_get(request_url, mmapi_response):
 class ProvisionalIngestTestCase(TestCase):
     def test_provisional_season_is_realized_not_duplicated(self):
         seasons_url = "https://example.test/shows/nova/seasons/"
+        show_record = ContentRecord.objects.create(
+            content_id=UUID(SHOW_ID),
+            api_data={"links": {"seasons": seasons_url}},
+            last_api_status=200,
+        )
         show = Show(
             slug="nova",
-            object_id=UUID(SHOW_ID),
             ingest_seasons=True,
-            json={"links": {"seasons": seasons_url}},
+            mm_content=show_record,
         )
         show.save(skip_ingest=True)
+        show = Show.objects.get(slug="nova")
 
         provisional = Season(
             show=show,
-            show_api_id=UUID(SHOW_ID),
             ordinal=1,
             provisional=True,
         )
@@ -62,7 +67,7 @@ class ProvisionalIngestTestCase(TestCase):
             {
                 "id": SEASON_ID,
                 "type": "season",
-                "attributes": {"ordinal": 1},
+                "attributes": {"ordinal": 1, "title": "Season 1"},
                 "links": {},
             }
         ]
@@ -72,26 +77,30 @@ class ProvisionalIngestTestCase(TestCase):
         ):
             show.process_seasons()
 
-        provisional.refresh_from_db()
-        self.assertEqual(provisional.object_id, UUID(SEASON_ID))
+        provisional = Season.objects.get(show=show, ordinal=1)
+        self.assertEqual(provisional.content_id, UUID(SEASON_ID))
         self.assertFalse(provisional.provisional)
-        self.assertEqual(Season.objects.filter(object_id=UUID(SEASON_ID)).count(), 1)
+        self.assertEqual(Season.objects.filter(content_id=UUID(SEASON_ID)).count(), 1)
 
     def test_provisional_special_is_realized_not_duplicated(self):
         specials_base = "https://example.test/shows/nova/specials/"
         specials_url = f"{specials_base}?platform-slug=partnerplayer"
+        show_record = ContentRecord.objects.create(
+            content_id=UUID(SHOW_ID),
+            api_data={"links": {"specials": specials_base}},
+            last_api_status=200,
+        )
         show = Show(
             slug="nova",
-            object_id=UUID(SHOW_ID),
+            mm_content=show_record,
             ingest_specials=True,
-            json={"links": {"specials": specials_base}},
         )
         show.save(skip_ingest=True)
+        show = Show.objects.get(slug="nova")
 
         provisional = Special(
             slug="a-provisional-special",
             show=show,
-            show_api_id=UUID(SHOW_ID),
             title="A Provisional Special",
             provisional=True,
         )
@@ -101,7 +110,10 @@ class ProvisionalIngestTestCase(TestCase):
             {
                 "id": SPECIAL_ID,
                 "type": "special",
-                "attributes": {"title": "A Provisional Special"},
+                "attributes": {
+                    "title": "A Provisional Special",
+                    "slug": "a-provisional-special",
+                },
                 "links": {},
             }
         ]
@@ -111,15 +123,19 @@ class ProvisionalIngestTestCase(TestCase):
         ):
             show.process_specials()
 
-        provisional.refresh_from_db()
-        self.assertEqual(provisional.object_id, UUID(SPECIAL_ID))
+        provisional = Special.objects.get(slug="a-provisional-special")
+        self.assertEqual(provisional.content_id, UUID(SPECIAL_ID))
         self.assertFalse(provisional.provisional)
-        self.assertEqual(Special.objects.filter(object_id=UUID(SPECIAL_ID)).count(), 1)
+        self.assertEqual(Special.objects.filter(content_id=UUID(SPECIAL_ID)).count(), 1)
 
     def test_provisional_episode_is_realized_not_duplicated(self):
         episodes_url = "https://example.test/seasons/nova/episodes/"
+        season_record = ContentRecord.objects.create(
+            content_id=UUID(SEASON_ID),
+            last_api_status=200,
+        )
         season = Season(
-            object_id=UUID(SEASON_ID),
+            mm_content=season_record,
             ordinal=1,
             ingest_episodes=True,
         )
@@ -127,8 +143,8 @@ class ProvisionalIngestTestCase(TestCase):
 
         provisional = Episode(
             slug="a-provisional-episode",
+            title="A Provisional Episode",
             season=season,
-            season_api_id=UUID(SEASON_ID),
             ordinal=1,
             provisional=True,
         )
@@ -138,7 +154,11 @@ class ProvisionalIngestTestCase(TestCase):
             {
                 "id": EPISODE_ID,
                 "type": "episode",
-                "attributes": {"ordinal": 1},
+                "attributes": {
+                    "ordinal": 1,
+                    "title": "A Provisional Episode",
+                    "slug": "a-provisional-episode",
+                },
                 "links": {},
             }
         ]
@@ -147,24 +167,30 @@ class ProvisionalIngestTestCase(TestCase):
         ):
             season.process_episodes(episodes_url)
 
-        provisional.refresh_from_db()
-        self.assertEqual(provisional.object_id, UUID(EPISODE_ID))
+        provisional = Episode.objects.get(slug="a-provisional-episode")
+        self.assertEqual(provisional.content_id, UUID(EPISODE_ID))
         self.assertFalse(provisional.provisional)
-        self.assertEqual(Episode.objects.filter(object_id=UUID(EPISODE_ID)).count(), 1)
+        self.assertEqual(Episode.objects.filter(content_id=UUID(EPISODE_ID)).count(), 1)
 
     def test_provisional_show_is_realized_not_duplicated(self):
         shows_base = "https://example.test/shows/"
         shows_url = f"{shows_base}?platform-slug=partnerplayer"
+        franchise_record = ContentRecord.objects.create(
+            content_id=UUID(FRANCHISE_ID),
+            api_data={"links": {"shows": shows_base}},
+            last_api_status=200,
+        )
 
         franchise = Franchise(
             slug="a-franchise",
-            object_id=UUID(FRANCHISE_ID),
+            mm_content=franchise_record,
             ingest_shows=True,
-            json={"links": {"shows": shows_base}},
         )
         franchise.save(skip_ingest=True)
+        franchise = Franchise.objects.get(slug="a-franchise")
 
         provisional = Show(
+            franchise=franchise,
             slug="nova",
             title="NOVA",
             provisional=True,
@@ -175,7 +201,7 @@ class ProvisionalIngestTestCase(TestCase):
             {
                 "id": SHOW_ID,
                 "type": "show",
-                "attributes": {"title": "NOVA"},
+                "attributes": {"title": "NOVA", "slug": "nova"},
                 "links": {},
             }
         ]
@@ -185,7 +211,7 @@ class ProvisionalIngestTestCase(TestCase):
         ):
             franchise.process_shows()
 
-        provisional.refresh_from_db()
-        self.assertEqual(provisional.object_id, UUID(SHOW_ID))
+        provisional = Show.objects.get(slug="nova")
+        self.assertEqual(provisional.content_id, UUID(SHOW_ID))
         self.assertFalse(provisional.provisional)
-        self.assertEqual(Show.objects.filter(object_id=UUID(SHOW_ID)).count(), 1)
+        self.assertEqual(Show.objects.filter(content_id=UUID(SHOW_ID)).count(), 1)

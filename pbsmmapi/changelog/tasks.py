@@ -224,9 +224,12 @@ def save_changelog_entries(combined: dict):
         try:
             log = ChangeLog.objects.get(content_id=content_id)
         except ChangeLog.DoesNotExist:
-            log = ChangeLog(
+            record, _ = ContentRecord.objects.get_or_create(
                 content_id=content_id,
+            )
+            log = ChangeLog(
                 resource_type=data["resource_type"],
+                mm_content=record,
             )
         for timestamp, entry in data["changelogs"].items():
             log.entries[timestamp] = entry
@@ -259,10 +262,12 @@ def max_page_number(mm_response_data: dict) -> int:
 @db_task(retries=3)
 def fetch_api_data(log: ChangeLog):
     status, data = get_PBSMM_record(log.api_url)
-    log.api_status = status
+    content_record = log.mm_content
+    content_record.last_api_status = status
     log.api_crawled = datetime.now(UTC)
     if status == 200:
-        log.api_data = data
+        content_record.api_data = data
+    content_record.save()
     log.save()
 
 
@@ -275,7 +280,7 @@ def set_ingested():
         Franchise.objects.filter(
             Exists(
                 ChangeLog.objects.filter(
-                    content_id=OuterRef("object_id"),
+                    content_id=OuterRef("content_id"),
                     ingested=False,
                 )
             )
@@ -283,7 +288,7 @@ def set_ingested():
         Show.objects.filter(
             Exists(
                 ChangeLog.objects.filter(
-                    content_id=OuterRef("object_id"),
+                    content_id=OuterRef("content_id"),
                     ingested=False,
                 )
             )
@@ -291,7 +296,7 @@ def set_ingested():
         Special.objects.filter(
             Exists(
                 ChangeLog.objects.filter(
-                    content_id=OuterRef("object_id"),
+                    content_id=OuterRef("content_id"),
                     ingested=False,
                 )
             )
@@ -299,7 +304,7 @@ def set_ingested():
         Season.objects.filter(
             Exists(
                 ChangeLog.objects.filter(
-                    content_id=OuterRef("object_id"),
+                    content_id=OuterRef("content_id"),
                     ingested=False,
                 )
             )
@@ -307,7 +312,7 @@ def set_ingested():
         Episode.objects.filter(
             Exists(
                 ChangeLog.objects.filter(
-                    content_id=OuterRef("object_id"),
+                    content_id=OuterRef("content_id"),
                     ingested=False,
                 )
             )
@@ -315,7 +320,7 @@ def set_ingested():
         Asset.objects.filter(
             Exists(
                 ChangeLog.objects.filter(
-                    content_id=OuterRef("object_id"),
+                    content_id=OuterRef("content_id"),
                     ingested=False,
                 )
             )
@@ -323,7 +328,7 @@ def set_ingested():
     ]
     for queryset in filter(lambda qs: qs.exists(), querysets):
         ChangeLog.objects.filter(
-            content_id__in=queryset.values_list("object_id")
+            content_id__in=queryset.values_list("content_id")
         ).update(ingested=True)
 
 
@@ -398,48 +403,54 @@ def realize_provisional_objects():
                 title=show.title,
                 deleted__isnull=True,
             )
-            realized_show = Show.realize(changelog.api_data)
-            realized_shows.append(realized_show)
+            show.mm_content = changelog.mm_content
+            show.provisional = False
+            realized_shows.append(show)
         except ShowChangeLog.DoesNotExist:
-            pass
+            continue
 
     realized_seasons = []
-    for season in Season.objects.filter(provisional=True):
+    for season in Season.objects.filter(provisional=True).select_related("show"):
         try:
             changelog = SeasonChangeLog.objects.get(
-                show_id=season.show_api_id,
+                show_content_id=season.show.content_id,
                 ordinal=season.ordinal,
                 deleted__isnull=True,
             )
-            realized_season = Season.realize(changelog.api_data)
-            realized_seasons.append(realized_season)
+            season.mm_content = changelog.mm_content
+            season.provisional = False
+            realized_seasons.append(season)
         except SeasonChangeLog.DoesNotExist:
-            pass
+            continue
 
-    for episode in Episode.objects.filter(provisional=True):
+    for episode in Episode.objects.filter(provisional=True).select_related("season"):
         try:
             changelog = EpisodeChangeLog.objects.get(
-                season_id=episode.season_api_id,
+                season_content_id=episode.season.content_id,
                 ordinal=episode.ordinal,
                 deleted__isnull=True,
             )
-            Episode.realize(changelog.api_data)
+            episode.provisional = False
+            episode.mm_content = changelog.mm_content
+            episode.save(skip_ingest=True)
         except EpisodeChangeLog.DoesNotExist:
-            pass
+            continue
 
     for special in Special.objects.filter(
         provisional=True,
-    ):
+    ).select_related("show"):
         try:
             changelog = SpecialChangeLog.objects.get(
-                show_id=special.show_api_id,
+                show_content_id=special.show.content_id,
                 title=special.title,
                 deleted__isnull=True,
             )
-            Special.realize(changelog.api_data)
+            special.mm_content = changelog.mm_content
+            special.provisional = False
+            special.save(skip_ingest=True)
 
         except SpecialChangeLog.DoesNotExist:
-            pass
+            continue
 
     for season in filter(None, realized_seasons):
         season.ingest_on_save = True
@@ -461,8 +472,9 @@ def get_changelog_data(limit: int):
     the object.
     """
     # for changelogs without API data (deleted objects would 404)
+
     logs = ChangeLog.objects.filter(
-        api_status__isnull=True,
+        mm_content__last_api_status__isnull=True,
         ingested=False,
         deleted__isnull=True,
     )
@@ -478,7 +490,7 @@ def get_changelog_data(limit: int):
     # was already ingested before we started scraping the changelog
     asset_logs = AssetChangeLog.objects.filter(
         ingested=True,
-        api_status__isnull=True,
+        mm_content__last_api_status__isnull=True,
         deleted__isnull=True,
     )
     if asset_logs.count() > limit:
@@ -492,7 +504,7 @@ def get_changelog_data(limit: int):
     # and which have been updated since the last API fetch attempt
     if limit > 0:
         logs = ChangeLog.objects.filter(
-            api_status__in=[403, 404],
+            mm_content__last_api_status__in=[403, 404],
             deleted__isnull=True,
         ).filter(
             LessThan(
@@ -503,17 +515,10 @@ def get_changelog_data(limit: int):
 
         if logs.count() > limit:
             logs = logs[:limit]
-            limit = 0
-        else:
-            limit = limit - logs.count()
 
         fetch_api_data.map(logs)
 
-    # at this point it's unlikely that we'll need to worry about going over the
-    # API limit so we should just ingest new objects and update existing ones
-    if limit > 0:
-        realize_provisional_objects()
-        reingest_updated_objects()
+    realize_provisional_objects()
 
 
 def get_new_mm_changelogs():

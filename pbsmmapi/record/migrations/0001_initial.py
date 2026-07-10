@@ -84,7 +84,7 @@ class Migration(migrations.Migration):
             name="ContentRecord",
             fields=[
                 ("content_id", models.UUIDField(primary_key=True, serialize=False)),
-                ("api_data", models.JSONField()),
+                ("api_data", models.JSONField(default=dict)),
                 (
                     "last_api_status",
                     models.PositiveIntegerField(

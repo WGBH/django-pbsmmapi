@@ -45,6 +45,10 @@ class Migration(migrations.Migration):
         ),
         migrations.RemoveField(
             model_name="show",
+            name="franchise_api_id",
+        ),
+        migrations.RemoveField(
+            model_name="show",
             name="audience",
         ),
         migrations.RemoveField(

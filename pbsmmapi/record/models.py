@@ -37,7 +37,7 @@ class PBSMMBaseRecordManager(models.Manager):
 
 class ContentRecord(models.Model):
     content_id = models.UUIDField(primary_key=True)
-    api_data = models.JSONField()
+    api_data = models.JSONField(default=dict)
     last_api_status = models.PositiveIntegerField(
         _("Last API Status"),
         null=True,

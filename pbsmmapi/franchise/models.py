@@ -118,24 +118,20 @@ class Franchise(PBSMMGenericFranchise):
             return
 
         def set_show(mm_show_data: dict, _):
-            # Realize any provisional Show with this title first so its object_id
-            # is set; otherwise update_or_create() keyed on object_id would
-            # create a duplicate and later changelog realization would raise an
-            # IntegrityError on the unique object_id constraint. Promote without
-            # ingesting (skip_ingest=True) and let the update_or_create() below
-            # run the single ingest pass with the correct ingest flags.
             try:
                 show = Show.objects.get(content_id=mm_show_data["id"])
                 show.save()
             except Show.DoesNotExist:
-                show = Show(
-                    franchise_id=self.id,
-                    ingest_on_save=True,
-                    ingest_seasons=self.ingest_seasons,
-                    ingest_specials=self.ingest_specials,
-                    ingest_episodes=self.ingest_episodes,
-                )
-                show.save(content_id=mm_show_data["id"])
+                show = Show.realize(mm_show_data, self.id)
+                if show is None:
+                    show = Show(
+                        franchise_id=self.id,
+                        ingest_on_save=True,
+                        ingest_seasons=self.ingest_seasons,
+                        ingest_specials=self.ingest_specials,
+                        ingest_episodes=self.ingest_episodes,
+                    )
+                    show.save(content_id=mm_show_data["id"])
 
         endpoint = None
         if shows := self.api_links.get("shows"):
