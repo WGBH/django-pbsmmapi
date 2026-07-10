@@ -360,12 +360,17 @@ class ChangelogDeletedTestCase(TestCase):
         mock_get.assert_called()
 
     def test_get_changelog_data_skips_deleted_logs(self):
-        deleted_log = make_changelog(SHOW_ID, {T1: "delete"})
+        # cascade-deleted: the ContentRecord is marked (via an ancestor's
+        # delete) while this changelog's own mirror stays NULL — it must still
+        # be excluded from the API fetch.
+        deleted_log = make_changelog(SHOW_ID, {T1: "update"})
         ChangeLog.objects.filter(pk=deleted_log.pk).update(
-            deleted=parse_changelog_timestamp(T1),
             api_crawled=parse_changelog_timestamp(T0),
         )
-        ContentRecord.objects.filter(pk=UUID(SHOW_ID)).update(last_api_status=404)
+        ContentRecord.objects.filter(pk=UUID(SHOW_ID)).update(
+            deleted=parse_changelog_timestamp(T1),
+            last_api_status=404,
+        )
         live_log = make_changelog(SHOW2_ID, {T2: "update"})
 
         with (

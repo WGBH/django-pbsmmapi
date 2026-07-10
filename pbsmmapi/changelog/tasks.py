@@ -397,7 +397,7 @@ def get_changelog_data(limit: int):
     logs = ChangeLog.objects.filter(
         mm_content__last_api_status__isnull=True,
         ingested=False,
-        deleted__isnull=True,
+        mm_content__deleted__isnull=True,
     )
     if logs.count() > limit:
         logs = logs[:limit]
@@ -412,7 +412,7 @@ def get_changelog_data(limit: int):
     asset_logs = AssetChangeLog.objects.filter(
         ingested=True,
         mm_content__last_api_status__isnull=True,
-        deleted__isnull=True,
+        mm_content__deleted__isnull=True,
     )
     if asset_logs.count() > limit:
         asset_logs = asset_logs[:limit]
@@ -426,7 +426,7 @@ def get_changelog_data(limit: int):
     if limit > 0:
         logs = ChangeLog.objects.filter(
             mm_content__last_api_status__in=[403, 404],
-            deleted__isnull=True,
+            mm_content__deleted__isnull=True,
         ).filter(
             LessThan(
                 F("api_crawled"),
