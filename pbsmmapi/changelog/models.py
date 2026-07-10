@@ -64,11 +64,15 @@ class ChangeLog(models.Model):
     def save(self, *args, **kwargs):
         # compare by parsed instant, not string order, so entries with
         # differing formats (e.g. missing microseconds) still pick the
-        # chronologically latest timestamp
-        self.latest_timestamp = max(
+        # chronologically latest timestamp; store the parsed datetime (not the
+        # raw string key) so the in-memory value matches the DateTimeField.
+        latest = max(
             self.entries.keys(),
             default=None,
             key=parse_changelog_timestamp,
+        )
+        self.latest_timestamp = (
+            parse_changelog_timestamp(latest) if latest is not None else None
         )
         if self.get_instance() is not None:
             self.ingested = True

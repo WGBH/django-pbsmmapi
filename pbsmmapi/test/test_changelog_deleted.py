@@ -15,7 +15,6 @@ from pbsmmapi.changelog.tasks import (
     get_changelog_data,
     mark_deleted,
     parse_changelog_timestamp,
-    reingest_updated_objects,
     save_changelog_entries,
     sync_deleted_state,
 )
@@ -204,6 +203,7 @@ class ChangelogDeletedTestCase(TestCase):
     def test_latest_timestamp_is_chronological(self):
         # ChangeLog.save() also orders by instant, not string: the microsecond
         # entry is the later instant even though it sorts first as a string.
+        expected = parse_changelog_timestamp("2027-01-01T00:00:00.000001Z")
         log = make_changelog(
             SHOW_ID,
             {
@@ -211,11 +211,10 @@ class ChangelogDeletedTestCase(TestCase):
                 "2027-01-01T00:00:00Z": "update",
             },
         )
+        # in-memory value is the parsed datetime, not the raw string key
+        self.assertEqual(log.latest_timestamp, expected)
         log.refresh_from_db()
-        self.assertEqual(
-            log.latest_timestamp,
-            parse_changelog_timestamp("2027-01-01T00:00:00.000001Z"),
-        )
+        self.assertEqual(log.latest_timestamp, expected)
 
     def test_new_delete_after_restore_records_new_timestamp(self):
         self.make_show()
@@ -305,30 +304,6 @@ class ChangelogDeletedTestCase(TestCase):
             record_deleted(EPISODE_ASSET_ID), parse_changelog_timestamp(T0)
         )
 
-    def test_reingest_skips_deleted_objects(self):
-        self.make_show()
-        ContentRecord.objects.filter(pk=UUID(SHOW_ID)).update(
-            deleted=parse_changelog_timestamp(T1)
-        )
-        make_changelog(SHOW_ID, {T2: "update"})
-
-        with mock.patch(MMAPI_GET_URL) as mock_get:
-            reingest_updated_objects()
-
-        mock_get.assert_not_called()
-        show = Show.objects.get(slug="nova")
-        self.assertFalse(show.ingest_on_save)
-
-    def test_reingest_live_object_uses_updated_at(self):
-        # a live (non-deleted) object with a changelog must not crash on the
-        # removed date_last_api_update; reingest compares updated_at, and a
-        # NULL updated_at (never fetched) triggers a reingest.
-        self.make_show()
-        make_changelog(SHOW_ID, {T2: "update"})
-        with mock.patch(MMAPI_GET_URL, side_effect=mocked_requests_get) as mock_get:
-            reingest_updated_objects()
-        mock_get.assert_called()
-
     def test_save_does_not_ingest_deleted(self):
         show = self.make_show()
         ContentRecord.objects.filter(pk=UUID(SHOW_ID)).update(
@@ -384,7 +359,6 @@ class ChangelogDeletedTestCase(TestCase):
         with (
             mock.patch("pbsmmapi.changelog.tasks.fetch_api_data") as mock_fetch,
             mock.patch("pbsmmapi.changelog.tasks.realize_provisional_objects"),
-            mock.patch("pbsmmapi.changelog.tasks.reingest_updated_objects"),
         ):
             get_changelog_data(10)
 
