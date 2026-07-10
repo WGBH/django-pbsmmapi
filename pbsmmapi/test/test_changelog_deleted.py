@@ -333,16 +333,28 @@ class ChangelogDeletedTestCase(TestCase):
         mock_get.assert_not_called()
 
     def test_force_reingest_undeletes(self):
-        show = self.make_show()
+        show, *_ = self.make_show_tree()
+        # episode_asset was deleted in its own right; it must survive the override
+        asset_log = make_changelog(
+            EPISODE_ASSET_ID, {T0: "delete"}, resource_type="asset"
+        )
+        sync_deleted_state(asset_log)
+        # deleting the show cascades delete marks to the whole subtree
         log = make_changelog(SHOW_ID, {T1: "delete"})
-        sync_deleted_state(log)  # marks the record AND the changelog mirror
+        sync_deleted_state(log)
 
         with mock.patch(MMAPI_GET_URL, side_effect=mocked_requests_get) as mock_get:
             show_admin = PBSMMShowAdmin(Show, django_admin.site)
             show_admin.force_reingest(None, Show.objects.filter(pk=show.pk))
 
-        # both the ContentRecord and the ChangeLog mirror are cleared
-        self.assertIsNone(record_deleted(SHOW_ID))
+        # the show AND its cascade-marked descendants are cleared
+        for content_id in (SHOW_ID, SEASON_ID, EPISODE_ID, SPECIAL_ID, SHOW_ASSET_ID):
+            self.assertIsNone(record_deleted(content_id))
+        # the individually deleted asset keeps its own timestamp
+        self.assertEqual(
+            record_deleted(EPISODE_ASSET_ID), parse_changelog_timestamp(T0)
+        )
+        # the show's ChangeLog mirror is cleared and reingest ran
         log.refresh_from_db()
         self.assertIsNone(log.deleted)
         mock_get.assert_called()

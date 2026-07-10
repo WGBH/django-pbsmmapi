@@ -3,6 +3,7 @@ from django.contrib.admin import site
 from django.utils.safestring import mark_safe
 
 from pbsmmapi.changelog.models import ChangeLog
+from pbsmmapi.changelog.tasks import clear_deleted
 from pbsmmapi.record.models import ContentRecord
 
 # This removed the delete function from the Admin action dropdown.
@@ -62,10 +63,16 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
         for item in queryset:
             # explicit human override: un-delete so save() re-ingests
             if item.mm_content_id:
-                ContentRecord.objects.filter(pk=item.mm_content_id).update(deleted=None)
-                ChangeLog.objects.filter(mm_content_id=item.mm_content_id).update(
-                    deleted=None
-                )
+                log = ChangeLog.objects.filter(mm_content_id=item.mm_content_id).first()
+                if log is not None:
+                    # clears this object's record + mirror AND resyncs every
+                    # cascade-marked descendant back to its own changelog mirror
+                    clear_deleted(log)
+                else:
+                    # no changelog to drive the cascade; clear this record only
+                    ContentRecord.objects.filter(pk=item.mm_content_id).update(
+                        deleted=None
+                    )
             item.ingest_on_save = True
             # HOW DO I FIND OUT IF THE save() was successful?
             item.save()
