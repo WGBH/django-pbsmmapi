@@ -47,5 +47,6 @@ class ContentRecord(models.Model):
         _("Deleted"),
         null=True,
         blank=True,
+        db_index=True,
         help_text="Set from the PBS changelog timestamp when the object was deleted upstream.",
     )

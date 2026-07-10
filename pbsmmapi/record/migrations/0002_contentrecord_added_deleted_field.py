@@ -9,19 +9,17 @@ from django.db import (
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("changelog", "0002_remove_changelog_api_data_and_more"),
+        ("record", "0001_initial"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name="changelog",
+            model_name="contentrecord",
             name="deleted",
             field=models.DateTimeField(
                 blank=True,
-                help_text=(
-                    "Set from the entry timestamp when the latest changelog"
-                    " action is 'delete'."
-                ),
+                db_index=True,
+                help_text="Set from the PBS changelog timestamp when the object was deleted upstream.",
                 null=True,
                 verbose_name="Deleted",
             ),

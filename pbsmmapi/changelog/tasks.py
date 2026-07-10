@@ -39,6 +39,7 @@ from pbsmmapi.changelog.models import (
     SeasonChangeLog,
     ShowChangeLog,
     SpecialChangeLog,
+    parse_changelog_timestamp,
 )
 from pbsmmapi.episode.models import Episode
 from pbsmmapi.franchise.models import Franchise
@@ -74,10 +75,6 @@ def prep_changelog_data(entries: Iterable[dict]) -> dict:
         timestamp = attributes.pop("timestamp")
         combined[content_id]["changelogs"][timestamp] = attributes
     return combined
-
-
-def parse_changelog_timestamp(timestamp: str) -> datetime:
-    return datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
 
 
 def descendant_querysets(resource_type: str, content_id) -> list[QuerySet]:
@@ -183,8 +180,12 @@ def sync_deleted_state(log: ChangeLog):
     """
     Record the delete when the latest changelog entry action is "delete";
     clear the mark when a newer entry supersedes the delete. Idempotent.
+
+    "Latest" is decided by parsed timestamp, not string order, so entries
+    whose formats differ (e.g. missing microseconds or offsets) still compare
+    chronologically.
     """
-    timestamp = max(log.entries.keys(), default=None)
+    timestamp = max(log.entries.keys(), default=None, key=parse_changelog_timestamp)
     if timestamp is None:
         return
     if log.entries[timestamp].get("action") == "delete":
@@ -341,7 +342,9 @@ def reingest_updated_objects():
     for queryset in querysets:
         for item in queryset:
             changelog = ChangeLog.objects.get(content_id=item.mm_content_id)
-            if changelog.latest_timestamp > item.date_last_api_update:
+            # updated_at (annotated from api_data) replaces the removed
+            # date_last_api_update; NULL means never fetched -> reingest.
+            if item.updated_at is None or changelog.latest_timestamp > item.updated_at:
                 item.ingest_on_save = True
                 item.save()
     for item in Asset.objects.filter(
@@ -349,7 +352,7 @@ def reingest_updated_objects():
         mm_content__deleted__isnull=True,
     ):
         changelog = ChangeLog.objects.get(content_id=item.mm_content_id)
-        if changelog.latest_timestamp > item.date_last_api_update:
+        if item.updated_at is None or changelog.latest_timestamp > item.updated_at:
             _, data = get_PBSMM_record(
                 changelog.api_url
             )  # actually get latest changelog data

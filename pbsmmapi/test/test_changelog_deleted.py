@@ -182,6 +182,41 @@ class ChangelogDeletedTestCase(TestCase):
         log.refresh_from_db()
         self.assertEqual(log.deleted, parse_changelog_timestamp(T4))
 
+    def test_latest_entry_is_chronological_not_lexicographic(self):
+        # a microsecond-bearing timestamp is chronologically LATER but sorts
+        # BEFORE the plain one as a string ('.' < 'Z'); the delete must win.
+        no_micro_update = "2027-01-01T00:00:00Z"
+        later_micro_delete = "2027-01-01T00:00:00.000001Z"
+        self.assertGreater(no_micro_update, later_micro_delete)  # lexicographic trap
+        self.assertGreater(  # but chronologically the delete is later
+            parse_changelog_timestamp(later_micro_delete),
+            parse_changelog_timestamp(no_micro_update),
+        )
+        self.make_show()
+        log = make_changelog(
+            SHOW_ID, {no_micro_update: "update", later_micro_delete: "delete"}
+        )
+        sync_deleted_state(log)
+        self.assertEqual(
+            record_deleted(SHOW_ID), parse_changelog_timestamp(later_micro_delete)
+        )
+
+    def test_latest_timestamp_is_chronological(self):
+        # ChangeLog.save() also orders by instant, not string: the microsecond
+        # entry is the later instant even though it sorts first as a string.
+        log = make_changelog(
+            SHOW_ID,
+            {
+                "2027-01-01T00:00:00.000001Z": "update",
+                "2027-01-01T00:00:00Z": "update",
+            },
+        )
+        log.refresh_from_db()
+        self.assertEqual(
+            log.latest_timestamp,
+            parse_changelog_timestamp("2027-01-01T00:00:00.000001Z"),
+        )
+
     def test_new_delete_after_restore_records_new_timestamp(self):
         self.make_show()
         log = make_changelog(SHOW_ID, {T1: "delete"})
@@ -284,6 +319,16 @@ class ChangelogDeletedTestCase(TestCase):
         show = Show.objects.get(slug="nova")
         self.assertFalse(show.ingest_on_save)
 
+    def test_reingest_live_object_uses_updated_at(self):
+        # a live (non-deleted) object with a changelog must not crash on the
+        # removed date_last_api_update; reingest compares updated_at, and a
+        # NULL updated_at (never fetched) triggers a reingest.
+        self.make_show()
+        make_changelog(SHOW_ID, {T2: "update"})
+        with mock.patch(MMAPI_GET_URL, side_effect=mocked_requests_get) as mock_get:
+            reingest_updated_objects()
+        mock_get.assert_called()
+
     def test_save_does_not_ingest_deleted(self):
         show = self.make_show()
         ContentRecord.objects.filter(pk=UUID(SHOW_ID)).update(
@@ -295,17 +340,36 @@ class ChangelogDeletedTestCase(TestCase):
             show.save()
         mock_get.assert_not_called()
 
-    def test_force_reingest_undeletes(self):
-        show = self.make_show()
-        ContentRecord.objects.filter(pk=UUID(SHOW_ID)).update(
+    def test_deleted_asset_save_does_not_ingest(self):
+        # Asset.save() unconditionally calls pre_save() -> process(); a deleted
+        # asset must skip ingest and not crash on the unpack contract.
+        record = make_record(SHOW_ASSET_ID)
+        ContentRecord.objects.filter(pk=record.pk).update(
             deleted=parse_changelog_timestamp(T1)
         )
+        asset = Asset(
+            slug="an-asset",
+            mm_content=ContentRecord.objects.get(pk=record.pk),
+        )
+        with mock.patch(MMAPI_GET_URL) as mock_get:
+            asset.save()
+            # process() must return a 2-tuple (not None) so pre_save can unpack
+            self.assertEqual(asset.process(), (None, None))
+        mock_get.assert_not_called()
+
+    def test_force_reingest_undeletes(self):
+        show = self.make_show()
+        log = make_changelog(SHOW_ID, {T1: "delete"})
+        sync_deleted_state(log)  # marks the record AND the changelog mirror
 
         with mock.patch(MMAPI_GET_URL, side_effect=mocked_requests_get) as mock_get:
             show_admin = PBSMMShowAdmin(Show, django_admin.site)
             show_admin.force_reingest(None, Show.objects.filter(pk=show.pk))
 
+        # both the ContentRecord and the ChangeLog mirror are cleared
         self.assertIsNone(record_deleted(SHOW_ID))
+        log.refresh_from_db()
+        self.assertIsNone(log.deleted)
         mock_get.assert_called()
 
     def test_get_changelog_data_skips_deleted_logs(self):

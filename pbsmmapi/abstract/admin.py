@@ -63,7 +63,7 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
             # explicit human override: un-delete so save() re-ingests
             if item.mm_content_id:
                 ContentRecord.objects.filter(pk=item.mm_content_id).update(deleted=None)
-                ChangeLog.objects.filter(content_id=item.mm_content_id).update(
+                ChangeLog.objects.filter(mm_content_id=item.mm_content_id).update(
                     deleted=None
                 )
             item.ingest_on_save = True

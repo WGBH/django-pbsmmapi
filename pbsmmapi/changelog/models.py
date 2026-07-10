@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.fields.json import KT
@@ -5,6 +7,11 @@ from django.utils.translation import gettext_lazy as _
 
 from pbsmmapi.abstract.constants import PBSMM_BASE_URL
 from pbsmmapi.record.models import PBSMMBaseRecordManager
+
+
+def parse_changelog_timestamp(timestamp: str) -> datetime:
+    """Parse a changelog ISO timestamp string into an aware UTC datetime."""
+    return datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
 
 
 class PBSMMResourceType(models.TextChoices):
@@ -46,6 +53,7 @@ class ChangeLog(models.Model):
         _("Deleted"),
         null=True,
         blank=True,
+        db_index=True,
         help_text="Set from the entry timestamp when the latest changelog action is 'delete'.",
     )
 
@@ -54,7 +62,14 @@ class ChangeLog(models.Model):
         return f"{PBSMM_BASE_URL}api/v1/{self.resource_type}s/{self.content_id}/"
 
     def save(self, *args, **kwargs):
-        self.latest_timestamp = max(self.entries.keys(), default=None)
+        # compare by parsed instant, not string order, so entries with
+        # differing formats (e.g. missing microseconds) still pick the
+        # chronologically latest timestamp
+        self.latest_timestamp = max(
+            self.entries.keys(),
+            default=None,
+            key=parse_changelog_timestamp,
+        )
         if self.get_instance() is not None:
             self.ingested = True
         super().save(*args, **kwargs)

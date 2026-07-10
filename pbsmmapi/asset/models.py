@@ -201,9 +201,13 @@ class Asset(PBSMMGenericAsset):
         return PBSMM_ASSET_ENDPOINT
 
     def save(self, *args, **kwargs):
+        skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
         content_id = kwargs.pop("content_id", None)
-        self.pre_save(content_id)
-        super().save(*args, **kwargs)
+        if skip_ingest:
+            super().save(*args, **kwargs)
+        else:
+            self.pre_save(content_id)
+            super().save(*args, **kwargs)
 
     @property
     def transcript_url(self) -> str | None:

@@ -89,7 +89,9 @@ class Ingest(models.Model):
 
     def process(self, query_param=None, content_id=None):
         if self.deleted:
-            return  # object was deleted upstream; don't refetch
+            # object was deleted upstream; don't refetch. Return the same
+            # 2-tuple shape as the other early exits so pre_save() can unpack.
+            return None, None
         identifier = str(content_id or self.content_id or "").strip() or self.slug
         query_param = query_param or self.query_param
         if not identifier and not self.ingest_on_save:
