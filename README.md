@@ -60,11 +60,11 @@ Marked objects are excluded from all re-ingestion paths so they are neither re-f
 resurrected. If a newer changelog entry shows the object was restored, the mark is cleared
 automatically; the *Reingest selected items* admin action also clears it as an explicit override.
 
-Restoring a parent only clears the marks its own deletion cascaded: an object deleted by its own
-changelog entry stays deleted until its own restore (or the admin override). Repeated delete
-entries do not advance the recorded deletion time — `deleted` always reflects the first time the
-object disappeared. A model row whose `mm_content` is not linked cannot carry a mark; only the
-changelog mirror records its state.
+`deleted` records the most recent delete reported for the object or an ancestor; every object's
+own `ChangeLog` mirror is the authoritative per-object state. Restoring a parent resyncs each
+descendant to its own mirror: an object deleted by its own changelog entry stays deleted (with
+its own timestamp) until its own restore or the admin override. A model row whose `mm_content`
+is not linked cannot carry a mark; only the changelog mirror records its state.
 
 Rows are never deleted locally, so consuming projects should filter them out where appropriate:
 

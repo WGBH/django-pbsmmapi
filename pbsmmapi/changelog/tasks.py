@@ -17,6 +17,7 @@ from django.db.models import (
     OuterRef,
     Q,
     QuerySet,
+    Subquery,
 )
 from django.db.models.lookups import LessThan
 from huey import crontab
@@ -79,13 +80,6 @@ def parse_changelog_timestamp(timestamp: str) -> datetime:
     return datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
 
 
-def latest_changelog_entry(log: ChangeLog) -> tuple[str | None, dict | None]:
-    timestamp = max(log.entries.keys(), default=None)
-    if timestamp is None:
-        return None, None
-    return timestamp, log.entries[timestamp]
-
-
 def descendant_querysets(resource_type: str, content_id) -> list[QuerySet]:
     """
     Querysets of every object that becomes unreachable in the API when the
@@ -142,73 +136,58 @@ def descendant_record_ids(queryset: QuerySet) -> QuerySet:
 
 def mark_deleted(log: ChangeLog, deleted_at: datetime):
     """
-    Mark the object's ContentRecord, its descendants' records, and the
-    ChangeLog itself deleted.
+    Record a delete on all layers: the object's ContentRecord, its
+    descendants' records, and the ChangeLog itself all get the entry's
+    timestamp, overwriting any earlier value — ``deleted`` always holds the
+    most recent delete reported for the subtree. Nothing correlates the
+    timestamps afterwards (clear_deleted resyncs from each object's own
+    changelog mirror), so the overwrite is idempotent and safe for stale
+    instances and concurrent runs.
 
-    Invariant: all three levels carry the timestamp of the *first* delete.
-    Every write below only touches rows that aren't marked yet, so a repeated
-    delete entry (with no restore in between) is a no-op and never advances
-    the recorded timestamp. That keeps the ChangeLog and the cascade-marked
-    descendants in agreement, which is what clear_deleted's exact-timestamp
-    match relies on — and it preserves the own (earlier) timestamp of a
-    descendant that was individually deleted before its parent.
-
-    Everything uses queryset .update() with the guard in the WHERE clause:
-    no save()/ingest side effects, and correct even when the caller holds a
-    stale instance or runs concurrently. A descendant whose ``mm_content``
-    is NULL has no record to mark and is skipped.
+    Everything uses queryset .update(): no save()/ingest side effects.
+    A descendant whose ``mm_content`` is NULL has no record to mark and is
+    skipped.
     """
-    ContentRecord.objects.filter(
-        pk=log.content_id,
-        deleted__isnull=True,
-    ).update(deleted=deleted_at)
-    for queryset in descendant_querysets(log.resource_type, log.content_id):
+    ContentRecord.objects.filter(pk=log.mm_content_id).update(deleted=deleted_at)
+    for queryset in descendant_querysets(log.resource_type, log.mm_content_id):
         ContentRecord.objects.filter(
             pk__in=descendant_record_ids(queryset),
-            deleted__isnull=True,
         ).update(deleted=deleted_at)
-    ChangeLog.objects.filter(
-        pk=log.pk,
-        deleted__isnull=True,
-    ).update(deleted=deleted_at)
+    ChangeLog.objects.filter(pk=log.pk).update(deleted=deleted_at)
 
 
 def clear_deleted(log: ChangeLog):
     """
     Un-delete after a changelog entry newer than the delete: clear the
-    object's own record unconditionally, but clear descendants' records only
-    where their timestamp exactly matches this object's recorded delete
-    timestamp — i.e. only the rows mark_deleted cascaded to. A descendant
-    deleted by its own changelog entry carries a different timestamp and
-    stays deleted; a parent's restore must not resurrect it.
+    object's own record and mirror, and resync every descendant's record to
+    its OWN changelog mirror — the per-object source of truth. A descendant
+    deleted by its own changelog entry gets its own timestamp back and stays
+    deleted; everything the cascade marked goes back to NULL.
 
-    The reference timestamp is read from the DB row, not the possibly stale
-    in-memory instance (all delete bookkeeping is written via .update()).
+    Known edge: a descendant of a still-deleted intermediate parent resyncs
+    to alive (its own mirror is NULL); the intermediate's next changelog
+    entry or a backfill re-marks it.
     """
-    previous = (
-        ChangeLog.objects.filter(pk=log.pk).values_list("deleted", flat=True).first()
-    )
-    if previous is None:
-        return
-    ContentRecord.objects.filter(pk=log.content_id).update(deleted=None)
-    for queryset in descendant_querysets(log.resource_type, log.content_id):
+    ContentRecord.objects.filter(pk=log.mm_content_id).update(deleted=None)
+    own_mirror = ChangeLog.objects.filter(mm_content_id=OuterRef("pk")).values(
+        "deleted"
+    )[:1]
+    for queryset in descendant_querysets(log.resource_type, log.mm_content_id):
         ContentRecord.objects.filter(
             pk__in=descendant_record_ids(queryset),
-            deleted=previous,
-        ).update(deleted=None)
+        ).update(deleted=Subquery(own_mirror))
     ChangeLog.objects.filter(pk=log.pk).update(deleted=None)
 
 
 def sync_deleted_state(log: ChangeLog):
     """
-    Mark the object (and its descendants) deleted when the latest changelog
-    entry action is "delete"; clear the mark when a newer entry supersedes
-    the delete. Idempotent.
+    Record the delete when the latest changelog entry action is "delete";
+    clear the mark when a newer entry supersedes the delete. Idempotent.
     """
-    timestamp, entry = latest_changelog_entry(log)
-    if entry is None:
+    timestamp = max(log.entries.keys(), default=None)
+    if timestamp is None:
         return
-    if entry.get("action") == "delete":
+    if log.entries[timestamp].get("action") == "delete":
         mark_deleted(log, parse_changelog_timestamp(timestamp))
     elif ChangeLog.objects.filter(pk=log.pk, deleted__isnull=False).exists():
         clear_deleted(log)
@@ -374,13 +353,16 @@ def reingest_updated_objects():
             _, data = get_PBSMM_record(
                 changelog.api_url
             )  # actually get latest changelog data
-            Asset.set(data["data"], last_api_status=changelog.api_status)
+            Asset.set(
+                data["data"],
+                last_api_status=changelog.mm_content.last_api_status,
+            )
 
     # Under some circumstances, an Asset can be updated without the change
     # being reflected by the parent object's ChangeLog.
     for item in AssetChangeLog.objects.filter(
         ingested=False,
-        api_status=200,
+        mm_content__last_api_status=200,
         deleted__isnull=True,
     ):
         parent = item.get_parent_instance()

@@ -92,7 +92,7 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         return PBSMM_EPISODE_ENDPOINT
 
     def save(self, *args, **kwargs):
-        skip_ingest = kwargs.pop("skip_ingest", False)
+        skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
         content_id = kwargs.pop("content_id", None)
         if skip_ingest:
             super().save(*args, **kwargs)
@@ -164,34 +164,3 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         verbose_name = "PBS MM Episode"
         verbose_name_plural = "PBS MM Episodes"
         db_table = "pbsmm_episode"
-
-    @property
-    def query_param(self):
-        return None
-
-    @property
-    def endpoint(self):
-        return PBSMM_EPISODE_ENDPOINT
-
-    def save(self, *args, **kwargs):
-        skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
-        content_id = kwargs.pop("content_id", None)
-        if skip_ingest:
-            super().save(*args, **kwargs)
-        else:
-            self.pre_save(content_id)
-            super().save(*args, **kwargs)
-            self.post_save(self.id)
-
-    @classmethod
-    @db_task()
-    def post_save(cls, episode_id):
-        episode = cls.objects.get(id=episode_id)
-        endpoint = None
-        if assets := episode.api_links.get("assets"):
-            endpoint = f"{assets}?platform-slug=partnerplayer"
-        episode.process_assets(
-            endpoint,
-            episode_id=episode_id,
-        )
-        # episode.delete_stale_assets(episode_id=episode_id)

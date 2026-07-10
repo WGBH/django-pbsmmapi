@@ -9,7 +9,7 @@ from django.db import (
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("changelog", "0001_initial"),
+        ("changelog", "0002_remove_changelog_api_data_and_more"),
     ]
 
     operations = [
