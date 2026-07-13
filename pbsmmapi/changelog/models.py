@@ -2,7 +2,6 @@ from datetime import (
     UTC,
     datetime,
 )
-
 from typing import TYPE_CHECKING
 
 from django.contrib.contenttypes.models import ContentType

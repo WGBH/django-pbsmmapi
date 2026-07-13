@@ -15,6 +15,7 @@ from pbsmmapi.changelog.tasks import (
     get_changelog_data,
     mark_deleted,
     parse_changelog_timestamp,
+    reingest_updated_objects,
     save_changelog_entries,
     sync_deleted_state,
 )
@@ -445,6 +446,26 @@ class ChangelogDeletedTestCase(TestCase):
         ]
         self.assertNotIn(deleted_log.mm_content_id, fetched_ids)
         self.assertIn(live_log.mm_content_id, fetched_ids)
+
+    def test_reingest_skips_deleted_objects(self):
+        # reingest_updated_objects (restored from rc_1.4.0) must not touch a
+        # deleted object: it is excluded from the reingest querysets up front.
+        show = self.make_show()  # ingested; date_last_api_update is NULL
+        # a changelog newer than the last ingest — would trigger reingest...
+        make_changelog(SHOW_ID, {T2: "update"})
+        # ...but the object is deleted
+        ContentRecord.objects.filter(pk=UUID(SHOW_ID)).update(
+            deleted=parse_changelog_timestamp(T1)
+        )
+
+        with mock.patch(MMAPI_GET_URL) as mock_get:
+            reingest_updated_objects()
+
+        # not re-fetched, still deleted, and never even flagged for ingest
+        # (ingest_on_save stays False, proving it was excluded, not just guarded)
+        mock_get.assert_not_called()
+        self.assertIsNotNone(record_deleted(SHOW_ID))
+        self.assertFalse(Show.objects.get(pk=show.pk).ingest_on_save)
 
     @override_settings(PBSMM_SHOW_SLUGS=["nova"])
     def test_scraper_skips_deleted_show(self):

@@ -405,25 +405,36 @@ def reingest_updated_objects():
     """
     When new actions appear in the changelog, we need to trigger
     ingest of the related object to get everything in sync.
+
+    Deleted objects are excluded up front (``mm_content__deleted__isnull=True``):
+    a delete is the newest changelog entry, so they would otherwise match the
+    "changelog newer than last ingest" check and get a pointless ``save()`` that
+    the model's own delete guard then skips anyway.
     """
     querysets = [
         Franchise.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id"))),
+            mm_content__deleted__isnull=True,
         ),
         Show.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id"))),
+            mm_content__deleted__isnull=True,
         ),
         Special.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id"))),
+            mm_content__deleted__isnull=True,
         ),
         Season.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id"))),
+            mm_content__deleted__isnull=True,
         ),
         Episode.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id"))),
+            mm_content__deleted__isnull=True,
         ),
         Asset.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id"))),
+            mm_content__deleted__isnull=True,
         ),
     ]
     for queryset in querysets:
