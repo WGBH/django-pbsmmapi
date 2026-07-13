@@ -31,6 +31,7 @@ class PBSMMBaseRecordManager(models.Manager):
                     models.Value([], models.JSONField()),
                 ),
                 hashtag=KT("api_data__data__attributes__hashtag"),
+                date_last_api_update=models.F("mm_content__date_last_api_update"),
             )
         )
 
@@ -40,6 +41,12 @@ class ContentRecord(models.Model):
     api_data = models.JSONField(default=dict)
     last_api_status = models.PositiveIntegerField(
         _("Last API Status"),
+        null=True,
+        blank=True,
+    )
+    date_last_api_update = models.DateTimeField(
+        _("Last API Retrieval"),
+        help_text="Not set by API",
         null=True,
         blank=True,
     )

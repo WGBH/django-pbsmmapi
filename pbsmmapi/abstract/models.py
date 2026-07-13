@@ -4,6 +4,7 @@ from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
+from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.api.helpers import check_pagination
 from pbsmmapi.record.models import (  # this works at the moment, but it feels wrong to import it
@@ -121,6 +122,7 @@ class Ingest(models.Model):
             defaults={
                 "last_api_status": status,
                 "api_data": json_data,
+                "date_last_api_update": time_zone_aware_now(),
             },
         )
         if self.mm_content is None:
@@ -217,11 +219,11 @@ class PBSMMGenericObject(
 
     def last_updated_display(self):
         """
-        Guarded rendering of the ``updated_at`` annotation (it may be NULL, and
-        is only present on instances loaded through the annotating manager).
-        Replaces the removed ``date_last_api_update`` field in admin tables.
+        Guarded rendering of the ``date_last_api_update`` annotation (it may be
+        NULL, and is only present on instances loaded through the annotating
+        manager).
         """
-        updated = getattr(self, "updated_at", None)
+        updated = getattr(self, "date_last_api_update", None)
         return updated.strftime("%x %X") if updated else "—"
 
     class Meta:
