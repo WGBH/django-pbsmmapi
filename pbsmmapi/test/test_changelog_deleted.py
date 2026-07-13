@@ -537,3 +537,21 @@ class ChangelogDeletedTestCase(TestCase):
         # the in-memory counter matches reality: only SHOW_ID's latest entry is
         # a delete, so exactly one changelog is reported marked
         self.assertIn("1 changelog(s) marked deleted", out.getvalue())
+
+    def test_backfill_recomputes_latest_timestamp(self):
+        # a legacy row whose latest_timestamp was computed lexicographically:
+        # the microsecond entry is chronologically latest but sorts first as a
+        # string, so the old code stored the plain 'Z' instant. Backfill must
+        # recompute it from entries (parsed-instant order).
+        micro = "2027-01-01T00:00:00.000001Z"
+        plain = "2027-01-01T00:00:00Z"
+        log = make_changelog(SHOW_ID, {micro: "update", plain: "update"})
+        # simulate the stale lexicographic value
+        ChangeLog.objects.filter(pk=log.pk).update(
+            latest_timestamp=parse_changelog_timestamp(plain)
+        )
+
+        call_command("backfill_deleted")
+
+        log.refresh_from_db()
+        self.assertEqual(log.latest_timestamp, parse_changelog_timestamp(micro))
