@@ -95,10 +95,11 @@ class ShowIngestTestCase(TestCase):
         # The ingest cascade runs through post_save @db_task chains; run huey
         # inline so seasons/specials/episodes/assets are created synchronously
         # within the test (no consumer runs in the test environment). Scoped to
-        # this class and reset after each test so other suites keep the
-        # configured immediate=False.
+        # this class: capture and restore the prior immediate value so we never
+        # leak state into other suites (rather than assuming it was False).
+        original_immediate = HUEY.immediate
+        self.addCleanup(setattr, HUEY, "immediate", original_immediate)
         HUEY.immediate = True
-        self.addCleanup(setattr, HUEY, "immediate", False)
         try:
             Show.objects.get(slug="nova")
         except ObjectDoesNotExist:

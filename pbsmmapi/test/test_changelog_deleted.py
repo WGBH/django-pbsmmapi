@@ -1,3 +1,4 @@
+from io import StringIO
 import json
 from unittest import mock
 from uuid import UUID
@@ -507,7 +508,11 @@ class ChangelogDeletedTestCase(TestCase):
         make_changelog(SHOW_ID, {T1: "update", T2: "delete"})
         make_changelog(SHOW2_ID, {T1: "delete", T2: "update"})
 
-        call_command("backfill_deleted")
+        out = StringIO()
+        call_command("backfill_deleted", stdout=out)
 
         self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T2))
         self.assertIsNone(record_deleted(SHOW2_ID))
+        # the in-memory counter matches reality: only SHOW_ID's latest entry is
+        # a delete, so exactly one changelog is reported marked
+        self.assertIn("1 changelog(s) marked deleted", out.getvalue())
