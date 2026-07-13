@@ -145,6 +145,10 @@ def mark_deleted(log: ChangeLog, deleted_at: datetime):
     A descendant whose ``mm_content`` is NULL has no record to mark and is
     skipped.
     """
+    if log.mm_content_id is None:
+        # no ContentRecord to key the cascade on; a NULL id would match
+        # unrelated descendants (see sync_deleted_state)
+        return
     ContentRecord.objects.filter(pk=log.mm_content_id).update(deleted=deleted_at)
     for queryset in descendant_querysets(log.resource_type, log.mm_content_id):
         ContentRecord.objects.filter(
@@ -169,6 +173,10 @@ def clear_deleted(log: ChangeLog):
     only its presence is — so overlapping re-cascades converging on any
     non-NULL value is fine.)
     """
+    if log.mm_content_id is None:
+        # no ContentRecord to key the cascade on; a NULL id would match
+        # unrelated descendants (see sync_deleted_state)
+        return
     ContentRecord.objects.filter(pk=log.mm_content_id).update(deleted=None)
     descendant_qs = descendant_querysets(log.resource_type, log.mm_content_id)
     own_mirror = ChangeLog.objects.filter(mm_content_id=OuterRef("pk")).values(
@@ -200,6 +208,12 @@ def sync_deleted_state(log: ChangeLog):
     whose formats differ (e.g. missing microseconds or offsets) still compare
     chronologically.
     """
+    if log.mm_content_id is None:
+        # No linked ContentRecord (SET_NULL / legacy data): there is nothing to
+        # mark, and a NULL content_id would make descendant_querysets() match
+        # every object whose parent has a NULL record (e.g.
+        # show__mm_content_id=None), wrongly stamping unrelated rows.
+        return
     timestamp = max(log.entries.keys(), default=None, key=parse_changelog_timestamp)
     if timestamp is None:
         return

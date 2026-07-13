@@ -266,6 +266,26 @@ class ChangelogDeletedTestCase(TestCase):
         self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T1))
         self.assertFalse(Show.objects.exists())
 
+    def test_sync_skips_changelog_without_content_record(self):
+        # a ChangeLog whose mm_content link is NULL (SET_NULL / legacy data)
+        # must not drive the cascade: descendant_querysets(resource_type, None)
+        # would match every object whose parent has a NULL record.
+        ghost_show = Show(slug="ghost")
+        ghost_show.save(skip_ingest=True)  # no linked ContentRecord
+        victim = Season(show=ghost_show, ordinal=1, mm_content=make_record(SEASON_ID))
+        victim.save(skip_ingest=True)
+
+        # a "show" delete changelog whose record link was cleared
+        log = make_changelog(SHOW_ID, {T1: "delete"})
+        ChangeLog.objects.filter(pk=log.pk).update(mm_content=None)
+        log = ChangeLog.objects.get(pk=log.pk)
+        self.assertIsNone(log.mm_content_id)
+
+        sync_deleted_state(log)
+
+        # the unrelated season (parent show has a NULL record) is NOT marked
+        self.assertIsNone(record_deleted(SEASON_ID))
+
     def test_cascade_marks_descendants(self):
         self.make_show_tree()
         # episode_asset was already deleted on its own, earlier

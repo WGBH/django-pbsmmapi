@@ -35,19 +35,22 @@ def get_api_json(url):
 
 
 # The ingest re-fetches every asset one-by-one at .../api/v1/assets/<uuid>/,
-# but url_map only mocks the .../assets/?... list endpoints. Each list item is
-# already a full asset object, so serve the detail response synthesized from
-# the list fixtures instead of 404ing (which would leave slug='').
+# but the fixtures only mock the .../assets/?... list endpoints. Each list item
+# is already a full asset object, so serve the detail response synthesized from
+# the list fixtures of the *currently selected* data_set (default vs the
+# minus-one deleted set) instead of 404ing (which would leave slug='').
 ASSET_DETAIL_RE = re.compile(r"/api/v1/assets/([0-9a-f-]{36})/")
 
-_asset_detail_index = None
+# {id(data_set): {asset_id: asset object}} — cached per data_set so switching to
+# assets_deleted_data_set rebuilds the index from its (minus-one) fixtures.
+_asset_detail_cache = {}
 
 
 def _asset_detail(asset_id):
-    global _asset_detail_index
-    if _asset_detail_index is None:
-        _asset_detail_index = {}
-        for url, path in url_map.items():
+    index = _asset_detail_cache.get(id(data_set))
+    if index is None:
+        index = {}
+        for url, path in data_set.items():
             if "/assets/?" not in url:  # only the asset LIST fixtures
                 continue
             try:
@@ -57,8 +60,9 @@ def _asset_detail(asset_id):
                 continue
             for item in data.get("data", []):
                 if isinstance(item, dict) and item.get("id"):
-                    _asset_detail_index.setdefault(item["id"], item)
-    return _asset_detail_index.get(asset_id)
+                    index.setdefault(item["id"], item)
+        _asset_detail_cache[id(data_set)] = index
+    return index.get(asset_id)
 
 
 class MockResponse:
