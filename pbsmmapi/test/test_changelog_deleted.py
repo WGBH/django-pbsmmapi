@@ -216,6 +216,15 @@ class ChangelogDeletedTestCase(TestCase):
         log.refresh_from_db()
         self.assertEqual(log.latest_timestamp, expected)
 
+    def test_parse_changelog_timestamp_is_utc_aware(self):
+        utc = parse_changelog_timestamp("2027-01-01T00:00:00Z")
+        # a non-UTC offset normalizes to the same UTC instant
+        self.assertEqual(parse_changelog_timestamp("2027-01-01T05:00:00+05:00"), utc)
+        # a timestamp with no timezone is assumed UTC and comes back aware
+        naive_input = parse_changelog_timestamp("2027-01-01T00:00:00")
+        self.assertIsNotNone(naive_input.tzinfo)
+        self.assertEqual(naive_input, utc)
+
     def test_new_delete_after_restore_records_new_timestamp(self):
         self.make_show()
         log = make_changelog(SHOW_ID, {T1: "delete"})
@@ -304,6 +313,35 @@ class ChangelogDeletedTestCase(TestCase):
             record_deleted(EPISODE_ASSET_ID), parse_changelog_timestamp(T0)
         )
 
+    def test_undelete_keeps_descendants_of_still_deleted_intermediate(self):
+        # restoring an ancestor must not resurrect objects under an
+        # intermediate that is still deleted in its own right
+        # (ancestor-deleted implies descendant-deleted).
+        self.make_show_tree()
+        # delete the whole subtree via the show
+        show_log = make_changelog(SHOW_ID, {T1: "delete"})
+        sync_deleted_state(show_log)
+        # the season is ALSO deleted on its own, later
+        season_log = make_changelog(SEASON_ID, {T2: "delete"}, resource_type="season")
+        sync_deleted_state(season_log)
+
+        # restore the show
+        show_log = ChangeLog.objects.get(pk=show_log.pk)
+        show_log.entries[T3] = {"action": "update", "updated_fields": ["title"]}
+        show_log.save()
+        sync_deleted_state(show_log)
+
+        # the show and its directly-cascaded descendants come back alive
+        for content_id in (SHOW_ID, SPECIAL_ID, SHOW_ASSET_ID):
+            self.assertIsNone(record_deleted(content_id))
+        # the season stays deleted (its own delete) ...
+        self.assertEqual(record_deleted(SEASON_ID), parse_changelog_timestamp(T2))
+        # ... and so does everything under the still-deleted season
+        self.assertEqual(record_deleted(EPISODE_ID), parse_changelog_timestamp(T2))
+        self.assertEqual(
+            record_deleted(EPISODE_ASSET_ID), parse_changelog_timestamp(T2)
+        )
+
     def test_save_does_not_ingest_deleted(self):
         show = self.make_show()
         ContentRecord.objects.filter(pk=UUID(SHOW_ID)).update(
@@ -358,6 +396,27 @@ class ChangelogDeletedTestCase(TestCase):
         log.refresh_from_db()
         self.assertIsNone(log.deleted)
         mock_get.assert_called()
+
+    def test_force_reingest_reingests_with_stale_cached_mm_content(self):
+        # the admin may hand force_reingest an instance whose mm_content
+        # relation was already cached (select_related / deleted_flag render),
+        # holding a stale non-NULL deleted; the override must still ingest.
+        show = self.make_show()
+        log = make_changelog(SHOW_ID, {T1: "delete"})
+        sync_deleted_state(log)
+
+        # cache the relation with the stale (deleted) value
+        item = Show.objects.select_related("mm_content").get(pk=show.pk)
+        self.assertIsNotNone(item.deleted)
+
+        with mock.patch(MMAPI_GET_URL, side_effect=mocked_requests_get) as mock_get:
+            show_admin = PBSMMShowAdmin(Show, django_admin.site)
+            show_admin.force_reingest(None, [item])
+
+        # ingest was attempted (not skipped on the stale cache) and the mark
+        # is cleared
+        mock_get.assert_called()
+        self.assertIsNone(record_deleted(SHOW_ID))
 
     def test_get_changelog_data_skips_deleted_logs(self):
         # cascade-deleted: the ContentRecord is marked (via an ancestor's

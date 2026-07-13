@@ -156,23 +156,35 @@ def mark_deleted(log: ChangeLog, deleted_at: datetime):
 def clear_deleted(log: ChangeLog):
     """
     Un-delete after a changelog entry newer than the delete: clear the
-    object's own record and mirror, and resync every descendant's record to
-    its OWN changelog mirror — the per-object source of truth. A descendant
-    deleted by its own changelog entry gets its own timestamp back and stays
-    deleted; everything the cascade marked goes back to NULL.
+    object's own record and mirror, resync every descendant's record to its
+    OWN changelog mirror, then re-apply the cascade from any descendant still
+    deleted in its own right.
 
-    Known edge: a descendant of a still-deleted intermediate parent resyncs
-    to alive (its own mirror is NULL); the intermediate's next changelog
-    entry or a backfill re-marks it.
+    Resyncing alone would resurrect a descendant of a still-deleted
+    intermediate (its own mirror is NULL), breaking the invariant
+    "ancestor-deleted implies descendant-deleted" and triggering upstream
+    404s. Re-cascading from every still-deleted descendant keeps those
+    subtrees marked, while everything the cleared object's cascade alone had
+    marked goes back to NULL. (The deleted timestamp is not load-bearing —
+    only its presence is — so overlapping re-cascades converging on any
+    non-NULL value is fine.)
     """
     ContentRecord.objects.filter(pk=log.mm_content_id).update(deleted=None)
+    descendant_qs = descendant_querysets(log.resource_type, log.mm_content_id)
     own_mirror = ChangeLog.objects.filter(mm_content_id=OuterRef("pk")).values(
         "deleted"
     )[:1]
-    for queryset in descendant_querysets(log.resource_type, log.mm_content_id):
+    for queryset in descendant_qs:
         ContentRecord.objects.filter(
             pk__in=descendant_record_ids(queryset),
         ).update(deleted=Subquery(own_mirror))
+    # objects under a still-deleted intermediate must stay deleted
+    for queryset in descendant_qs:
+        for descendant_log in ChangeLog.objects.filter(
+            mm_content_id__in=descendant_record_ids(queryset),
+            deleted__isnull=False,
+        ):
+            mark_deleted(descendant_log, descendant_log.deleted)
     ChangeLog.objects.filter(pk=log.pk).update(deleted=None)
 
 

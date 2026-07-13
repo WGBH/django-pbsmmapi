@@ -63,8 +63,10 @@ automatically; the *Reingest selected items* admin action also clears it as an e
 `deleted` records the most recent delete reported for the object or an ancestor; every object's
 own `ChangeLog` mirror is the authoritative per-object state. Restoring a parent resyncs each
 descendant to its own mirror: an object deleted by its own changelog entry stays deleted (with
-its own timestamp) until its own restore or the admin override. A model row whose `mm_content`
-is not linked cannot carry a mark; only the changelog mirror records its state.
+its own timestamp) until its own restore or the admin override, and anything under such a
+still-deleted intermediate stays deleted too (ancestor-deleted implies descendant-deleted, so it
+is not resurrected while unreachable upstream). A model row whose `mm_content` is not linked
+cannot carry a mark; only the changelog mirror records its state.
 
 Rows are never deleted locally, so consuming projects should filter them out where appropriate:
 

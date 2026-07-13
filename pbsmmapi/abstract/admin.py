@@ -73,6 +73,11 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
                     ContentRecord.objects.filter(pk=item.mm_content_id).update(
                         deleted=None
                     )
+                # the delete mark was cleared in the DB above; refresh the
+                # cached mm_content so save()'s ingest guard (self.deleted)
+                # sees the fresh value instead of a stale cached timestamp
+                # that would skip the override
+                item.mm_content = ContentRecord.objects.get(pk=item.mm_content_id)
             item.ingest_on_save = True
             # HOW DO I FIND OUT IF THE save() was successful?
             item.save()
