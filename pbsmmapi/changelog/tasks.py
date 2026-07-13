@@ -471,9 +471,12 @@ def get_changelog_data(limit: int):
     need to fetch the API data in order to determine whether to ingest
     the object.
     """
-    # for changelogs without API data (deleted objects would 404)
-
+    # for changelogs without API data (deleted objects would 404). Exclude rows
+    # with no linked ContentRecord (legacy / SET_NULL): a NULL relation matches
+    # the __isnull filters, and fetch_api_data would then crash dereferencing
+    # log.mm_content.
     logs = ChangeLog.objects.filter(
+        mm_content__isnull=False,
         mm_content__last_api_status__isnull=True,
         ingested=False,
         mm_content__deleted__isnull=True,
@@ -490,6 +493,7 @@ def get_changelog_data(limit: int):
     # was already ingested before we started scraping the changelog
     asset_logs = AssetChangeLog.objects.filter(
         ingested=True,
+        mm_content__isnull=False,
         mm_content__last_api_status__isnull=True,
         mm_content__deleted__isnull=True,
     )
@@ -504,6 +508,7 @@ def get_changelog_data(limit: int):
     # and which have been updated since the last API fetch attempt
     if limit > 0:
         logs = ChangeLog.objects.filter(
+            mm_content__isnull=False,
             mm_content__last_api_status__in=[403, 404],
             mm_content__deleted__isnull=True,
         ).filter(

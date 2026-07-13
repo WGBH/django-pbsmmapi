@@ -468,6 +468,27 @@ class ChangelogDeletedTestCase(TestCase):
         self.assertNotIn(deleted_log.mm_content_id, fetched_ids)
         self.assertIn(live_log.mm_content_id, fetched_ids)
 
+    def test_get_changelog_data_skips_logs_without_content_record(self):
+        # a ChangeLog whose mm_content link is NULL (SET_NULL / legacy) matches
+        # the mm_content__..._isnull=True filters, but must not be enqueued:
+        # fetch_api_data would crash dereferencing log.mm_content.
+        orphan = make_changelog(SHOW_ID, {T1: "update"})
+        ChangeLog.objects.filter(pk=orphan.pk).update(mm_content=None)
+        live_log = make_changelog(SHOW2_ID, {T2: "update"})
+
+        with (
+            mock.patch("pbsmmapi.changelog.tasks.fetch_api_data") as mock_fetch,
+            mock.patch("pbsmmapi.changelog.tasks.realize_provisional_objects"),
+            mock.patch("pbsmmapi.changelog.tasks.reingest_updated_objects"),
+        ):
+            get_changelog_data(10)
+
+        fetched_pks = [
+            log.pk for call in mock_fetch.map.call_args_list for log in call.args[0]
+        ]
+        self.assertNotIn(orphan.pk, fetched_pks)
+        self.assertIn(live_log.pk, fetched_pks)
+
     def test_reingest_skips_deleted_objects(self):
         # reingest_updated_objects (restored from rc_1.4.0) must not touch a
         # deleted object: it is excluded from the reingest querysets up front.
