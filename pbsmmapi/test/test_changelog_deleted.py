@@ -441,9 +441,11 @@ class ChangelogDeletedTestCase(TestCase):
         self.assertIsNone(record_deleted(SHOW_ID))
 
     def test_force_reingest_skips_clear_when_not_deleted(self):
-        # a not-deleted object must still be re-ingested, but the expensive
-        # un-delete cascade should be skipped entirely.
+        # a not-deleted object WITH a changelog must still be re-ingested, but
+        # the expensive un-delete cascade must be skipped (without the guard,
+        # clear_deleted would run on the found changelog).
         show = self.make_show()  # mm_content.deleted is NULL
+        make_changelog(SHOW_ID, {T1: "update"})  # changelog exists, no delete
 
         with (
             mock.patch(MMAPI_GET_URL, side_effect=mocked_requests_get) as mock_get,

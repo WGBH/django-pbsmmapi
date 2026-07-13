@@ -231,7 +231,10 @@ def save_changelog_entries(combined: dict):
     """
     for content_id, data in combined.items():
         try:
-            log = ChangeLog.objects.get(content_id=content_id)
+            # key off the unique mm_content relation (mm_content_id == the
+            # ContentRecord pk == this content_id), not the derived content_id
+            # annotation, which requires a JOIN and is NULL for unlinked rows
+            log = ChangeLog.objects.get(mm_content_id=content_id)
         except ChangeLog.DoesNotExist:
             record, _ = ContentRecord.objects.get_or_create(
                 content_id=content_id,
