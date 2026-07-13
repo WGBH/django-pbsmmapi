@@ -79,7 +79,8 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
                 # that would skip the override
                 item.mm_content = ContentRecord.objects.get(pk=item.mm_content_id)
             item.ingest_on_save = True
-            # HOW DO I FIND OUT IF THE save() was successful?
+            # save() raises on failure; reaching the next iteration implies
+            # this item was re-ingested and persisted successfully
             item.save()
 
     force_reingest.short_description = "Reingest selected items."
