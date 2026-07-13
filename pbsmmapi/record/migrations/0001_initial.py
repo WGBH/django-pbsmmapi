@@ -20,6 +20,7 @@ def populate_records(apps, schema_editor):
             content_id=franchise.object_id,
             api_data=franchise.json,
             last_api_status=franchise.last_api_status,
+            date_last_api_update=franchise.date_last_api_update,
         )
         for franchise in Franchise.objects.filter(object_id__isnull=False)
     ]
@@ -28,6 +29,7 @@ def populate_records(apps, schema_editor):
             content_id=show.object_id,
             api_data=show.json,
             last_api_status=show.last_api_status,
+            date_last_api_update=show.date_last_api_update,
         )
         for show in Show.objects.filter(object_id__isnull=False)
     ]
@@ -36,6 +38,7 @@ def populate_records(apps, schema_editor):
             content_id=season.object_id,
             api_data=season.json,
             last_api_status=season.last_api_status,
+            date_last_api_update=season.date_last_api_update,
         )
         for season in Season.objects.filter(object_id__isnull=False)
     ]
@@ -44,6 +47,7 @@ def populate_records(apps, schema_editor):
             content_id=special.object_id,
             api_data=special.json,
             last_api_status=special.last_api_status,
+            date_last_api_update=special.date_last_api_update,
         )
         for special in Special.objects.filter(object_id__isnull=False)
     ]
@@ -52,6 +56,7 @@ def populate_records(apps, schema_editor):
             content_id=episode.object_id,
             api_data=episode.json,
             last_api_status=episode.last_api_status,
+            date_last_api_update=episode.date_last_api_update,
         )
         for episode in Episode.objects.filter(object_id__isnull=False)
     ]
@@ -60,6 +65,7 @@ def populate_records(apps, schema_editor):
             content_id=asset.object_id,
             api_data=asset.json,
             last_api_status=asset.last_api_status,
+            date_last_api_update=asset.date_last_api_update,
         )
         for asset in Asset.objects.filter(object_id__isnull=False)
     ]
@@ -89,6 +95,15 @@ class Migration(migrations.Migration):
                     "last_api_status",
                     models.PositiveIntegerField(
                         blank=True, null=True, verbose_name="Last API Status"
+                    ),
+                ),
+                (
+                    "date_last_api_update",
+                    models.DateTimeField(
+                        blank=True,
+                        help_text="Not set by API",
+                        null=True,
+                        verbose_name="Last API Retrieval",
                     ),
                 ),
             ],

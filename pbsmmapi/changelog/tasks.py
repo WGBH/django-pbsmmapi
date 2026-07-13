@@ -401,6 +401,45 @@ def realize_provisional_objects():
         show.save()
 
 
+def reingest_updated_objects():
+    """
+    When new actions appear in the changelog, we need to trigger
+    ingest of the related object to get everything in sync.
+    """
+    querysets = [
+        Franchise.objects.filter(
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+        ),
+        Show.objects.filter(
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+        ),
+        Special.objects.filter(
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+        ),
+        Season.objects.filter(
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+        ),
+        Episode.objects.filter(
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+        ),
+        Asset.objects.filter(
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+        ),
+    ]
+    for queryset in querysets:
+        for item in queryset:
+            try:
+                changelog = ChangeLog.objects.get(content_id=item.content_id)
+            except ChangeLog.DoesNotExist:
+                continue
+            if changelog.latest_timestamp and (
+                item.date_last_api_update is None
+                or changelog.latest_timestamp > item.date_last_api_update
+            ):
+                item.ingest_on_save = True
+                item.save()
+
+
 def get_changelog_data(limit: int):
     """
     For ChangeLog objects we can't match with an ingested object, we
@@ -455,6 +494,7 @@ def get_changelog_data(limit: int):
         fetch_api_data.map(logs)
 
     realize_provisional_objects()
+    reingest_updated_objects()
 
 
 def get_new_mm_changelogs():

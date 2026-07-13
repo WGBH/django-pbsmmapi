@@ -3,6 +3,8 @@ from datetime import (
     datetime,
 )
 
+from typing import TYPE_CHECKING
+
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.fields.json import KT
@@ -123,6 +125,9 @@ class ChangeLog(models.Model):
         db_table = "pbsmm_changelog"
         ordering = ["latest_timestamp"]
 
+    if TYPE_CHECKING:
+        content_id: str
+
 
 class ShowChangeLogManager(PBSMMBaseRecordManager):
     def get_queryset(self):
@@ -230,7 +235,7 @@ class AssetChangeLog(ChangeLog):
         model = self.get_parent_model_class()
         assert model is not None
         try:
-            return model.objects.get(object_id=self.parent_id)
+            return model.objects.get(content_id=self.parent_id)
         except model.DoesNotExist:
             return None
 
@@ -239,3 +244,7 @@ class AssetChangeLog(ChangeLog):
 
     class Meta:
         proxy = True
+
+    if TYPE_CHECKING:
+        parent_type: str
+        parent_id: str
