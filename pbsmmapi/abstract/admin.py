@@ -61,8 +61,12 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
     def force_reingest(self, request, queryset):
         # queryset is the list of Asset items that were selected.
         for item in queryset:
-            # explicit human override: un-delete so save() re-ingests
-            if item.mm_content_id:
+            # Only run the un-delete cascade when the object is actually marked
+            # deleted: clear_deleted issues several descendant UPDATEs and
+            # iterates descendant changelogs — needless work for the common
+            # not-deleted case. mm_content_id is checked explicitly since the
+            # block below dereferences it (item.deleted already implies it).
+            if item.mm_content_id and item.deleted:
                 log = ChangeLog.objects.filter(mm_content_id=item.mm_content_id).first()
                 if log is not None:
                     # clears this object's record + mirror AND resyncs every

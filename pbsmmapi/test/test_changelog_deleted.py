@@ -440,6 +440,21 @@ class ChangelogDeletedTestCase(TestCase):
         mock_get.assert_called()
         self.assertIsNone(record_deleted(SHOW_ID))
 
+    def test_force_reingest_skips_clear_when_not_deleted(self):
+        # a not-deleted object must still be re-ingested, but the expensive
+        # un-delete cascade should be skipped entirely.
+        show = self.make_show()  # mm_content.deleted is NULL
+
+        with (
+            mock.patch(MMAPI_GET_URL, side_effect=mocked_requests_get) as mock_get,
+            mock.patch("pbsmmapi.abstract.admin.clear_deleted") as mock_clear,
+        ):
+            show_admin = PBSMMShowAdmin(Show, django_admin.site)
+            show_admin.force_reingest(None, Show.objects.filter(pk=show.pk))
+
+        mock_clear.assert_not_called()
+        mock_get.assert_called()  # still re-ingested
+
     def test_get_changelog_data_skips_deleted_logs(self):
         # cascade-deleted: the ContentRecord is marked (via an ancestor's
         # delete) while this changelog's own mirror stays NULL — it must still
