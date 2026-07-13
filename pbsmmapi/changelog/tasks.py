@@ -178,12 +178,15 @@ def clear_deleted(log: ChangeLog):
         ContentRecord.objects.filter(
             pk__in=descendant_record_ids(queryset),
         ).update(deleted=Subquery(own_mirror))
-    # objects under a still-deleted intermediate must stay deleted
+    # objects under a still-deleted intermediate must stay deleted. Stream the
+    # matches with .iterator() so re-cascading a large subtree stays memory
+    # bounded; mark_deleted only rewrites each row's mirror to the value it
+    # already holds, so it never changes this queryset's membership mid-loop.
     for queryset in descendant_qs:
         for descendant_log in ChangeLog.objects.filter(
             mm_content_id__in=descendant_record_ids(queryset),
             deleted__isnull=False,
-        ):
+        ).iterator():
             mark_deleted(descendant_log, descendant_log.deleted)
     ChangeLog.objects.filter(pk=log.pk).update(deleted=None)
 

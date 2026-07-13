@@ -91,7 +91,7 @@ class Franchise(PBSMMGenericFranchise):
 
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
-        content_id = kwargs.pop("content_id", False)
+        content_id = kwargs.pop("content_id", None)
         if skip_ingest:
             super().save(*args, **kwargs)
         else:
