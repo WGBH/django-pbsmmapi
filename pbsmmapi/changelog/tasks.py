@@ -267,7 +267,7 @@ def max_page_number(mm_response_data: dict) -> int:
     try:
         last_page = int(query_params["page"][0])
     except KeyError:
-        last_page = 0
+        last_page = 1
     return last_page
 
 
@@ -557,7 +557,6 @@ def get_new_mm_changelogs():
             HUEY.put("changelog_bounds", changelog_bounds)
         else:
             urls = [f"{base_url}&page={i}" for i in range(1, last_page + 1)]
-
     return urls
 
 
