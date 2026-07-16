@@ -112,7 +112,6 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
             endpoint,
             episode_id=episode_id,
         )
-        # episode.delete_stale_assets(episode_id=episode_id)
 
     @property
     def full_episode_code(self):

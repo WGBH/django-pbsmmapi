@@ -60,14 +60,6 @@ class ChangeLog(models.Model):
         on_delete=models.SET_NULL,
     )
 
-    deleted = models.DateTimeField(
-        _("Deleted"),
-        null=True,
-        blank=True,
-        db_index=True,
-        help_text="Set from the entry timestamp when the latest changelog action is 'delete'.",
-    )
-
     @property
     def api_url(self):
         return f"{PBSMM_BASE_URL}api/v1/{self.resource_type}s/{self.content_id}/"

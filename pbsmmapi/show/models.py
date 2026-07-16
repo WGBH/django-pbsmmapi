@@ -166,7 +166,6 @@ class Show(GenericProvisional, PBSMMGenericShow):
         show.process_assets(endpoint, show_id=show_id)
         show.process_seasons()
         show.process_specials()
-        # show.delete_stale_assets(show_id=show_id)
         show.stop_ingestion_restart()
 
     def process_seasons(self):

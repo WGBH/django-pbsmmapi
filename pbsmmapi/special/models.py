@@ -119,7 +119,6 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
         if assets := special.api_links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"
         special.process_assets(endpoint, special_id=special_id)
-        # special.delete_stale_assets(special_id=special_id)
 
     def __str__(self):
         return f"{self.content_id} | {self.show} | {self.title} "

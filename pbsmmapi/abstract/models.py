@@ -178,29 +178,6 @@ class IngestWithAssets(Ingest):
 
         self.flip_api_pages(endpoint, set_asset)
 
-    def delete_stale_assets(self, **filters):
-        """
-        Delete leftover assets.
-        > filters: params for asset queryset to identify parent object
-
-        Returns number of objects deleted and a dictionary
-        with the number of deletions per object type
-
-        >>> self.delete_stale_assets()
-        (1, {'pbsmmapi.Asset': 1})
-        """
-        from pbsmmapi.asset.models import (  # pylint: disable=import-outside-toplevel
-            Asset,
-        )
-
-        return (
-            Asset.objects.filter(**filters)
-            .exclude(
-                mm_content_id__in=self.scraped_object_ids,
-            )
-            .delete()
-        )
-
     class Meta:
         abstract = True
 

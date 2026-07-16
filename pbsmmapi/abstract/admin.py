@@ -2,10 +2,6 @@ from django.contrib import admin
 from django.contrib.admin import site
 from django.utils.safestring import mark_safe
 
-from pbsmmapi.changelog.models import ChangeLog
-from pbsmmapi.changelog.tasks import clear_deleted
-from pbsmmapi.record.models import ContentRecord
-
 # This removed the delete function from the Admin action dropdown.
 # You can 're-add' it, if necessary, by explicitly adding it to the
 # actions parameter for a given ModelAdmin instance.
@@ -61,30 +57,11 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
     def force_reingest(self, request, queryset):
         # queryset is the list of Asset items that were selected.
         for item in queryset:
-            # Only run the un-delete cascade when the object is actually marked
-            # deleted: clear_deleted issues several descendant UPDATEs and
-            # iterates descendant changelogs — needless work for the common
-            # not-deleted case. mm_content_id is checked explicitly since the
-            # block below dereferences it (item.deleted already implies it).
-            if item.mm_content_id and item.deleted:
-                log = ChangeLog.objects.filter(mm_content_id=item.mm_content_id).first()
-                if log is not None:
-                    # clears this object's record + mirror AND resyncs every
-                    # cascade-marked descendant back to its own changelog mirror
-                    clear_deleted(log)
-                else:
-                    # no changelog to drive the cascade; clear this record only
-                    ContentRecord.objects.filter(pk=item.mm_content_id).update(
-                        deleted=None
-                    )
-                # the delete mark was cleared in the DB above; refresh the
-                # cached mm_content so save()'s ingest guard (self.deleted)
-                # sees the fresh value instead of a stale cached timestamp
-                # that would skip the override
-                item.mm_content = ContentRecord.objects.get(pk=item.mm_content_id)
             item.ingest_on_save = True
             # save() raises on failure; reaching the next iteration implies
-            # this item was re-ingested and persisted successfully
+            # this item was re-ingested and persisted successfully. Deleted
+            # items are skipped by save()'s ingest guard: deletes are
+            # terminal, there is no un-delete.
             item.save()
 
     force_reingest.short_description = "Reingest selected items."

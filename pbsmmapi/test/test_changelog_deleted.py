@@ -1,10 +1,10 @@
-from io import StringIO
+from importlib import import_module
 import json
 from unittest import mock
 from uuid import UUID
 
+from django.apps import apps
 from django.contrib import admin as django_admin
-from django.core.management import call_command
 from django.test import (
     TestCase,
     override_settings,
@@ -13,6 +13,7 @@ from django.test import (
 from pbsmmapi.asset.models import Asset
 from pbsmmapi.changelog.models import ChangeLog
 from pbsmmapi.changelog.tasks import (
+    fetch_api_data,
     get_changelog_data,
     mark_deleted,
     parse_changelog_timestamp,
@@ -28,6 +29,12 @@ from pbsmmapi.show.models import Show
 from pbsmmapi.show.tasks import scrape_media_manager_shows
 from pbsmmapi.special.models import Special
 from pbsmmapi.test.url_map import url_map
+
+# the module name starts with a digit, so it needs importlib instead of a
+# plain import statement
+backfill_migration = import_module(
+    "pbsmmapi.changelog.migrations.0003_backfill_deleted"
+)
 
 SHOW_ID = "adfb2f9d-f61e-4613-ac58-ab3bde582afb"
 SHOW2_ID = "0f6b1922-4c86-4ba4-b5ee-90701ec6b4b1"
@@ -115,21 +122,23 @@ class ChangelogDeletedTestCase(TestCase):
             mm_content=make_record(SPECIAL_ID),
         )
         special.save(skip_ingest=True)
+        # skip_ingest: a plain save() would hit the API and run set_parent(),
+        # which clears the parent FKs when api_data has no parent_tree
         show_asset = Asset(
             slug="a-show-asset",
             show=show,
             mm_content=make_record(SHOW_ASSET_ID),
         )
-        show_asset.save()
+        show_asset.save(skip_ingest=True)
         episode_asset = Asset(
             slug="an-episode-asset",
             episode=episode,
             mm_content=make_record(EPISODE_ASSET_ID),
         )
-        episode_asset.save()
+        episode_asset.save(skip_ingest=True)
         return show, season, episode, special, show_asset, episode_asset
 
-    def test_delete_entry_marks_object_and_changelog(self):
+    def test_delete_entry_marks_record(self):
         self.make_show()
         combined = {
             SHOW_ID: {
@@ -143,25 +152,22 @@ class ChangelogDeletedTestCase(TestCase):
         save_changelog_entries.call_local(combined)
 
         self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T2))
-        log = ChangeLog.objects.get(content_id=UUID(SHOW_ID))
-        self.assertEqual(log.deleted, parse_changelog_timestamp(T2))
 
-    def test_newer_update_clears_deleted(self):
+    def test_newer_update_does_not_clear_deleted(self):
+        # deletes are terminal: recreation gets a new content ID and unpublish
+        # arrives as an update, so a newer entry on the same ID never revives
+        # the record
         self.make_show()
         log = make_changelog(SHOW_ID, {T1: "delete"})
         sync_deleted_state(log)
-        self.assertIsNotNone(record_deleted(SHOW_ID))
+        self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T1))
 
-        # a later scrape merges a newer update entry; the log is always
-        # refetched from the DB in production (save_changelog_entries)
         log = ChangeLog.objects.get(pk=log.pk)
         log.entries[T2] = {"action": "update", "updated_fields": ["title"]}
         log.save()
         sync_deleted_state(log)
 
-        self.assertIsNone(record_deleted(SHOW_ID))
-        log.refresh_from_db()
-        self.assertIsNone(log.deleted)
+        self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T1))
 
     def test_latest_entry_wins(self):
         self.make_show()
@@ -180,8 +186,6 @@ class ChangelogDeletedTestCase(TestCase):
         sync_deleted_state(log)
 
         self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T4))
-        log.refresh_from_db()
-        self.assertEqual(log.deleted, parse_changelog_timestamp(T4))
 
     def test_latest_entry_is_chronological_not_lexicographic(self):
         # a microsecond-bearing timestamp is chronologically LATER but sorts
@@ -227,13 +231,13 @@ class ChangelogDeletedTestCase(TestCase):
         self.assertIsNotNone(naive_input.tzinfo)
         self.assertEqual(naive_input, utc)
 
-    def test_new_delete_after_restore_records_new_timestamp(self):
+    def test_newer_delete_overwrites_timestamp(self):
         self.make_show()
         log = make_changelog(SHOW_ID, {T1: "delete"})
         sync_deleted_state(log)
         self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T1))
 
-        # a restore and a fresh delete arrive together in a later batch
+        # more entries arrive in a later batch, ending in a fresh delete
         log = ChangeLog.objects.get(pk=log.pk)
         log.entries[T2] = {"action": "update", "updated_fields": ["title"]}
         log.entries[T3] = {"action": "delete", "updated_fields": []}
@@ -241,39 +245,37 @@ class ChangelogDeletedTestCase(TestCase):
         sync_deleted_state(log)
 
         self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T3))
-        log.refresh_from_db()
-        self.assertEqual(log.deleted, parse_changelog_timestamp(T3))
 
     def test_repeated_delete_records_latest(self):
-        # every delete is recorded; record and mirror always agree, even when
-        # the caller holds a stale instance (all writes are overwrites)
+        # every delete is recorded, even when the caller holds a stale
+        # instance (all writes are overwrites)
         self.make_show()
         log = make_changelog(SHOW_ID, {T1: "delete"})
         sync_deleted_state(log)
         mark_deleted(log, parse_changelog_timestamp(T2))
 
         self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T2))
-        log.refresh_from_db()
-        self.assertEqual(log.deleted, parse_changelog_timestamp(T2))
 
-    def test_missing_content_model_still_marks_record_and_changelog(self):
+    def test_missing_content_model_still_marks_record(self):
         # THES-469 gives every changelog a ContentRecord even when the content
-        # model (Show/Season/...) was never ingested: the record and mirror get
-        # marked, but no Show row exists.
+        # model (Show/Season/...) was never ingested: the record gets marked,
+        # but no Show row exists.
         log = make_changelog(SHOW_ID, {T1: "delete"})
         sync_deleted_state(log)
-        log.refresh_from_db()
-        self.assertEqual(log.deleted, parse_changelog_timestamp(T1))
         self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T1))
         self.assertFalse(Show.objects.exists())
 
     def test_sync_skips_changelog_without_content_record(self):
         # a ChangeLog whose mm_content link is NULL (SET_NULL / legacy data)
-        # must not drive the cascade: descendant_querysets(resource_type, None)
-        # would match every object whose parent has a NULL record.
+        # must not drive the asset cascade: direct_assets("show", None) would
+        # match every asset whose parent show has a NULL record.
         ghost_show = Show(slug="ghost")
         ghost_show.save(skip_ingest=True)  # no linked ContentRecord
-        victim = Season(show=ghost_show, ordinal=1, mm_content=make_record(SEASON_ID))
+        victim = Asset(
+            slug="a-victim-asset",
+            show=ghost_show,
+            mm_content=make_record(SHOW_ASSET_ID),
+        )
         victim.save(skip_ingest=True)
 
         # a "show" delete changelog whose record link was cleared
@@ -284,85 +286,24 @@ class ChangelogDeletedTestCase(TestCase):
 
         sync_deleted_state(log)
 
-        # the unrelated season (parent show has a NULL record) is NOT marked
-        self.assertIsNone(record_deleted(SEASON_ID))
+        # the unrelated asset (parent show has a NULL record) is NOT marked
+        self.assertIsNone(record_deleted(SHOW_ASSET_ID))
 
-    def test_cascade_marks_descendants(self):
+    def test_delete_marks_object_and_direct_assets_only(self):
         self.make_show_tree()
-        # episode_asset was already deleted on its own, earlier
-        asset_log = make_changelog(
-            EPISODE_ASSET_ID, {T0: "delete"}, resource_type="asset"
-        )
-        sync_deleted_state(asset_log)
 
         log = make_changelog(SHOW_ID, {T2: "delete"})
         sync_deleted_state(log)
 
-        # every layer records the latest delete, the cascade included
+        # the object and its directly-attached assets record the delete
         deleted_at = parse_changelog_timestamp(T2)
-        for content_id in (
-            SHOW_ID,
-            SEASON_ID,
-            EPISODE_ID,
-            SPECIAL_ID,
-            SHOW_ASSET_ID,
-            EPISODE_ASSET_ID,
-        ):
-            self.assertEqual(record_deleted(content_id), deleted_at)
-        # the asset's own changelog mirror keeps its own deletion time
-        asset_log.refresh_from_db()
-        self.assertEqual(asset_log.deleted, parse_changelog_timestamp(T0))
-
-    def test_undelete_resyncs_descendants_from_their_mirrors(self):
-        self.make_show_tree()
-        asset_log = make_changelog(
-            EPISODE_ASSET_ID, {T0: "delete"}, resource_type="asset"
-        )
-        sync_deleted_state(asset_log)
-        log = make_changelog(SHOW_ID, {T2: "delete"})
-        sync_deleted_state(log)
-
-        log = ChangeLog.objects.get(pk=log.pk)
-        log.entries[T3] = {"action": "update", "updated_fields": ["title"]}
-        log.save()
-        sync_deleted_state(log)
-
-        for content_id in (SHOW_ID, SEASON_ID, EPISODE_ID, SPECIAL_ID, SHOW_ASSET_ID):
+        self.assertEqual(record_deleted(SHOW_ID), deleted_at)
+        self.assertEqual(record_deleted(SHOW_ASSET_ID), deleted_at)
+        # every other type gets its own PBS delete entry (children are deleted
+        # before parents), so nothing else is flagged — the episode's asset
+        # belongs to the episode's own cascade
+        for content_id in (SEASON_ID, EPISODE_ID, SPECIAL_ID, EPISODE_ASSET_ID):
             self.assertIsNone(record_deleted(content_id))
-        # the individually deleted asset gets its own timestamp back from its
-        # changelog mirror instead of being resurrected
-        self.assertEqual(
-            record_deleted(EPISODE_ASSET_ID), parse_changelog_timestamp(T0)
-        )
-
-    def test_undelete_keeps_descendants_of_still_deleted_intermediate(self):
-        # restoring an ancestor must not resurrect objects under an
-        # intermediate that is still deleted in its own right
-        # (ancestor-deleted implies descendant-deleted).
-        self.make_show_tree()
-        # delete the whole subtree via the show
-        show_log = make_changelog(SHOW_ID, {T1: "delete"})
-        sync_deleted_state(show_log)
-        # the season is ALSO deleted on its own, later
-        season_log = make_changelog(SEASON_ID, {T2: "delete"}, resource_type="season")
-        sync_deleted_state(season_log)
-
-        # restore the show
-        show_log = ChangeLog.objects.get(pk=show_log.pk)
-        show_log.entries[T3] = {"action": "update", "updated_fields": ["title"]}
-        show_log.save()
-        sync_deleted_state(show_log)
-
-        # the show and its directly-cascaded descendants come back alive
-        for content_id in (SHOW_ID, SPECIAL_ID, SHOW_ASSET_ID):
-            self.assertIsNone(record_deleted(content_id))
-        # the season stays deleted (its own delete) ...
-        self.assertEqual(record_deleted(SEASON_ID), parse_changelog_timestamp(T2))
-        # ... and so does everything under the still-deleted season
-        self.assertEqual(record_deleted(EPISODE_ID), parse_changelog_timestamp(T2))
-        self.assertEqual(
-            record_deleted(EPISODE_ASSET_ID), parse_changelog_timestamp(T2)
-        )
 
     def test_save_does_not_ingest_deleted(self):
         show = self.make_show()
@@ -392,75 +333,32 @@ class ChangelogDeletedTestCase(TestCase):
             self.assertEqual(asset.process(), (None, None))
         mock_get.assert_not_called()
 
-    def test_force_reingest_undeletes(self):
-        show, *_ = self.make_show_tree()
-        # episode_asset was deleted in its own right; it must survive the override
-        asset_log = make_changelog(
-            EPISODE_ASSET_ID, {T0: "delete"}, resource_type="asset"
-        )
-        sync_deleted_state(asset_log)
-        # deleting the show cascades delete marks to the whole subtree
-        log = make_changelog(SHOW_ID, {T1: "delete"})
-        sync_deleted_state(log)
+    def test_force_reingest_reingests(self):
+        show = self.make_show()
 
         with mock.patch(MMAPI_GET_URL, side_effect=mocked_requests_get) as mock_get:
             show_admin = PBSMMShowAdmin(Show, django_admin.site)
             show_admin.force_reingest(None, Show.objects.filter(pk=show.pk))
 
-        # the show AND its cascade-marked descendants are cleared
-        for content_id in (SHOW_ID, SEASON_ID, EPISODE_ID, SPECIAL_ID, SHOW_ASSET_ID):
-            self.assertIsNone(record_deleted(content_id))
-        # the individually deleted asset keeps its own timestamp
-        self.assertEqual(
-            record_deleted(EPISODE_ASSET_ID), parse_changelog_timestamp(T0)
-        )
-        # the show's ChangeLog mirror is cleared and reingest ran
-        log.refresh_from_db()
-        self.assertIsNone(log.deleted)
         mock_get.assert_called()
 
-    def test_force_reingest_reingests_with_stale_cached_mm_content(self):
-        # the admin may hand force_reingest an instance whose mm_content
-        # relation was already cached (select_related / deleted_flag render),
-        # holding a stale non-NULL deleted; the override must still ingest.
+    def test_force_reingest_skips_deleted(self):
+        # deletes are terminal — there is no un-delete override; the admin
+        # action just saves, and save()'s ingest guard skips deleted objects
         show = self.make_show()
         log = make_changelog(SHOW_ID, {T1: "delete"})
         sync_deleted_state(log)
 
-        # cache the relation with the stale (deleted) value
-        item = Show.objects.select_related("mm_content").get(pk=show.pk)
-        self.assertIsNotNone(item.deleted)
-
-        with mock.patch(MMAPI_GET_URL, side_effect=mocked_requests_get) as mock_get:
-            show_admin = PBSMMShowAdmin(Show, django_admin.site)
-            show_admin.force_reingest(None, [item])
-
-        # ingest was attempted (not skipped on the stale cache) and the mark
-        # is cleared
-        mock_get.assert_called()
-        self.assertIsNone(record_deleted(SHOW_ID))
-
-    def test_force_reingest_skips_clear_when_not_deleted(self):
-        # a not-deleted object WITH a changelog must still be re-ingested, but
-        # the expensive un-delete cascade must be skipped (without the guard,
-        # clear_deleted would run on the found changelog).
-        show = self.make_show()  # mm_content.deleted is NULL
-        make_changelog(SHOW_ID, {T1: "update"})  # changelog exists, no delete
-
-        with (
-            mock.patch(MMAPI_GET_URL, side_effect=mocked_requests_get) as mock_get,
-            mock.patch("pbsmmapi.abstract.admin.clear_deleted") as mock_clear,
-        ):
+        with mock.patch(MMAPI_GET_URL) as mock_get:
             show_admin = PBSMMShowAdmin(Show, django_admin.site)
             show_admin.force_reingest(None, Show.objects.filter(pk=show.pk))
 
-        mock_clear.assert_not_called()
-        mock_get.assert_called()  # still re-ingested
+        mock_get.assert_not_called()
+        self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T1))
 
     def test_get_changelog_data_skips_deleted_logs(self):
-        # cascade-deleted: the ContentRecord is marked (via an ancestor's
-        # delete) while this changelog's own mirror stays NULL — it must still
-        # be excluded from the API fetch.
+        # the ContentRecord is marked deleted (e.g. flagged by a parent's
+        # delete cascade) — the log must be excluded from the API fetch.
         deleted_log = make_changelog(SHOW_ID, {T1: "update"})
         ChangeLog.objects.filter(pk=deleted_log.pk).update(
             api_crawled=parse_changelog_timestamp(T0),
@@ -477,13 +375,12 @@ class ChangelogDeletedTestCase(TestCase):
         ):
             get_changelog_data(10)
 
-        fetched_ids = [
-            log.mm_content_id
-            for call in mock_fetch.map.call_args_list
-            for log in call.args[0]
+        # fetch_api_data is now mapped over ChangeLog PKs, not instances
+        fetched_pks = [
+            pk for call in mock_fetch.map.call_args_list for pk in call.args[0]
         ]
-        self.assertNotIn(deleted_log.mm_content_id, fetched_ids)
-        self.assertIn(live_log.mm_content_id, fetched_ids)
+        self.assertNotIn(deleted_log.pk, fetched_pks)
+        self.assertIn(live_log.pk, fetched_pks)
 
     def test_get_changelog_data_skips_logs_without_content_record(self):
         # a ChangeLog whose mm_content link is NULL (SET_NULL / legacy) matches
@@ -501,10 +398,41 @@ class ChangelogDeletedTestCase(TestCase):
             get_changelog_data(10)
 
         fetched_pks = [
-            log.pk for call in mock_fetch.map.call_args_list for log in call.args[0]
+            pk for call in mock_fetch.map.call_args_list for pk in call.args[0]
         ]
         self.assertNotIn(orphan.pk, fetched_pks)
         self.assertIn(live_log.pk, fetched_pks)
+
+    def test_fetch_api_data_skips_deleted(self):
+        # the object may be deleted between enqueue and execution; the task
+        # refetches by pk and must bail (no API call, no writes) if so.
+        log = make_changelog(SHOW_ID, {T1: "update"})
+        ContentRecord.objects.filter(pk=UUID(SHOW_ID)).update(
+            deleted=parse_changelog_timestamp(T1)
+        )
+
+        with mock.patch("pbsmmapi.changelog.tasks.get_PBSMM_record") as mock_fetch:
+            fetch_api_data.call_local(log.pk)
+
+        mock_fetch.assert_not_called()
+
+    def test_fetch_api_data_updates_and_preserves_entries(self):
+        # writes only its own fields (last_api_status/api_data/api_crawled) and
+        # never clobbers entries via a full-row save.
+        log = make_changelog(SHOW_ID, {T1: "update"})
+        api_data = {"data": {"id": SHOW_ID, "attributes": {}}}
+
+        with mock.patch(
+            "pbsmmapi.changelog.tasks.get_PBSMM_record", return_value=(200, api_data)
+        ):
+            fetch_api_data.call_local(log.pk)
+
+        record = ContentRecord.objects.get(pk=UUID(SHOW_ID))
+        self.assertEqual(record.last_api_status, 200)
+        self.assertEqual(record.api_data, api_data)
+        log.refresh_from_db()
+        self.assertIsNotNone(log.api_crawled)
+        self.assertEqual(list(log.entries.keys()), [T1])
 
     def test_reingest_skips_deleted_objects(self):
         # reingest_updated_objects (restored from rc_1.4.0) must not touch a
@@ -540,20 +468,18 @@ class ChangelogDeletedTestCase(TestCase):
         self.assertEqual(Show.objects.count(), 1)
         self.assertIsNotNone(record_deleted(SHOW_ID))
 
-    def test_backfill_deleted_command(self):
+    def test_backfill_deleted_migration(self):
+        # the data migration is exercised directly with the live app registry;
+        # apps.get_model resolves the same way as with historical models
         self.make_show()
         self.make_show(slug="nature", content_id=SHOW2_ID)
         make_changelog(SHOW_ID, {T1: "update", T2: "delete"})
         make_changelog(SHOW2_ID, {T1: "delete", T2: "update"})
 
-        out = StringIO()
-        call_command("backfill_deleted", stdout=out)
+        backfill_migration.backfill_deleted(apps, None)
 
         self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T2))
         self.assertIsNone(record_deleted(SHOW2_ID))
-        # the in-memory counter matches reality: only SHOW_ID's latest entry is
-        # a delete, so exactly one changelog is reported marked
-        self.assertIn("1 changelog(s) marked deleted", out.getvalue())
 
     def test_backfill_recomputes_latest_timestamp(self):
         # a legacy row whose latest_timestamp was computed lexicographically:
@@ -568,7 +494,7 @@ class ChangelogDeletedTestCase(TestCase):
             latest_timestamp=parse_changelog_timestamp(plain)
         )
 
-        call_command("backfill_deleted")
+        backfill_migration.backfill_deleted(apps, None)
 
         log.refresh_from_db()
         self.assertEqual(log.latest_timestamp, parse_changelog_timestamp(micro))
