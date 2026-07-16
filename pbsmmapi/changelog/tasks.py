@@ -15,9 +15,9 @@ from django.db.models import (
     Exists,
     F,
     OuterRef,
-    QuerySet,
 )
 from django.db.models.lookups import LessThan
+from django.db.models.query import QuerySet
 from huey import crontab
 from huey.contrib.djhuey import (
     HUEY,
