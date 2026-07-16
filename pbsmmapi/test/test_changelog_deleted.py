@@ -10,13 +10,13 @@ from django.test import (
     override_settings,
 )
 
+from pbsmmapi.abstract.helpers import parse_changelog_timestamp
 from pbsmmapi.asset.models import Asset
 from pbsmmapi.changelog.models import ChangeLog
 from pbsmmapi.changelog.tasks import (
     fetch_api_data,
     get_changelog_data,
     mark_deleted,
-    parse_changelog_timestamp,
     reingest_updated_objects,
     save_changelog_entries,
     sync_deleted_state,

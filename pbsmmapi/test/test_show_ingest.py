@@ -140,8 +140,8 @@ class ShowIngestTestCase(TestCase):
         self.assertEqual(
             nova_show_asset.content_id, UUID("bae3b21e-2465-4629-afce-1f192c7a11c9")
         )
-        # delete_stale_assets is disabled everywhere, so an asset that drops out
-        # of the parent's list is retained rather than pruned
+        # assets are never pruned on a list drop (asset deletions arrive as
+        # changelog delete signals instead), so the asset is retained
         data_set = assets_deleted_data_set
         self.reingest()
         data_set = default_data_set
@@ -156,7 +156,8 @@ class ShowIngestTestCase(TestCase):
         self.reingest(ingest_seasons=True)
         landslides = Asset.objects.get(slug="predicting-landslides-qh7jt9")
         self.assertEqual(landslides.title, "Predicting Landslides")
-        # delete_stale_assets is disabled everywhere, so the asset is retained
+        # assets are never pruned on a list drop (asset deletions arrive as
+        # changelog delete signals instead), so the asset is retained
         data_set = assets_deleted_data_set
         self.reingest(ingest_seasons=True)
         self.assertTrue(
@@ -170,7 +171,8 @@ class ShowIngestTestCase(TestCase):
         self.reingest(ingest_specials=True)
         saturn = Asset.objects.get(slug="front-row-seat-saturn-0vf9j2")
         self.assertEqual(saturn.title, "Front Row Seat to Saturn")
-        # delete_stale_assets is disabled everywhere, so the asset is retained
+        # assets are never pruned on a list drop (asset deletions arrive as
+        # changelog delete signals instead), so the asset is retained
         data_set = assets_deleted_data_set
         self.reingest(ingest_specials=True)
         self.assertTrue(
@@ -184,7 +186,8 @@ class ShowIngestTestCase(TestCase):
         self.reingest(ingest_episodes=True, ingest_seasons=True)
         make_life = Asset.objects.get(slug="can-we-make-life-hquxsp")
         self.assertEqual(make_life.title, "Can We Make Life? Preview")
-        # delete_stale_assets is disabled everywhere, so the asset is retained
+        # assets are never pruned on a list drop (asset deletions arrive as
+        # changelog delete signals instead), so the asset is retained
         data_set = assets_deleted_data_set
         self.reingest(ingest_episodes=True, ingest_seasons=True)
         self.assertTrue(Asset.objects.filter(slug="can-we-make-life-hquxsp").exists())

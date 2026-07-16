@@ -1,7 +1,3 @@
-from datetime import (
-    UTC,
-    datetime,
-)
 from typing import TYPE_CHECKING
 
 from django.contrib.contenttypes.models import ContentType
@@ -10,19 +6,8 @@ from django.db.models.fields.json import KT
 from django.utils.translation import gettext_lazy as _
 
 from pbsmmapi.abstract.constants import PBSMM_BASE_URL
+from pbsmmapi.abstract.helpers import parse_changelog_timestamp
 from pbsmmapi.record.models import PBSMMBaseRecordManager
-
-
-def parse_changelog_timestamp(timestamp: str) -> datetime:
-    """Parse a changelog ISO timestamp string into an aware UTC datetime.
-
-    Any offset in the string is normalized to UTC; a timestamp with no
-    timezone is assumed to be UTC (not the local zone).
-    """
-    parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
-    if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=UTC)
-    return parsed.astimezone(UTC)
 
 
 class PBSMMResourceType(models.TextChoices):

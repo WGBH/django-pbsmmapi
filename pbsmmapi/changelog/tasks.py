@@ -28,6 +28,7 @@ from huey.contrib.djhuey import (
 )
 
 from pbsmmapi.abstract.constants import PBSMM_BASE_URL
+from pbsmmapi.abstract.helpers import parse_changelog_timestamp
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.asset.models import Asset
 from pbsmmapi.changelog.models import (
@@ -37,7 +38,6 @@ from pbsmmapi.changelog.models import (
     SeasonChangeLog,
     ShowChangeLog,
     SpecialChangeLog,
-    parse_changelog_timestamp,
 )
 from pbsmmapi.episode.models import Episode
 from pbsmmapi.franchise.models import Franchise

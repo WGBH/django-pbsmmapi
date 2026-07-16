@@ -53,20 +53,22 @@ Once a complete ingest has finished, changelog data is used to ingest updated an
 ## Deleted objects
 
 When the changelog reports an object as deleted, its row is kept but its `ContentRecord`
-(`mm_content`) is marked with a `deleted` timestamp (taken from the changelog entry), and the mark
-cascades to its descendants' records (seasons, episodes, specials, assets). The `ChangeLog` row
-carries a mirror `deleted` timestamp so the state is recorded even when no local object exists.
-Marked objects are excluded from all re-ingestion paths so they are neither re-fetched nor
-resurrected. If a newer changelog entry shows the object was restored, the mark is cleared
-automatically; the *Reingest selected items* admin action also clears it as an explicit override.
+(`mm_content`) is marked with a `deleted` timestamp (taken from the changelog entry). The mark
+also stamps the records of the object's **directly-attached assets** — the only descendants that
+disappear silently: Media Manager requires children to be deleted before their parents, so every
+franchise/show/season/episode/special gets its own changelog delete entry (which stamps its own
+assets in turn), while a parent's assets never get entries of their own.
 
-`deleted` records the most recent delete reported for the object or an ancestor; every object's
-own `ChangeLog` mirror is the authoritative per-object state. Restoring a parent resyncs each
-descendant to its own mirror: an object deleted by its own changelog entry stays deleted (with
-its own timestamp) until its own restore or the admin override, and anything under such a
-still-deleted intermediate stays deleted too (ancestor-deleted implies descendant-deleted, so it
-is not resurrected while unreachable upstream). A model row whose `mm_content` is not linked
-cannot carry a mark; only the changelog mirror records its state.
+Marked objects are excluded from every ingestion path — the scrapers, the changelog API fetches
+and the reingest-on-update pass all skip them, and `save()` will not fetch for them — so they are
+neither re-fetched nor resurrected.
+
+A delete is terminal. Recreating an object in the Media Manager Console produces a new content ID
+(ingested here as a brand-new object), and unpublishing arrives as an `update` action, so a delete
+entry is never superseded on the same content ID and there is no un-delete: the *Reingest selected
+items* admin action simply skips deleted objects. For the same reason an asset that drops out of
+its parent's asset list is left untouched on reingest — if it was really deleted, its own changelog
+delete entry marks it.
 
 Rows are never deleted locally, so consuming projects should filter them out where appropriate:
 
@@ -74,9 +76,5 @@ Rows are never deleted locally, so consuming projects should filter them out whe
 Show.objects.filter(mm_content__deleted__isnull=True)
 ```
 
-After upgrading and running `migrate`, run the one-time (idempotent) backfill to apply delete
-entries already recorded in the changelog table:
-
-```bash
-python manage.py backfill_deleted
-```
+Delete entries already recorded in the changelog table are applied automatically by a one-time
+(idempotent) data migration when you run `migrate` after upgrading.
