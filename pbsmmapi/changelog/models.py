@@ -40,9 +40,7 @@ class ChangeLog(models.Model):
     api_crawled = models.DateTimeField(null=True)
     mm_content = models.OneToOneField(
         "record.ContentRecord",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
     )
 
     @property
@@ -86,7 +84,6 @@ class ChangeLog(models.Model):
         # try to get a previously saved instance
         model = self.get_model_class()
         assert model is not None
-        assert self.mm_content is not None
         try:
             return model.objects.get(content_id=self.mm_content.content_id)
         except model.DoesNotExist:

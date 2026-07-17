@@ -5,6 +5,10 @@ from uuid import UUID
 
 from django.apps import apps
 from django.contrib import admin as django_admin
+from django.db import (
+    IntegrityError,
+    transaction,
+)
 from django.test import (
     TestCase,
     override_settings,
@@ -265,29 +269,13 @@ class ChangelogDeletedTestCase(TestCase):
         self.assertEqual(record_deleted(SHOW_ID), parse_changelog_timestamp(T1))
         self.assertFalse(Show.objects.exists())
 
-    def test_sync_skips_changelog_without_content_record(self):
-        # a ChangeLog whose mm_content link is NULL (SET_NULL / legacy data)
-        # must not drive the asset cascade: direct_assets("show", None) would
-        # match every asset whose parent show has a NULL record.
-        ghost_show = Show(slug="ghost")
-        ghost_show.save(skip_ingest=True)  # no linked ContentRecord
-        victim = Asset(
-            slug="a-victim-asset",
-            show=ghost_show,
-            mm_content=make_record(SHOW_ASSET_ID),
-        )
-        victim.save(skip_ingest=True)
-
-        # a "show" delete changelog whose record link was cleared
+    def test_mm_content_cannot_be_null(self):
+        # the schema forbids a ChangeLog without a ContentRecord, so code paths
+        # need no NULL-mm_content safeguards (a NULL link used to make
+        # mark_deleted's asset filter match every asset of a record-less show)
         log = make_changelog(SHOW_ID, {T1: "delete"})
-        ChangeLog.objects.filter(pk=log.pk).update(mm_content=None)
-        log = ChangeLog.objects.get(pk=log.pk)
-        self.assertIsNone(log.mm_content_id)
-
-        sync_deleted_state(log)
-
-        # the unrelated asset (parent show has a NULL record) is NOT marked
-        self.assertIsNone(record_deleted(SHOW_ASSET_ID))
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            ChangeLog.objects.filter(pk=log.pk).update(mm_content=None)
 
     def test_delete_marks_object_and_direct_assets_only(self):
         self.make_show_tree()
@@ -380,27 +368,6 @@ class ChangelogDeletedTestCase(TestCase):
             pk for call in mock_fetch.map.call_args_list for pk in call.args[0]
         ]
         self.assertNotIn(deleted_log.pk, fetched_pks)
-        self.assertIn(live_log.pk, fetched_pks)
-
-    def test_get_changelog_data_skips_logs_without_content_record(self):
-        # a ChangeLog whose mm_content link is NULL (SET_NULL / legacy) matches
-        # the mm_content__..._isnull=True filters, but must not be enqueued:
-        # fetch_api_data would crash dereferencing log.mm_content.
-        orphan = make_changelog(SHOW_ID, {T1: "update"})
-        ChangeLog.objects.filter(pk=orphan.pk).update(mm_content=None)
-        live_log = make_changelog(SHOW2_ID, {T2: "update"})
-
-        with (
-            mock.patch("pbsmmapi.changelog.tasks.fetch_api_data") as mock_fetch,
-            mock.patch("pbsmmapi.changelog.tasks.realize_provisional_objects"),
-            mock.patch("pbsmmapi.changelog.tasks.reingest_updated_objects"),
-        ):
-            get_changelog_data(10)
-
-        fetched_pks = [
-            pk for call in mock_fetch.map.call_args_list for pk in call.args[0]
-        ]
-        self.assertNotIn(orphan.pk, fetched_pks)
         self.assertIn(live_log.pk, fetched_pks)
 
     def test_fetch_api_data_skips_deleted(self):

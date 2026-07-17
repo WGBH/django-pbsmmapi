@@ -3,7 +3,11 @@ from datetime import (
     datetime,
 )
 
-from django.db import migrations
+from django.db import (
+    migrations,
+    models,
+)
+import django.db.models.deletion
 
 ASSET_PARENT_TYPES = {"franchise", "show", "season", "episode", "special"}
 
@@ -52,14 +56,11 @@ def backfill_deleted(apps, schema_editor):
             parse_changelog_timestamp(latest) if latest is not None else None
         )
         if latest_timestamp != log.latest_timestamp:
-            # .update() avoids ChangeLog.save()'s side effects and its
-            # NULL-mm_content assertion
+            # .update() avoids model save() side effects
             ChangeLog.objects.filter(pk=log.pk).update(
                 latest_timestamp=latest_timestamp
             )
-        if log.mm_content_id is None or latest is None:
-            # no linked ContentRecord: nothing to mark, and a NULL id in the
-            # asset filter would match assets of record-less parents
+        if latest is None:
             continue
         if log.entries[latest].get("action") == "delete":
             ContentRecord.objects.filter(pk=log.mm_content_id).update(
@@ -79,6 +80,17 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        # NOT NULL is safe without a cleanup step: these migrations have not
+        # shipped, so 0002 — which deletes NULL-mm_content rows — always runs
+        # in the same migrate invocation.
+        migrations.AlterField(
+            model_name="changelog",
+            name="mm_content",
+            field=models.OneToOneField(
+                on_delete=django.db.models.deletion.CASCADE,
+                to="record.contentrecord",
+            ),
+        ),
         migrations.RunPython(
             backfill_deleted,
             migrations.RunPython.noop,
