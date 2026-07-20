@@ -173,17 +173,13 @@ class Asset(PBSMMGenericAsset):
 
     @property
     def formatted_duration(self):
-        # TODO rewrite this
         """
         Show the Asset's duration as ##:##:##
         """
         if self.duration:
-            seconds = self.duration
-            hours = seconds // 3600
-            seconds %= 3600
-            minutes = seconds // 60
-            seconds %= 60
-            return "%d:%02d:%02d" % (hours, minutes, seconds)
+            hours, remainder = divmod(self.duration, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            return f"{hours}:{minutes:02d}:{seconds:02d}"
         return ""
 
     class Meta:
