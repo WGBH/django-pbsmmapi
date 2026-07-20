@@ -9,6 +9,8 @@ from pycaption.base import (
     CaptionNode,
 )
 
+from pbsmmapi.abstract.helpers import parse_changelog_timestamp
+
 
 def check_asset_availability(start=None, end=None):
     """
@@ -28,9 +30,9 @@ def check_asset_availability(start=None, end=None):
     now = datetime.now(UTC)
 
     if start:
-        start_date = datetime.fromisoformat(start)
+        start_date = parse_changelog_timestamp(start)
     if end:
-        end_date = datetime.fromisoformat(end)
+        end_date = parse_changelog_timestamp(end)
 
     if start and now < start_date:
         return (False, 0, "not-yet-available")
