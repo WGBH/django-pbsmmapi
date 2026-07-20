@@ -115,9 +115,16 @@ class Ingest(models.Model):
             content_id=content_id,
         )
         if status != HTTPStatus.OK:
-            if self.mm_content is not None:
-                self.mm_content.last_api_status = status
-                self.mm_content.save()
+            if self.mm_content_id is not None:
+                # Scope to last_api_status via .update(): a full
+                # self.mm_content.save() would rewrite the whole record from a
+                # snapshot taken before the (slow) fetch above, reverting any
+                # `deleted`/`api_data` a concurrent changelog task wrote during
+                # it — e.g. a 404 that races the object's own delete would
+                # un-tombstone the record.
+                ContentRecord.objects.filter(pk=self.mm_content_id).update(
+                    last_api_status=status,
+                )
             return status
 
         content_id = json_data["data"]["id"]

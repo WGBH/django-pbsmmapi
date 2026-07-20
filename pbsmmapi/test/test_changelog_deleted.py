@@ -321,6 +321,30 @@ class ChangelogDeletedTestCase(TestCase):
             self.assertEqual(asset.process(), (None, None))
         mock_get.assert_not_called()
 
+    def test_pre_save_non_200_preserves_concurrent_delete(self):
+        # Regression: Ingest.pre_save's non-200 branch must not resurrect a
+        # record deleted mid-fetch. It used to full-save mm_content from a
+        # snapshot taken before the (slow) API call, so a 404 that races the
+        # object's own changelog delete un-tombstoned it; the write is now
+        # scoped to last_api_status.
+        show = self.make_show()  # keep the stale instance: mm_content.deleted None
+
+        # a concurrent changelog delete stamps the record in the DB while the
+        # instance above still holds deleted=None
+        ContentRecord.objects.filter(pk=UUID(SHOW_ID)).update(
+            deleted=parse_changelog_timestamp(T1)
+        )
+
+        # the object's own ingest fetch races and 404s (it is gone upstream)
+        with mock.patch(
+            "pbsmmapi.abstract.models.get_PBSMM_record", return_value=(404, None)
+        ):
+            self.assertEqual(show.pre_save(), 404)
+
+        record = ContentRecord.objects.get(pk=UUID(SHOW_ID))
+        self.assertEqual(record.deleted, parse_changelog_timestamp(T1))  # preserved
+        self.assertEqual(record.last_api_status, 404)  # the only field written
+
     def test_force_reingest_reingests(self):
         show = self.make_show()
 
