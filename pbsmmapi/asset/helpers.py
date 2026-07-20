@@ -1,4 +1,7 @@
-from datetime import datetime
+from datetime import (
+    UTC,
+    datetime,
+)
 
 from dateutil import parser
 from nltk import PunktSentenceTokenizer
@@ -6,7 +9,6 @@ from pycaption.base import (
     BaseWriter,
     CaptionNode,
 )
-import pytz
 
 
 def check_asset_availability(start=None, end=None):
@@ -24,7 +26,7 @@ def check_asset_availability(start=None, end=None):
         1: A code  -1 = unknown, 0 = not-yet-available, 1 = available, 2 = expired
         2: the text associated with the code (see previous line)
     """
-    now = datetime.now(pytz.utc)
+    now = datetime.now(UTC)
 
     if start:
         start_date = parser.parse(start)
