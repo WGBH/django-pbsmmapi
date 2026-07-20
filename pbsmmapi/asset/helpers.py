@@ -3,7 +3,6 @@ from datetime import (
     datetime,
 )
 
-from dateutil import parser
 from nltk import PunktSentenceTokenizer
 from pycaption.base import (
     BaseWriter,
@@ -29,9 +28,9 @@ def check_asset_availability(start=None, end=None):
     now = datetime.now(UTC)
 
     if start:
-        start_date = parser.parse(start)
+        start_date = datetime.fromisoformat(start)
     if end:
-        end_date = parser.parse(end)
+        end_date = datetime.fromisoformat(end)
 
     if start and now < start_date:
         return (False, 0, "not-yet-available")
