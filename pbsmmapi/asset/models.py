@@ -198,7 +198,7 @@ class Asset(PBSMMGenericAsset):
 
     def set_parent(self):
         parental_fields = ["episode", "season", "show", "special", "franchise"]
-        target_values = {field: None for field in parental_fields}
+        target_values: dict = {field: None for field in parental_fields}
 
         # Reload the related ContentRecord to ensure we have the latest api_data
         # (e.g. if it was updated in the database during pre_save).
@@ -208,29 +208,24 @@ class Asset(PBSMMGenericAsset):
             except Exception:
                 pass
 
-        if self.mm_content and self.mm_content.api_data:
-            try:
-                parent_tree = self.mm_content.api_data["data"]["attributes"][
-                    "parent_tree"
-                ]
-                if parent_tree:
-                    parent_type: str = parent_tree.get("type")
-                    parent_cid: str = parent_tree.get("id")
-                    if parent_type in parental_fields and parent_cid:
-                        try:
-                            model_class = self._meta.get_field(
-                                parent_type
-                            ).related_model
-                            assert model_class is not None
-                            parent_obj = model_class.objects.filter(
-                                mm_content_id=parent_cid
-                            ).first()
-                            if parent_obj:
-                                target_values[parent_type] = parent_obj
-                        except LookupError:
-                            pass
-            except (KeyError, TypeError):
-                pass
+        try:
+            parent_tree = self.mm_content.api_data["data"]["attributes"]["parent_tree"]
+            if parent_tree:
+                parent_type: str = parent_tree.get("type")
+                parent_cid: str = parent_tree.get("id")
+                if parent_type in parental_fields and parent_cid:
+                    try:
+                        model_class = self._meta.get_field(parent_type).related_model
+                        assert model_class is not None
+                        parent_obj = model_class.objects.filter(
+                            mm_content_id=parent_cid
+                        ).first()
+                        if parent_obj:
+                            target_values[parent_type] = parent_obj
+                    except LookupError:
+                        pass
+        except (KeyError, TypeError):
+            pass
 
         # Apply target values to ensure single correct parent is populated
         for field, value in target_values.items():
