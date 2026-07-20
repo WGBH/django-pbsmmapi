@@ -92,7 +92,7 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         return PBSMM_EPISODE_ENDPOINT
 
     def save(self, *args, **kwargs):
-        skip_ingest = kwargs.pop("skip_ingest", False)
+        skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
         content_id = kwargs.pop("content_id", None)
         if skip_ingest:
             super().save(*args, **kwargs)
@@ -112,7 +112,6 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
             endpoint,
             episode_id=episode_id,
         )
-        # episode.delete_stale_assets(episode_id=episode_id)
 
     @property
     def full_episode_code(self):

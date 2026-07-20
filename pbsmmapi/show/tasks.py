@@ -11,7 +11,9 @@ def scrape_media_manager_shows():
     for slug in show_slugs:
         try:
             show = Show.objects.get(slug=slug)
-            if show.seasons.exists():  # already ingested
+            if show.content_id is not None:
+                # ingested at least once (pre_save links the ContentRecord
+                # only on a 200 fetch), or deleted upstream — never re-trigger
                 continue
         except Show.DoesNotExist:
             show = Show(slug=slug)

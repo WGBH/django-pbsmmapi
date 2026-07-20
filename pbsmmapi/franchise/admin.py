@@ -20,11 +20,13 @@ class PBSMMFranchiseAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
         "pk",
         "slug",
         "title",
+        "deleted_flag",
     )
     list_display_links = (
         "pk",
         "slug",
     )
+    list_filter = (("mm_content__deleted", admin.EmptyFieldListFilter),)
     annotated_fields = [
         "description_long",
         "description_short",
@@ -40,6 +42,7 @@ class PBSMMFranchiseAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     readonly_fields = [
         "assemble_asset_table",
         "date_created",
+        "deleted_flag",
         "format_shows_list",
         "title",
     ]
@@ -67,7 +70,7 @@ class PBSMMFranchiseAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
             {
                 "fields": (
                     ("title",),
-                    ("date_created",),
+                    ("date_created", "deleted_flag"),
                 ),
             },
         ),

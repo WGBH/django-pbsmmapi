@@ -21,9 +21,13 @@ class PBSMMSeasonAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
         "printable_title",
         "show",
         "ordinal",
+        "deleted_flag",
     )
     list_display_links = ("pk", "printable_title")
-    list_filter = ("show__title",)
+    list_filter = (
+        "show__title",
+        ("mm_content__deleted", admin.EmptyFieldListFilter),
+    )
     # The metadata shown here is now exposed via queryset annotations; the
     # mixin surfaces each annotated_fields name as a read-only value. We don't
     # want to override what's coming from the API, but we do want to view it.
@@ -37,6 +41,7 @@ class PBSMMSeasonAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     readonly_fields = [
         "assemble_asset_table",
         "date_created",
+        "deleted_flag",
         "format_episode_list",
         "ordinal",
         "title",
@@ -57,7 +62,7 @@ class PBSMMSeasonAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
             {
                 "fields": (
                     ("ingest_on_save", "ingest_episodes"),
-                    ("date_created",),
+                    ("date_created", "deleted_flag"),
                 ),
             },
         ),

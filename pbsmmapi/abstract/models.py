@@ -89,6 +89,10 @@ class Ingest(models.Model):
         raise NotImplementedError
 
     def process(self, query_param=None, content_id=None):
+        if self.deleted:
+            # object was deleted upstream; don't refetch. Return the same
+            # 2-tuple shape as the other early exits so pre_save() can unpack.
+            return None, None
         identifier = str(content_id or self.content_id or "").strip() or self.slug
         query_param = query_param or self.query_param
         if not identifier and not self.ingest_on_save:
@@ -111,9 +115,16 @@ class Ingest(models.Model):
             content_id=content_id,
         )
         if status != HTTPStatus.OK:
-            if self.mm_content is not None:
-                self.mm_content.last_api_status = status
-                self.mm_content.save()
+            if self.mm_content_id is not None:
+                # Scope to last_api_status via .update(): a full
+                # self.mm_content.save() would rewrite the whole record from a
+                # snapshot taken before the (slow) fetch above, reverting any
+                # `deleted`/`api_data` a concurrent changelog task wrote during
+                # it — e.g. a 404 that races the object's own delete would
+                # un-tombstone the record.
+                ContentRecord.objects.filter(pk=self.mm_content_id).update(
+                    last_api_status=status,
+                )
             return status
 
         content_id = json_data["data"]["id"]
@@ -174,29 +185,6 @@ class IngestWithAssets(Ingest):
 
         self.flip_api_pages(endpoint, set_asset)
 
-    def delete_stale_assets(self, **filters):
-        """
-        Delete leftover assets.
-        > filters: params for asset queryset to identify parent object
-
-        Returns number of objects deleted and a dictionary
-        with the number of deletions per object type
-
-        >>> self.delete_stale_assets()
-        (1, {'pbsmmapi.Asset': 1})
-        """
-        from pbsmmapi.asset.models import (  # pylint: disable=import-outside-toplevel
-            Asset,
-        )
-
-        return (
-            Asset.objects.filter(**filters)
-            .exclude(
-                mm_content_id__in=self.scraped_object_ids,
-            )
-            .delete()
-        )
-
     class Meta:
         abstract = True
 
@@ -225,6 +213,24 @@ class PBSMMGenericObject(
         """
         updated = getattr(self, "date_last_api_update", None)
         return updated.strftime("%x %X") if updated else "—"
+
+    @property
+    def deleted(self):
+        """
+        Deletion timestamp from the related ContentRecord (``mm_content``),
+        set when the PBS changelog reports the object deleted upstream.
+        """
+        return self.mm_content.deleted if self.mm_content_id else None
+
+    def deleted_flag(self):
+        if self.deleted:
+            return mark_safe(
+                '<b><span style="color:#f00;">%s</span></b>'
+                % self.deleted.strftime("%Y-%m-%d %H:%M")
+            )
+        return ""
+
+    deleted_flag.short_description = "Deleted"
 
     class Meta:
         abstract = True

@@ -27,6 +27,7 @@ from huey.contrib.djhuey import (
 )
 
 from pbsmmapi.abstract.constants import PBSMM_BASE_URL
+from pbsmmapi.abstract.helpers import parse_changelog_timestamp
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.asset.models import Asset
 from pbsmmapi.changelog.models import (
@@ -73,6 +74,71 @@ def prep_changelog_data(entries: Iterable[dict]) -> dict:
     return combined
 
 
+ASSET_PARENT_TYPES = {"franchise", "show", "season", "episode", "special"}
+
+
+def mark_deleted(log: ChangeLog, deleted_at: datetime):
+    """
+    Record a delete on the object's ContentRecord and its direct assets'
+    records, overwriting any earlier value — ``deleted`` always holds the
+    most recent delete reported. The overwrite is idempotent and safe for
+    stale instances and concurrent runs, and queryset .update() means no
+    save()/ingest side effects.
+
+    Only directly-attached assets follow the parent's state: PBS reports
+    deletes for every other object type individually (children are deleted
+    before their parents), but a parent's assets never get their own
+    changelog delete entries. Nested assets (e.g. episode assets under a
+    show) are covered by their own parent's entry.
+
+    The asset lookup deliberately uses the parent FK columns, not the
+    ``parent_tree`` annotation: ``parent_tree`` lives in
+    ``mm_content.api_data`` and only exists after a successful detail fetch,
+    while the FK is set when the parent's ``process_assets`` creates the
+    row. An asset stuck on 403 (out of its availability window) or one whose
+    record has not been fetched yet has no ``parent_tree`` — filtering on it
+    would let exactly those assets escape the delete mark. An asset whose
+    own ``mm_content`` is NULL contributes a NULL to the ``pk__in``
+    subquery, which matches no record — there is nothing to mark for it.
+    """
+    ContentRecord.objects.filter(pk=log.mm_content_id).update(deleted=deleted_at)
+    if log.resource_type not in ASSET_PARENT_TYPES:
+        return
+    direct_asset_records = Asset.objects.filter(
+        **{f"{log.resource_type}__mm_content_id": log.mm_content_id},
+    ).values_list("mm_content_id", flat=True)
+    ContentRecord.objects.filter(pk__in=direct_asset_records).update(
+        deleted=deleted_at,
+    )
+
+
+def sync_deleted_state(log: ChangeLog):
+    """
+    Record the delete when the latest changelog entry action is "delete".
+    Idempotent.
+
+    A delete is terminal: recreating an object in the Media Manager Console
+    produces a new content ID (a brand-new object here), and unpublishing
+    arrives as an "update" action — so a delete entry is never superseded on
+    the same content ID and there is no un-delete path.
+
+    The ``max()`` is not recomputing ``latest_timestamp`` — it locates which
+    ``entries`` key is the newest, so that entry's action can be read.
+    ``entries`` is keyed by the raw timestamp strings exactly as PBS sent
+    them, while ``log.latest_timestamp`` is a normalized datetime: it is not
+    a dict key, and it cannot be turned back into one, because many
+    spellings parse to the same instant (missing microseconds, different
+    offsets) and we cannot know which one PBS used. Parsing each key also
+    keeps the comparison chronological rather than lexicographic across
+    those mixed formats.
+    """
+    timestamp = max(log.entries.keys(), default=None, key=parse_changelog_timestamp)
+    if timestamp is None:
+        return
+    if log.entries[timestamp].get("action") == "delete":
+        mark_deleted(log, parse_changelog_timestamp(timestamp))
+
+
 @db_task(retries=3)
 def save_changelog_entries(combined: dict):
     """
@@ -81,7 +147,10 @@ def save_changelog_entries(combined: dict):
     """
     for content_id, data in combined.items():
         try:
-            log = ChangeLog.objects.get(content_id=content_id)
+            # key off the unique mm_content relation (mm_content_id == the
+            # ContentRecord pk == this content_id), not the derived content_id
+            # annotation, which requires a JOIN
+            log = ChangeLog.objects.get(mm_content_id=content_id)
         except ChangeLog.DoesNotExist:
             record, _ = ContentRecord.objects.get_or_create(
                 content_id=content_id,
@@ -93,6 +162,7 @@ def save_changelog_entries(combined: dict):
         for timestamp, entry in data["changelogs"].items():
             log.entries[timestamp] = entry
         log.save()
+        sync_deleted_state(log)
 
 
 @task(retries=3, retry_delay=10)
@@ -118,15 +188,24 @@ def max_page_number(mm_response_data: dict) -> int:
 
 
 @db_task(retries=3)
-def fetch_api_data(log: ChangeLog):
+def fetch_api_data(log_pk):
+    # Refetch fresh instead of trusting a snapshot from enqueue time: deletes
+    # are marked by save_changelog_entries, a queued task like this one, so a
+    # delete can land between enqueue and execution — bail then. Queryset
+    # .update() writes only the fields this task owns, so concurrent changes
+    # (entries, deleted) cannot be reverted by a full-row save.
+    log = ChangeLog.objects.filter(
+        pk=log_pk,
+        mm_content__deleted__isnull=True,
+    ).first()
+    if log is None:
+        return
     status, data = get_PBSMM_record(log.api_url)
-    content_record = log.mm_content
-    content_record.last_api_status = status
-    log.api_crawled = datetime.now(UTC)
+    updates = {"last_api_status": status}
     if status == 200:
-        content_record.api_data = data
-    content_record.save()
-    log.save()
+        updates["api_data"] = data
+    ContentRecord.objects.filter(pk=log.mm_content_id).update(**updates)
+    ChangeLog.objects.filter(pk=log_pk).update(api_crawled=datetime.now(UTC))
 
 
 def set_ingested():
@@ -198,7 +277,10 @@ def realize_provisional_objects():
     realized_shows = []
     for show in Show.objects.filter(provisional=True):
         try:
-            changelog = ShowChangeLog.objects.get(title=show.title)
+            changelog = ShowChangeLog.objects.get(
+                title=show.title,
+                mm_content__deleted__isnull=True,
+            )
             show.mm_content = changelog.mm_content
             show.provisional = False
             realized_shows.append(show)
@@ -211,6 +293,7 @@ def realize_provisional_objects():
             changelog = SeasonChangeLog.objects.get(
                 show_content_id=season.show.content_id,
                 ordinal=season.ordinal,
+                mm_content__deleted__isnull=True,
             )
             season.mm_content = changelog.mm_content
             season.provisional = False
@@ -223,6 +306,7 @@ def realize_provisional_objects():
             changelog = EpisodeChangeLog.objects.get(
                 season_content_id=episode.season.content_id,
                 ordinal=episode.ordinal,
+                mm_content__deleted__isnull=True,
             )
             episode.provisional = False
             episode.mm_content = changelog.mm_content
@@ -237,6 +321,7 @@ def realize_provisional_objects():
             changelog = SpecialChangeLog.objects.get(
                 show_content_id=special.show.content_id,
                 title=special.title,
+                mm_content__deleted__isnull=True,
             )
             special.mm_content = changelog.mm_content
             special.provisional = False
@@ -262,25 +347,36 @@ def reingest_updated_objects():
     """
     When new actions appear in the changelog, we need to trigger
     ingest of the related object to get everything in sync.
+
+    Deleted objects are excluded up front (``mm_content__deleted__isnull=True``):
+    a delete is the newest changelog entry, so they would otherwise match the
+    "changelog newer than last ingest" check and get a pointless ``save()`` that
+    the model's own delete guard then skips anyway.
     """
     querysets = [
         Franchise.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id"))),
+            mm_content__deleted__isnull=True,
         ),
         Show.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id"))),
+            mm_content__deleted__isnull=True,
         ),
         Special.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id"))),
+            mm_content__deleted__isnull=True,
         ),
         Season.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id"))),
+            mm_content__deleted__isnull=True,
         ),
         Episode.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id"))),
+            mm_content__deleted__isnull=True,
         ),
         Asset.objects.filter(
-            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id")))
+            Exists(ChangeLog.objects.filter(content_id=OuterRef("content_id"))),
+            mm_content__deleted__isnull=True,
         ),
     ]
     for queryset in querysets:
@@ -303,12 +399,12 @@ def get_changelog_data(limit: int):
     need to fetch the API data in order to determine whether to ingest
     the object.
     """
-    # for changelogs without API data
-
+    # for changelogs without API data (deleted objects would 404)
     logs = ChangeLog.objects.filter(
         mm_content__last_api_status__isnull=True,
         ingested=False,
-    )
+        mm_content__deleted__isnull=True,
+    ).values_list("pk", flat=True)
     if logs.count() > limit:
         logs = logs[:limit]
         limit = 0
@@ -322,7 +418,8 @@ def get_changelog_data(limit: int):
     asset_logs = AssetChangeLog.objects.filter(
         ingested=True,
         mm_content__last_api_status__isnull=True,
-    )
+        mm_content__deleted__isnull=True,
+    ).values_list("pk", flat=True)
     if asset_logs.count() > limit:
         asset_logs = asset_logs[:limit]
         limit = 0
@@ -333,13 +430,18 @@ def get_changelog_data(limit: int):
     # retry API fetch for objects that previously returned 403 or 404,
     # and which have been updated since the last API fetch attempt
     if limit > 0:
-        logs = ChangeLog.objects.filter(
-            mm_content__last_api_status__in=[403, 404],
-        ).filter(
-            LessThan(
-                F("api_crawled"),
-                F("latest_timestamp"),
+        logs = (
+            ChangeLog.objects.filter(
+                mm_content__last_api_status__in=[403, 404],
+                mm_content__deleted__isnull=True,
             )
+            .filter(
+                LessThan(
+                    F("api_crawled"),
+                    F("latest_timestamp"),
+                )
+            )
+            .values_list("pk", flat=True)
         )
 
         if logs.count() > limit:

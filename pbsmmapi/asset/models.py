@@ -241,13 +241,14 @@ class Asset(PBSMMGenericAsset):
             setattr(self, field, value)
 
     def save(self, *args, **kwargs):
-        skip_ingest = kwargs.pop("skip_ingest", False)
+        skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
         content_id = kwargs.pop("content_id", None)
-        if not skip_ingest:
+        if skip_ingest:
+            super().save(*args, **kwargs)
+        else:
             self.pre_save(content_id)
-
-        self.set_parent()
-        super().save(*args, **kwargs)
+            self.set_parent()
+            super().save(*args, **kwargs)
 
     @property
     def transcript_url(self) -> str | None:

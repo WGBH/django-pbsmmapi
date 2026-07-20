@@ -145,7 +145,7 @@ class Show(GenericProvisional, PBSMMGenericShow):
         return PBSMM_SHOW_ENDPOINT
 
     def save(self, *args, **kwargs):
-        skip_ingest = kwargs.pop("skip_ingest", False)
+        skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
         content_id = kwargs.pop("content_id", None)
         if skip_ingest:
             super().save(*args, **kwargs)
@@ -166,7 +166,6 @@ class Show(GenericProvisional, PBSMMGenericShow):
         show.process_assets(endpoint, show_id=show_id)
         show.process_seasons()
         show.process_specials()
-        # show.delete_stale_assets(show_id=show_id)
         show.stop_ingestion_restart()
 
     def process_seasons(self):

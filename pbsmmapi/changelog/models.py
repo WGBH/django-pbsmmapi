@@ -6,6 +6,7 @@ from django.db.models.fields.json import KT
 from django.utils.translation import gettext_lazy as _
 
 from pbsmmapi.abstract.constants import PBSMM_BASE_URL
+from pbsmmapi.abstract.helpers import parse_changelog_timestamp
 from pbsmmapi.record.models import PBSMMBaseRecordManager
 
 
@@ -39,9 +40,7 @@ class ChangeLog(models.Model):
     api_crawled = models.DateTimeField(null=True)
     mm_content = models.OneToOneField(
         "record.ContentRecord",
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
     )
 
     @property
@@ -49,7 +48,18 @@ class ChangeLog(models.Model):
         return f"{PBSMM_BASE_URL}api/v1/{self.resource_type}s/{self.content_id}/"
 
     def save(self, *args, **kwargs):
-        self.latest_timestamp = max(self.entries.keys(), default=None)
+        # compare by parsed instant, not string order, so entries with
+        # differing formats (e.g. missing microseconds) still pick the
+        # chronologically latest timestamp; store the parsed datetime (not the
+        # raw string key) so the in-memory value matches the DateTimeField.
+        latest = max(
+            self.entries.keys(),
+            default=None,
+            key=parse_changelog_timestamp,
+        )
+        self.latest_timestamp = (
+            parse_changelog_timestamp(latest) if latest is not None else None
+        )
         if self.get_instance() is not None:
             self.ingested = True
         super().save(*args, **kwargs)
@@ -74,7 +84,6 @@ class ChangeLog(models.Model):
         # try to get a previously saved instance
         model = self.get_model_class()
         assert model is not None
-        assert self.mm_content is not None
         try:
             return model.objects.get(content_id=self.mm_content.content_id)
         except model.DoesNotExist:

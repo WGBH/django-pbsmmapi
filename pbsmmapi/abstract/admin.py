@@ -58,7 +58,10 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
         # queryset is the list of Asset items that were selected.
         for item in queryset:
             item.ingest_on_save = True
-            # HOW DO I FIND OUT IF THE save() was successful?
+            # save() raises on failure; reaching the next iteration implies
+            # this item was re-ingested and persisted successfully. Deleted
+            # items are skipped by save()'s ingest guard: deletes are
+            # terminal, there is no un-delete.
             item.save()
 
     force_reingest.short_description = "Reingest selected items."

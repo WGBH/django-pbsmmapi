@@ -11,7 +11,9 @@ def scrape_media_manager_franchises():
     for slug in franchise_slugs:
         try:
             franchise = Franchise.objects.get(slug=slug)
-            if franchise.shows.exists():  # already ingested
+            if franchise.content_id is not None:
+                # ingested at least once (pre_save links the ContentRecord
+                # only on a 200 fetch), or deleted upstream — never re-trigger
                 continue
         except Franchise.DoesNotExist:
             franchise = Franchise(slug=slug)

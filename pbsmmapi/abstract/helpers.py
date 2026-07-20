@@ -1,22 +1,21 @@
-from datetime import datetime
+from datetime import (
+    UTC,
+    datetime,
+)
 
 import pytz
 
 
-def fix_non_aware_datetime(obj):
+def parse_changelog_timestamp(timestamp: str) -> datetime:
+    """Parse a changelog ISO timestamp string into an aware UTC datetime.
+
+    Any offset in the string is normalized to UTC; a timestamp with no
+    timezone is assumed to be UTC (not the local zone).
     """
-    Ugh - for SOME REASON some of the DateTime values returned by the PBS MM
-    API are NOT time zone aware. SO - fudge them by adding 00:00:00 UTC (if
-    even a time is not provided) or assume the time is UTC.
-    """
-    if obj is None:
-        return None
-    if ":" not in obj:  # oops no time
-        obj += " 00:00:00"
-    if "+" not in obj:  # no time zone - use UTC
-        if "Z" not in obj:
-            obj += "+00:00"
-    return obj
+    parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=UTC)
+    return parsed.astimezone(UTC)
 
 
 def time_zone_aware_now():

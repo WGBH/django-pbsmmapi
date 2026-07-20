@@ -20,11 +20,13 @@ class PBSMMShowAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
         "pk",
         "slug",
         "title",
+        "deleted_flag",
     )
     list_display_links = (
         "pk",
         "slug",
     )
+    list_filter = (("mm_content__deleted", admin.EmptyFieldListFilter),)
     annotated_fields = [
         "episode_count",
         "display_episode_number",
@@ -49,6 +51,7 @@ class PBSMMShowAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     readonly_fields = [
         "assemble_asset_table",
         "date_created",
+        "deleted_flag",
         "format_seasons_list",
         "format_specials_list",
         "ordinal_season",
@@ -73,7 +76,7 @@ class PBSMMShowAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
             {
                 "fields": (
                     ("title",),
-                    ("date_created",),
+                    ("date_created", "deleted_flag"),
                 ),
             },
         ),

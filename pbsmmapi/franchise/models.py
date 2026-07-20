@@ -90,8 +90,8 @@ class Franchise(PBSMMGenericFranchise):
         return PBSMM_FRANCHISE_ENDPOINT
 
     def save(self, *args, **kwargs):
-        skip_ingest = kwargs.pop("skip_ingest", False)
-        content_id = kwargs.pop("content_id", False)
+        skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
+        content_id = kwargs.pop("content_id", None)
         if skip_ingest:
             super().save(*args, **kwargs)
         else:
@@ -111,7 +111,6 @@ class Franchise(PBSMMGenericFranchise):
         )
         franchise.process_shows()
         franchise.stop_ingestion_restart()
-        franchise.delete_stale_assets(franchise_id=franchise_id)
 
     def process_shows(self):
         if not self.ingest_shows:

@@ -119,7 +119,7 @@ class Season(GenericProvisional, PBSMMGenericSeason):
         self.mm_content = content
 
     def save(self, *args, **kwargs):
-        skip_ingest = kwargs.pop("skip_ingest", False)
+        skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
         content_id = kwargs.pop("content_id", None)
         if skip_ingest:
             super().save(*args, **kwargs)
@@ -144,7 +144,6 @@ class Season(GenericProvisional, PBSMMGenericSeason):
             endpoint = f"{assets}?platform-slug=partnerplayer"
         season.process_assets(endpoint, season_id=season_id)
         season.stop_ingestion_restart()
-        # season.delete_stale_assets(season_id=season_id)
 
     def process_episodes(self, endpoint):
         if not self.ingest_episodes:
