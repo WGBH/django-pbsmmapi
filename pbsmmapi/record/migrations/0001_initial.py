@@ -107,6 +107,9 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
+            options={
+                "db_table": "pbsmm_contentrecord",
+            },
         ),
         migrations.RunPython(populate_records, migrations.RunPython.noop),
     ]

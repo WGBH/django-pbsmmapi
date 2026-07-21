@@ -3,8 +3,6 @@ from datetime import (
     datetime,
 )
 
-import pytz
-
 
 def parse_changelog_timestamp(timestamp: str) -> datetime:
     """Parse a changelog ISO timestamp string into an aware UTC datetime.
@@ -22,4 +20,4 @@ def time_zone_aware_now():
     """
     This just sends back a time zone aware "now()" with UTC as the time zone.
     """
-    return datetime.now(pytz.utc)
+    return datetime.now(UTC)
