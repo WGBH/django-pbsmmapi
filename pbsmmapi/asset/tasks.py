@@ -18,7 +18,8 @@ def update_partial_assets() -> None:
     incomplete_assets = Asset.objects.filter(
         data_format="compact",
         mm_content__last_api_status=200,
-    )
+        mm_content__deleted__isnull=True,
+    ).order_by("pk")
     for asset in incomplete_assets[:100]:
         asset.ingest_on_save = True
         asset.save()
