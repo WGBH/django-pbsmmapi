@@ -188,6 +188,7 @@ def max_page_number(mm_response_data: dict) -> int:
 
 
 @db_task(retries=3)
+@HUEY.rate_limit("fetch-api-data", limit=MAX_QUERIES, per=60, retry=False)
 def fetch_api_data(log_pk):
     # Refetch fresh instead of trusting a snapshot from enqueue time: deletes
     # are marked by save_changelog_entries, a queued task like this one, so a
