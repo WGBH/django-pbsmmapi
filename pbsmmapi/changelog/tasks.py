@@ -165,7 +165,8 @@ def save_changelog_entries(combined: dict):
         sync_deleted_state(log)
 
 
-@task(retries=3, retry_delay=10)
+@task(retries=2, retry_delay=10)
+@HUEY.rate_limit("get-changelog-entries", limit=MAX_QUERIES, per=60, retry=False)
 def get_changelog_entries(url: str) -> list[dict]:
     status, mm_response_data = get_PBSMM_record(url)
     assert status == 200
@@ -187,7 +188,7 @@ def max_page_number(mm_response_data: dict) -> int:
     return last_page
 
 
-@db_task(retries=3)
+@db_task(retries=3, retry_delay=70)
 @HUEY.rate_limit("fetch-api-data", limit=MAX_QUERIES, per=60, retry=False)
 def fetch_api_data(log_pk):
     # Refetch fresh instead of trusting a snapshot from enqueue time: deletes
@@ -394,24 +395,18 @@ def reingest_updated_objects():
                 item.save()
 
 
-def get_changelog_data(limit: int):
+def get_changelog_data():
     """
     For ChangeLog objects we can't match with an ingested object, we
     need to fetch the API data in order to determine whether to ingest
     the object.
     """
     # for changelogs without API data (deleted objects would 404)
-    logs = ChangeLog.objects.filter(
+    no_data_logs = ChangeLog.objects.filter(
         mm_content__last_api_status__isnull=True,
         ingested=False,
         mm_content__deleted__isnull=True,
     ).values_list("pk", flat=True)
-    if logs.count() > limit:
-        logs = logs[:limit]
-        limit = 0
-    else:
-        limit = limit - logs.count()
-    fetch_api_data.map(logs)
 
     # Since asset changes do not always result in the parent object reflecting
     # the change in the changelog, we have to get full data for any asset that
@@ -421,34 +416,24 @@ def get_changelog_data(limit: int):
         mm_content__last_api_status__isnull=True,
         mm_content__deleted__isnull=True,
     ).values_list("pk", flat=True)
-    if asset_logs.count() > limit:
-        asset_logs = asset_logs[:limit]
-        limit = 0
-    else:
-        limit = limit - asset_logs.count()
-    fetch_api_data.map(asset_logs)
 
     # retry API fetch for objects that previously returned 403 or 404,
     # and which have been updated since the last API fetch attempt
-    if limit > 0:
-        logs = (
-            ChangeLog.objects.filter(
-                mm_content__last_api_status__in=[403, 404],
-                mm_content__deleted__isnull=True,
-            )
-            .filter(
-                LessThan(
-                    F("api_crawled"),
-                    F("latest_timestamp"),
-                )
-            )
-            .values_list("pk", flat=True)
+    errored_logs = (
+        ChangeLog.objects.filter(
+            mm_content__last_api_status__in=[403, 404],
+            mm_content__deleted__isnull=True,
         )
-
-        if logs.count() > limit:
-            logs = logs[:limit]
-
-        fetch_api_data.map(logs)
+        .filter(
+            LessThan(
+                F("api_crawled"),
+                F("latest_timestamp"),
+            )
+        )
+        .values_list("pk", flat=True)
+    )
+    result = fetch_api_data.map(no_data_logs.union(asset_logs).union(errored_logs))
+    result.get(blocking=True)
 
     realize_provisional_objects()
     reingest_updated_objects()
@@ -471,16 +456,7 @@ def get_new_mm_changelogs():
         base_url = f"{BASE_CHANGELOG_URL}&since={since}"
         _, mm_response_data = get_PBSMM_record(base_url)
         last_page = max_page_number(mm_response_data)
-        if last_page > MAX_QUERIES:  # add the bounds to Huey for processing
-            urls = [f"{base_url}&page={i}" for i in range(1, MAX_QUERIES + 1)]
-            changelog_bounds = {
-                "lower_bound": MAX_QUERIES + 1,
-                "upper_bound": last_page,
-                "url": base_url,
-            }
-            HUEY.put("changelog_bounds", changelog_bounds)
-        else:
-            urls = [f"{base_url}&page={i}" for i in range(1, last_page + 1)]
+        urls = [f"{base_url}&page={i}" for i in range(1, last_page + 1)]
     return urls
 
 
@@ -488,32 +464,10 @@ def get_new_mm_changelogs():
 @lock_task("changelog-ingest")
 def scrape_changelog():
     if not ChangeLog.objects.exists():
-        # first time scraping, get first 400 pages
-        urls = [f"{BASE_CHANGELOG_URL}&page={i}" for i in range(1, MAX_QUERIES)]
-    elif HUEY.get("changelog_bounds", peek=True):  # process new batch of 400
-        changelog_bounds = HUEY.get("changelog_bounds", peek=True)
-        upper_bound = changelog_bounds["upper_bound"]
-        lower_bound = changelog_bounds["lower_bound"]
-        base_url = changelog_bounds["url"]
-        bound_difference = upper_bound - lower_bound
-        if bound_difference > 0:
-            if bound_difference >= 400:
-                new_lower_bound = lower_bound + MAX_QUERIES
-                urls = [
-                    f"{base_url}&page={i}" for i in range(lower_bound, new_lower_bound)
-                ]
-                changelog_bounds["lower_bound"] = new_lower_bound
-            else:
-                urls = [
-                    f"{base_url}&page={i}" for i in range(lower_bound, upper_bound + 1)
-                ]
-                changelog_bounds["lower_bound"] = upper_bound
-            HUEY.put("changelog_bounds", changelog_bounds)
-        else:  # difference is 0
-            HUEY.put(
-                "changelog_bounds", None
-            )  # get(peek=False) does not actually remove the key from storage
-            urls = get_new_mm_changelogs()
+        # first time scraping, get all changelogs
+        _, mm_response_data = get_PBSMM_record(BASE_CHANGELOG_URL)
+        last_page = max_page_number(mm_response_data)
+        urls = [f"{BASE_CHANGELOG_URL}&page={i}" for i in range(1, last_page + 1)]
     else:
         urls = get_new_mm_changelogs()
 
@@ -522,5 +476,4 @@ def scrape_changelog():
     save_changelog_entries(data)
     set_ingested()
 
-    remaining_api_calls = MAX_QUERIES - len(urls)
-    get_changelog_data(remaining_api_calls)
+    get_changelog_data()
