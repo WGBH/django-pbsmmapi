@@ -165,9 +165,10 @@ def save_changelog_entries(combined: dict):
         sync_deleted_state(log)
 
 
-@task(retries=2, retry_delay=10)
-@HUEY.rate_limit("get-changelog-entries", limit=MAX_QUERIES, per=60, retry=False)
+@task(retries=3, retry_delay=60)
+@HUEY.rate_limit("get-changelog-entries", limit=300, per=60)
 def get_changelog_entries(url: str) -> list[dict]:
+    print(f"We have reached {url}", flush=True)
     status, mm_response_data = get_PBSMM_record(url)
     assert status == 200
     return mm_response_data["data"]
@@ -188,8 +189,8 @@ def max_page_number(mm_response_data: dict) -> int:
     return last_page
 
 
-@db_task(retries=3, retry_delay=70)
-@HUEY.rate_limit("fetch-api-data", limit=MAX_QUERIES, per=60, retry=False)
+@db_task(retries=3, retry_delay=60)
+@HUEY.rate_limit("fetch-api-data", limit=MAX_QUERIES, per=60)
 def fetch_api_data(log_pk):
     # Refetch fresh instead of trusting a snapshot from enqueue time: deletes
     # are marked by save_changelog_entries, a queued task like this one, so a
@@ -432,7 +433,8 @@ def get_changelog_data():
         )
         .values_list("pk", flat=True)
     )
-    result = fetch_api_data.map(no_data_logs.union(asset_logs).union(errored_logs))
+    final_qs = no_data_logs.union(asset_logs, errored_logs)
+    result = fetch_api_data.map(final_qs)
     result.get(blocking=True)
 
     realize_provisional_objects()
