@@ -1,9 +1,9 @@
 from http import HTTPStatus
-from urllib3.util.retry import Retry
 
 from django.conf import settings
 import requests
 from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 from pbsmmapi.abstract.constants import PBSMM_BASE_URL
 
@@ -31,8 +31,8 @@ def get_PBSMM_record(url: str) -> tuple[int, dict]:
     session = requests.Session()
     retry = Retry(connect=3, backoff_factor=1)
     adapter = HTTPAdapter(max_retries=retry)
-    session.mount('http://', adapter)
-    session.mount('https://', adapter)
+    session.mount("http://", adapter)
+    session.mount("https://", adapter)
     r = session.get(url, auth=(settings.PBSMM_API_ID, settings.PBSMM_API_SECRET))
     if r.status_code == HTTPStatus.OK:
         return r.status_code, r.json()
