@@ -168,7 +168,6 @@ def save_changelog_entries(combined: dict):
 @task(retries=3, retry_delay=60)
 @HUEY.rate_limit("get-changelog-entries", limit=300, per=60)
 def get_changelog_entries(url: str) -> list[dict]:
-    print(f"We have reached {url}", flush=True)
     status, mm_response_data = get_PBSMM_record(url)
     assert status == 200
     return mm_response_data["data"]
@@ -201,14 +200,17 @@ def fetch_api_data(log_pk):
         pk=log_pk,
         mm_content__deleted__isnull=True,
     ).first()
+    # because we are not storing None results we need to return an actual value, otherwise blocking=True calls will hang
+
     if log is None:
-        return
+        return log_pk
     status, data = get_PBSMM_record(log.api_url)
     updates = {"last_api_status": status}
     if status == 200:
         updates["api_data"] = data
     ContentRecord.objects.filter(pk=log.mm_content_id).update(**updates)
     ChangeLog.objects.filter(pk=log_pk).update(api_crawled=datetime.now(UTC))
+    return log_pk
 
 
 def set_ingested():
