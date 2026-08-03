@@ -127,3 +127,4 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
         verbose_name = "PBS MM Special"
         verbose_name_plural = "PBS MM Specials"
         db_table = "pbsmm_special"
+        base_manager_name = "objects"

@@ -240,3 +240,4 @@ class Show(GenericProvisional, PBSMMGenericShow):
         verbose_name = "PBS MM Show"
         verbose_name_plural = "PBS MM Shows"
         db_table = "pbsmm_show"
+        base_manager_name = "objects"

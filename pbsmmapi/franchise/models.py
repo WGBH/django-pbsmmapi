@@ -154,3 +154,4 @@ class Franchise(PBSMMGenericFranchise):
         verbose_name = "PBS MM Franchise"
         verbose_name_plural = "PBS MM Franchises"
         db_table = "pbsmm_franchise"
+        base_manager_name = "objects"
