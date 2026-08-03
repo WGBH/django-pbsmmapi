@@ -163,3 +163,4 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         verbose_name = "PBS MM Episode"
         verbose_name_plural = "PBS MM Episodes"
         db_table = "pbsmm_episode"
+        base_manager_name = "objects"
