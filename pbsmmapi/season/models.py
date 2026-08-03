@@ -177,3 +177,4 @@ class Season(GenericProvisional, PBSMMGenericSeason):
         verbose_name_plural = "PBS MM Seasons"
         db_table = "pbsmm_season"
         ordering = ["-ordinal"]
+        base_manager_name = "objects"
