@@ -1,12 +1,15 @@
-from datetime import datetime
+from datetime import (
+    UTC,
+    datetime,
+)
 
-from dateutil import parser
 from nltk import PunktSentenceTokenizer
 from pycaption.base import (
     BaseWriter,
     CaptionNode,
 )
-import pytz
+
+from pbsmmapi.abstract.helpers import parse_changelog_timestamp
 
 
 def check_asset_availability(start=None, end=None):
@@ -24,12 +27,12 @@ def check_asset_availability(start=None, end=None):
         1: A code  -1 = unknown, 0 = not-yet-available, 1 = available, 2 = expired
         2: the text associated with the code (see previous line)
     """
-    now = datetime.now(pytz.utc)
+    now = datetime.now(UTC)
 
     if start:
-        start_date = parser.parse(start)
+        start_date = parse_changelog_timestamp(start)
     if end:
-        end_date = parser.parse(end)
+        end_date = parse_changelog_timestamp(end)
 
     if start and now < start_date:
         return (False, 0, "not-yet-available")

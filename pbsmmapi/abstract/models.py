@@ -4,9 +4,12 @@ from django.db import models
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
-from pbsmmapi.abstract.helpers import fix_non_aware_datetime
+from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.api.api import get_PBSMM_record
 from pbsmmapi.api.helpers import check_pagination
+from pbsmmapi.record.models import (  # this works at the moment, but it feels wrong to import it
+    ContentRecord,
+)
 
 
 class GenericObjectManagement(models.Model):
@@ -15,83 +18,11 @@ class GenericObjectManagement(models.Model):
         auto_now_add=True,
         help_text="Not set by API",
     )
-    date_last_api_update = models.DateTimeField(
-        _("Last API Retrieval"),
-        help_text="Not set by API",
-        auto_now=True,
-        null=True,
-    )
     ingest_on_save = models.BooleanField(
         _("Ingest on Save"),
         default=False,
         help_text="If true, then will update values from the PBSMM API on save()",
     )
-    last_api_status = models.PositiveIntegerField(
-        _("Last API Status"),
-        null=True,
-        blank=True,
-    )
-    json = models.JSONField(
-        _("JSON"),
-        default=dict,
-        blank=True,
-        help_text="This is the last JSON uploaded.",
-    )
-
-    def last_api_status_color(self):
-        template = '<b><span style="color:#%s;">%d</span></b>'
-        if self.last_api_status:
-            if self.last_api_status == 200:
-                return mark_safe(template % ("0c0", self.last_api_status))
-            return mark_safe(template % ("f00", self.last_api_status))
-        return mark_safe(self.last_api_status)
-
-    last_api_status_color.short_description = "Status"
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMObjectID(models.Model):
-    """
-    In most parallel universes, we'd use this as the PRIMARY KEY. However,
-    given the periodic necessity of having to EDIT records or manipulate them
-    in the database, the issue of having to juggle 32-length random characters
-    instead of a nice integer ID would be a PITA.
-
-    So I'm being "un-pure".  Sue me.   RAD 31-Jan-2018
-    """
-
-    # TODO rename to cid
-    object_id = models.UUIDField(
-        _("Object ID"),
-        unique=True,
-        null=True,
-        blank=True,  # does this work?
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSObjectMetadata(models.Model):
-    """Exists for all objects"""
-
-    api_endpoint = models.URLField(
-        _("Link to API Record"),
-        null=True,
-        blank=True,
-        help_text="Endpoint to original record from the API",
-    )
-
-    def api_endpoint_link(self):
-        # This just makes the field clickable in the Admin (why cut and paste
-        # when you can click?)
-        return mark_safe(
-            f'<a href="{self.api_endpoint}" target="_new">{self.api_endpoint}</a>'
-        )
-
-    api_endpoint_link.short_description = "Link to API"
 
     class Meta:
         abstract = True
@@ -101,20 +32,6 @@ class PBSMMObjectTitle(models.Model):
     """Exists for all objects"""
 
     title = models.CharField(_("Title"), max_length=200, null=True, blank=True)
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMObjectSortableTitle(models.Model):
-    """
-    Exists for all objects EXCEPT Collection - so we have to separate it
-    (I don't understand why the API just didn't create this across records...)
-    """
-
-    title_sortable = models.CharField(
-        _("Sortable Title"), max_length=200, null=True, blank=True
-    )
 
     class Meta:
         abstract = True
@@ -136,231 +53,6 @@ class PBSMMObjectSlug(models.Model):
         abstract = True
 
 
-class PBSMMObjectTitleSortableTitle(PBSMMObjectTitle, PBSMMObjectSortableTitle):
-    """Lump them together"""
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMObjectDescription(models.Model):
-    """These exist for all Objects"""
-
-    description_long = models.TextField(_("Long Description"))
-    description_short = models.TextField(_("Short Description"))
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMObjectDates(models.Model):
-    """This exists for all objects"""
-
-    updated_at = models.DateTimeField(
-        _("Updated At"),
-        null=True,
-        blank=True,
-        help_text="API record modified date",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMBroadcastDates(models.Model):
-    """
-    premiered_on exists for Episode, Franchise, Show, and Special but NOT
-    Collection or Season
-
-    encored_on ONLY exists for Episode so we might have to
-    split them up
-    """
-
-    premiered_on = models.DateTimeField(_("Premiered On"), null=True, blank=True)
-
-    @property
-    def short_premiere_date(self):
-        return self.premiered_on.strftime("%x")
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMNOLA(models.Model):
-    """
-    This exists for Episode, Franchise, and Special but NOT for Collection,
-    Show, or Season
-    """
-
-    nola = models.CharField(
-        _("NOLA Code"),
-        max_length=8,
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMImage(models.Model):
-    images = models.JSONField(
-        _("Images"),
-        default=dict,
-        blank=True,
-        help_text="JSON serialized field",
-    )
-
-    def pretty_image_list(self):
-        if self.images:
-            image_list = self.images
-            out = '<table width="100%">'
-            out += "<tr><th>Profile</th><th>Updated At</th></tr>"
-            for image in image_list:
-                out += "\n<tr>"
-                out += f'<td><a href="{image["image"]}" target="_new">'
-                out += f"{image['profile']}</a></td>"
-                out += f"<td>{image['updated_at']}</td>"
-                out += "</tr>"
-            out += "</table>"
-            return mark_safe(out)
-        return None
-
-    pretty_image_list.short_description = "Image List"
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMFunder(models.Model):
-    funder_message = models.TextField(
-        _("Funder Message"),
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMPlayerMetadata(models.Model):
-    is_excluded_from_dfp = models.BooleanField(
-        _("Is excluded from DFP"),
-        default=False,
-    )
-
-    can_embed_player = models.BooleanField(
-        _("Can Embed Player"),
-        default=False,
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMLinks(models.Model):
-    links = models.JSONField(
-        _("Links"),
-        default=dict,
-        blank=True,
-        help_text="JSON serialized field",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMPlatforms(models.Model):
-    platforms = models.JSONField(
-        _("Platforms"),
-        default=dict,
-        blank=True,
-        help_text="JSON serialized field",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMGeo(models.Model):
-    # countries --- hold off until needed
-    geo_profile = models.JSONField(
-        _("Geo Profile"),
-        default=dict,
-        blank=True,
-        help_text="JSON serialized field",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMGoogleTracking(models.Model):
-    ga_page = models.CharField(
-        _("GA Page Tag"),
-        max_length=40,
-        null=True,
-        blank=True,
-    )
-    ga_event = models.CharField(
-        _("GA Event Tag"),
-        max_length=40,
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMGenre(models.Model):
-    genre = models.JSONField(
-        _("Genre"),
-        default=dict,
-        blank=True,
-        help_text="JSON Serialized Field",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMLanguage(models.Model):
-    language = models.CharField(
-        _("Language"),
-        max_length=10,
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMAudience(models.Model):
-    audience = models.JSONField(
-        _("Audience"),
-        default=dict,
-        blank=True,
-        help_text="JSON Serialized Field",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class PBSMMHashtag(models.Model):
-    hashtag = models.CharField(
-        _("Hashtag"),
-        max_length=100,
-        null=True,
-        blank=True,
-    )
-
-    class Meta:
-        abstract = True
-
-
 class GenericProvisional(models.Model):
     provisional = models.BooleanField(
         _("Provisional"),
@@ -368,9 +60,9 @@ class GenericProvisional(models.Model):
     )
 
     @classmethod
-    def realize(cls, data: dict):
+    def realize(cls, data: dict, parent_id: int):
         """
-        Class method to be called from the Huey task processing ChangeLog objects
+        Method to call on child instances when the parent processes a list of children during ingest
         """
         raise NotImplementedError
 
@@ -379,102 +71,75 @@ class GenericProvisional(models.Model):
 
 
 class Ingest(models.Model):
+
     def __init__(self, *args, **kwargs):
         self.ingest_on_save = None
-        self.object_id = None
+        self.content_id = None
         self.slug = None
-        self.last_api_status = None
-        self.updated_at = None
-        self.api_endpoint = None
-        self.json = None
         # above fields are overridden by child classes
         super().__init__(*args, **kwargs)
         self.scraped_object_ids = []
 
-    def process(self, endpoint, query_param=None):
-        identifier = str(self.object_id or "").strip() or self.slug
+    @property
+    def query_param(self):
+        raise NotImplementedError
+
+    @property
+    def endpoint(self):
+        raise NotImplementedError
+
+    def process(self, query_param=None, content_id=None):
+        if self.deleted:
+            # object was deleted upstream; don't refetch. Return the same
+            # 2-tuple shape as the other early exits so pre_save() can unpack.
+            return None, None
+        identifier = str(content_id or self.content_id or "").strip() or self.slug
+        query_param = query_param or self.query_param
         if not identifier and not self.ingest_on_save:
-            return  # stop processing if we don't have clearance
+            return None, None  # stop processing if we don't have clearance
         if query_param is None:
             query_param = ""
-        status, json = get_PBSMM_record(f"{endpoint}{identifier}/{query_param}")
-        self.last_api_status = status  # stop post_save in case of 4xx status
-        if status != HTTPStatus.OK:
-            return
-        self.object_id = json.get("id", json["data"]["id"])
-        attrs = json.get("attributes", json["data"].get("attributes"))
-        for field in self._meta.get_fields():
-            value = attrs.get(field.name)
-            self.set_attribute(field, value)
-        self.updated_at = fix_non_aware_datetime(attrs.get("updated_at"))
-        self.api_endpoint = json["links"].get("self")
-        self.json = json
-        self.ingest_on_save = False
-        return attrs
-
-    def set_attribute(self, field, value):
-        """
-        Do some special processing for some fields
-        """
-        if value is None:
-            return
-        if self.is_excluded_field(field):
-            return
-        if self.ingest_object_flag(field):
-            return
-        if self.solve_datetime_field(field, value):
-            return
-        if self.check_for_api_id(field, value):
-            return
-        setattr(self, field.name, value)
-
-    @staticmethod
-    def is_excluded_field(field):
-        exclude = {"AutoField", "ForeignKey"}
-        return field.get_internal_type() in exclude
-
-    def ingest_object_flag(self, field):
-        """
-        Ensure ingest bools are not None
-        """
-        if field.name.startswith("ingest_"):
-            setattr(self, field.name, getattr(self, field.name) or False)
-            return True
-
-    def solve_datetime_field(self, field, value):
-        if "DateTimeField" in field.get_internal_type():
-            setattr(self, field.name, fix_non_aware_datetime(value))
-            return True
-
-    def check_for_api_id(self, field, value):
-        """
-        Sets <entity>_api_id property and retrieves name of property
-
-        e.g. if it finds `show_api_id` will set
-        self.show_api_id = json['data]['attributes]['id']
-        and returns "show"
-        """
-        if "_api_id" not in field.name or value is None:
-            return
-        entity = field.name.replace("_api_id", "")
-        setattr(self, field.name, value["id"])
-        return entity
-
-    def process_assets(self, endpoint, **kwargs):
-        """
-        Ingest Asset page by page
-        kwargs: extra params send to Asset object
-        """
-        # prevent circular import
-        from pbsmmapi.asset.models import (  # pylint: disable=import-outside-toplevel
-            Asset,
+        status, json_data = get_PBSMM_record(
+            f"{self.endpoint}{identifier}/{query_param}"
         )
+        self.ingest_on_save = False
+        return status, json_data
 
-        def set_asset(asset: dict, status: int):
-            self.scraped_object_ids.append(asset["id"])
-            Asset.set(asset, last_api_status=status, **kwargs)
+    def _pre_save_update_fields(self, json_data, content):
+        self.title = json_data["data"]["attributes"]["title"]
+        self.slug = json_data["data"]["attributes"]["slug"]
+        self.mm_content = content
 
-        self.flip_api_pages(endpoint, set_asset)
+    def pre_save(self, content_id=None):
+        status, json_data = self.process(
+            content_id=content_id,
+        )
+        if status != HTTPStatus.OK:
+            if self.mm_content_id is not None:
+                # Scope to last_api_status via .update(): a full
+                # self.mm_content.save() would rewrite the whole record from a
+                # snapshot taken before the (slow) fetch above, reverting any
+                # `deleted`/`api_data` a concurrent changelog task wrote during
+                # it — e.g. a 404 that races the object's own delete would
+                # un-tombstone the record.
+                ContentRecord.objects.filter(pk=self.mm_content_id).update(
+                    last_api_status=status,
+                )
+            return status
+
+        content_id = json_data["data"]["id"]
+        content, _ = ContentRecord.objects.update_or_create(
+            content_id=content_id,
+            defaults={
+                "last_api_status": status,
+                "api_data": json_data,
+                "date_last_api_update": time_zone_aware_now(),
+            },
+        )
+        if self.mm_content is None:
+            self._pre_save_update_fields(json_data, content)
+
+        return status
 
     def flip_api_pages(self, endpoint, func):
         """
@@ -493,41 +158,80 @@ class Ingest(models.Model):
         if keep_going:
             self.flip_api_pages(endpoint, func)
 
-    def delete_stale_assets(self, **filters):
-        """
-        Delete leftover assets.
-        > filters: params for asset queryset to identify parent object
+    class Meta:
+        abstract = True
 
-        Returns number of objects deleted and a dictionary
-        with the number of deletions per object type
 
-        >>> self.delete_stale_assets()
-        (1, {'pbsmmapi.Asset': 1})
+class IngestWithAssets(Ingest):
+    def process_assets(self, endpoint, **kwargs):
         """
+        Ingest Asset page by page
+        kwargs: extra params send to Asset object
+        """
+        # prevent circular import
         from pbsmmapi.asset.models import (  # pylint: disable=import-outside-toplevel
             Asset,
         )
 
-        return (
-            Asset.objects.filter(**filters)
-            .exclude(
-                object_id__in=self.scraped_object_ids,
-            )
-            .delete()
-        )
+        def set_asset(mm_asset_data: dict, _):
+            self.scraped_object_ids.append(mm_asset_data["id"])
+            try:
+                asset = Asset.objects.get(content_id=mm_asset_data["id"])
+                asset.save()
+            except Asset.DoesNotExist:
+                asset = Asset(**kwargs)
+                asset.ingest_on_save = True
+                asset.save(content_id=mm_asset_data["id"])
+
+        self.flip_api_pages(endpoint, set_asset)
 
     class Meta:
         abstract = True
 
 
 class PBSMMGenericObject(
-    PBSMMObjectID,
-    PBSMMObjectTitleSortableTitle,
-    PBSMMObjectDescription,
-    PBSMMObjectDates,
+    PBSMMObjectTitle,
     GenericObjectManagement,
-    PBSObjectMetadata,
 ):
+    def last_api_status_color(self):
+        """
+        Colorized rendering of the last API status, used by the admin asset/
+        relation tables. The status now lives on the related ContentRecord
+        (``mm_content``) rather than on a local field.
+        """
+        status = self.mm_content.last_api_status if self.mm_content_id else None
+        if status is None:
+            return mark_safe('<span style="color: #999;">&mdash;</span>')
+        color = "green" if int(status) == HTTPStatus.OK else "red"
+        return mark_safe(f'<span style="color: {color};">{status}</span>')
+
+    def last_updated_display(self):
+        """
+        Guarded rendering of the ``date_last_api_update`` annotation (it may be
+        NULL, and is only present on instances loaded through the annotating
+        manager).
+        """
+        updated = getattr(self, "date_last_api_update", None)
+        return updated.strftime("%x %X") if updated else "—"
+
+    @property
+    def deleted(self):
+        """
+        Deletion timestamp from the related ContentRecord (``mm_content``),
+        set when the PBS changelog reports the object deleted upstream.
+        """
+        return self.mm_content.deleted if self.mm_content_id else None
+
+    def deleted_flag(self):
+        if self.deleted:
+            return mark_safe(
+                '<b><span style="color:#f00;">%s</span></b>'
+                % self.deleted.strftime("%Y-%m-%d %H:%M")
+            )
+        return ""
+
+    deleted_flag.short_description = "Deleted"
+
     class Meta:
         abstract = True
 
@@ -535,19 +239,8 @@ class PBSMMGenericObject(
 class PBSMMGenericAsset(
     PBSMMGenericObject,
     PBSMMObjectSlug,
-    PBSMMImage,
-    PBSMMFunder,
-    PBSMMPlayerMetadata,
-    PBSMMLinks,
-    PBSMMGeo,
-    PBSMMPlatforms,
-    PBSMMLanguage,
+    Ingest,
 ):
-    class Meta:
-        abstract = True
-
-
-class PBSMMGenericRemoteAsset(PBSMMGenericObject):
     class Meta:
         abstract = True
 
@@ -555,19 +248,7 @@ class PBSMMGenericRemoteAsset(PBSMMGenericObject):
 class PBSMMGenericShow(
     PBSMMGenericObject,
     PBSMMObjectSlug,
-    PBSMMLinks,
-    PBSMMNOLA,
-    PBSMMHashtag,
-    PBSMMImage,
-    PBSMMGenre,
-    PBSMMFunder,
-    PBSMMPlayerMetadata,
-    PBSMMGoogleTracking,
-    PBSMMPlatforms,
-    PBSMMAudience,
-    PBSMMBroadcastDates,
-    PBSMMLanguage,
-    Ingest,
+    IngestWithAssets,
 ):
     class Meta:
         abstract = True
@@ -576,12 +257,7 @@ class PBSMMGenericShow(
 class PBSMMGenericEpisode(
     PBSMMGenericObject,
     PBSMMObjectSlug,
-    PBSMMFunder,
-    PBSMMLanguage,
-    PBSMMBroadcastDates,
-    PBSMMNOLA,
-    PBSMMLinks,
-    Ingest,
+    IngestWithAssets,
 ):
     class Meta:
         abstract = True
@@ -589,9 +265,7 @@ class PBSMMGenericEpisode(
 
 class PBSMMGenericSeason(
     PBSMMGenericObject,
-    PBSMMLinks,
-    PBSMMImage,
-    Ingest,
+    IngestWithAssets,
 ):
     class Meta:
         abstract = True
@@ -600,21 +274,8 @@ class PBSMMGenericSeason(
 class PBSMMGenericSpecial(
     PBSMMGenericObject,
     PBSMMObjectSlug,
-    PBSMMLanguage,
-    PBSMMBroadcastDates,
-    PBSMMNOLA,
-    PBSMMLinks,
-    Ingest,
+    IngestWithAssets,
 ):
-    class Meta:
-        abstract = True
-
-
-class PBSMMGenericCollection(PBSMMGenericObject, PBSMMObjectSlug, PBSMMImage):
-    # There is no sortable title field - it is allowed in the model purely out
-    # of laziness since abstracting it out from PBSMMGenericObject would be
-    # more-complicated than leaving it in. PLUS I suspect that eventually it'll
-    # be added...
     class Meta:
         abstract = True
 
@@ -622,18 +283,7 @@ class PBSMMGenericCollection(PBSMMGenericObject, PBSMMObjectSlug, PBSMMImage):
 class PBSMMGenericFranchise(
     PBSMMGenericObject,
     PBSMMObjectSlug,
-    PBSMMFunder,
-    PBSMMNOLA,
-    PBSMMBroadcastDates,
-    PBSMMImage,
-    PBSMMPlatforms,
-    PBSMMLinks,
-    PBSMMHashtag,
-    PBSMMGoogleTracking,
-    PBSMMGenre,
-    PBSMMPlayerMetadata,
-    Ingest,
+    IngestWithAssets,
 ):
-    # There is no can_embed_player field - again, laziness (see above)
     class Meta:
         abstract = True

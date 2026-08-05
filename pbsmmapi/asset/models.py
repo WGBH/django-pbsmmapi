@@ -1,4 +1,6 @@
 import re
+from typing import TYPE_CHECKING
+from uuid import UUID
 
 from django.db import models
 from django.db.models.fields.json import KT
@@ -6,18 +8,16 @@ from django.db.models.functions import (
     Cast,
     Coalesce,
 )
-from django.utils.translation import gettext_lazy as _
-from huey.contrib.djhuey import db_task
 from pycaption import detect_format
 import requests
 
-from pbsmmapi.abstract.constants import PBSMM_BASE_URL
-from pbsmmapi.abstract.helpers import time_zone_aware_now
 from pbsmmapi.abstract.models import PBSMMGenericAsset
+from pbsmmapi.api.api import PBSMM_ASSET_ENDPOINT
 from pbsmmapi.asset.helpers import (
     SafeTranscriptWriter,
     check_asset_availability,
 )
+from pbsmmapi.record.models import PBSMMBaseRecordManager
 
 AVAILABILITY_GROUPS = (
     ("Station Members", "station_members"),
@@ -25,36 +25,80 @@ AVAILABILITY_GROUPS = (
     ("Public", "public"),
 )
 
-PBSMM_ASSET_ENDPOINT = f"{PBSMM_BASE_URL}api/v1/assets/"
-PBSMM_LEGACY_ASSET_ENDPOINT = f"{PBSMM_ASSET_ENDPOINT}legacy/?tp_media_id="
 
-
-class AssetManager(models.Manager):
+class PBSMMAssetManager(PBSMMBaseRecordManager):
     def get_queryset(self):
         return (
             super()
             .get_queryset()
             .annotate(
+                asset_type=KT("api_data__data__attributes__object_type"),
+                premiered_on=Cast(
+                    KT("api_data__data__attributes__premiered_on"),
+                    models.DateField(),
+                ),
+                encored_on=Cast(
+                    KT("api_data__data__attributes__encored_on"), models.DateTimeField()
+                ),
+                is_excluded_from_dfp=Cast(
+                    KT("api_data__data__attributes__is_excluded_from_dfp"),
+                    models.BooleanField(),
+                ),
+                duration=Cast(
+                    KT("api_data__data__attributes__duration"), models.IntegerField()
+                ),
+                content_rating=KT("api_data__data__attributes__content_rating"),
+                content_rating_description=KT(
+                    "api_data__data__attributes__content_rating_description"
+                ),
+                language=KT("api_data__data__attributes__language"),
+                geo_profile=KT("api_data__data__attributes__geo_profile"),
+                can_embed_player=KT("api_data__data__attributes__can_embed_player"),
+                legacy_tp_media_id=KT("api_data__data__attributes__legacy_tp_media_id"),
+                tags=Cast(KT("api_data__data__attributes__tags"), models.JSONField()),
+                platforms=Cast(
+                    KT("api_data__data__attributes__platforms"), models.JSONField()
+                ),
+                player_code=Cast(
+                    KT("api_data__data__attributes__player_code"), models.TextField()
+                ),
+                availability=Cast(
+                    KT("api_data__data__attributes__availabilities"), models.JSONField()
+                ),
+                parent_tree=Cast(
+                    KT("api_data__data__attributes__parent_tree"), models.JSONField()
+                ),
+                has_captions=Cast(
+                    KT("api_data__data__attributes__has_captions"),
+                    models.BooleanField(),
+                ),
                 transcripts=Coalesce(
                     Cast(
-                        KT("json__attributes__transcripts"),
+                        KT("api_data__data__attributes__transcripts"),
                         models.JSONField(),
                     ),
                     models.Value([], models.JSONField()),
                 ),
                 captions=Coalesce(
                     Cast(
-                        KT("json__attributes__captions"),
+                        KT("api_data__data__attributes__captions"),
+                        models.JSONField(),
+                    ),
+                    models.Value([], models.JSONField()),
+                ),
+                topics=Coalesce(
+                    Cast(
+                        KT("api_data__data__attributes__topics"),
                         models.JSONField(),
                     ),
                     models.Value([], models.JSONField()),
                 ),
                 data_format=models.Case(
                     models.When(
-                        models.Q(json__has_key="links"),
-                        then=models.Value("compact"),
+                        models.Q(api_data__data__attributes__has_key="captions"),
+                        then=models.Value("full"),
                     ),
-                    default=models.Value("full"),
+                    default=models.Value("compact"),
                     output_field=models.CharField(),
                 ),
             )
@@ -62,58 +106,15 @@ class AssetManager(models.Manager):
 
 
 class Asset(PBSMMGenericAsset):
-    objects = AssetManager()
-
-    legacy_tp_media_id = models.BigIntegerField(
-        _("COVE ID"),
-        null=True,
-        blank=True,
-        unique=True,
-        help_text="(Legacy TP Media ID)",
-    )
-
-    availability = models.JSONField(
-        _("Availability"),
-        default=dict,
-        blank=True,
-        help_text="JSON serialized Field",
-    )
-
-    duration = models.IntegerField(
-        _("Duration"),
-        null=True,
-        blank=True,
-        help_text="(in seconds)",
-    )
-
-    asset_type = models.CharField(  # This is 'clip', etc.
-        _("Asset Type"),
-        max_length=40,
-        null=True,
-        blank=True,
-    )
-
-    # CAPTIONS
-    has_captions = models.BooleanField(
-        _("Has Captions"),
-        default=False,
-    )
-
-    tags = models.JSONField(
-        _("Tags"),
-        default=dict,
-        blank=True,
-        help_text="JSON serialized field",
-    )
-
-    # PLAYER FIELDS
-    player_code = models.TextField(
-        _("Player Code"),
-        null=True,
-        blank=True,
-    )
+    objects = PBSMMAssetManager()
 
     # Relationships
+    mm_content = models.OneToOneField(
+        "record.ContentRecord",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
 
     episode = models.ForeignKey(
         "episode.Episode",
@@ -155,46 +156,11 @@ class Asset(PBSMMGenericAsset):
         on_delete=models.SET_NULL,
     )
 
-    # Properties and methods
-    @property
-    def topics(self):
-        """
-        Return a list of topics if the asset have it.
-        According to PBS this isn't really used
-            - legacy for some third parties - skipping
-        However, Antiques Roadshow appears to be one of them.
-        """
-        try:
-            return self.json.get("attributes").get("topics")
-        except AttributeError:
-            return []
-
-    @property
-    def content_rating(self):
-        """
-        What audience this asset is intended for. eg: TV-Y
-        """
-        try:
-            return self.json.get("attributes").get("content_rating")
-        except AttributeError:
-            return None
-
-    @property
-    def content_rating_description(self):
-        """
-        Verbose description of the content rating. eg: General Audience
-        """
-        try:
-            return self.json.get("attributes").get("content_rating_description")
-        except AttributeError:
-            return None
-
     def asset_publicly_available(self):
         """
-        This is mostly for tables listing Assets in the Admin detail page for
-        ancestral objects: e.g., an Episode's page in the Admin has a list of
-        the episode's assets, and this provides a simple column to show
-        availability in that list.
+        Is the asset currently inside its public availability window? Reads the
+        ``availability`` annotation. Used by both the admin (wrapped with a
+        boolean display) and the asset relation tables.
         """
         if self.availability:
             public_window = self.availability.get("public", None)
@@ -205,52 +171,15 @@ class Asset(PBSMMGenericAsset):
                 )[0]
         return None
 
-    asset_publicly_available.short_description = "Pub. Avail."
-    asset_publicly_available.boolean = True
-
-    @property
-    def duration_hms(self):
-        # TODO rewrite this
-        """
-        Show the asset's duration as #h ##m ##s.
-        """
-        if self.duration:
-            d = self.duration
-            hours = d // 3600
-            if hours > 0:
-                hstr = "%dh" % hours
-            else:
-                hstr = ""
-            d %= 3600
-            minutes = d // 60
-            if hours > 0:
-                mstr = "%02dm" % minutes
-            else:
-                if minutes > 0:
-                    mstr = "%2dm" % minutes
-                else:
-                    mstr = ""
-            seconds = d % 60
-            if minutes > 0:
-                sstr = "%02ds" % seconds
-            else:
-                sstr = "%ds" % seconds
-            return " ".join((hstr, mstr, sstr))
-        return ""
-
     @property
     def formatted_duration(self):
-        # TODO rewrite this
         """
         Show the Asset's duration as ##:##:##
         """
         if self.duration:
-            seconds = self.duration
-            hours = seconds // 3600
-            seconds %= 3600
-            minutes = seconds // 60
-            seconds %= 60
-            return "%d:%02d:%02d" % (hours, minutes, seconds)
+            hours, remainder = divmod(self.duration, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            return f"{hours}:{minutes:02d}:{seconds:02d}"
         return ""
 
     class Meta:
@@ -259,41 +188,65 @@ class Asset(PBSMMGenericAsset):
         db_table = "pbsmm_asset"
         base_manager_name = "objects"
 
-    @staticmethod
-    @db_task()
-    def set(asset: dict, **kwargs):
-        """
-        Update or creates an asset
-        """
-        attrs = asset["attributes"]
-        links = asset.get("links", dict())
+    @property
+    def query_param(self):
+        return "?platform-slug=partnerplayer"
 
-        def make_fields():
-            for f in (f.name for f in Asset._meta.get_fields()):
-                # temporary workaround to make Asset updates from ChangeLog ingest & get_complete_asset_data ingest work
-                # until we can refactor PBSMMAPI modeling in the next sprints
-                if f in ("franchise", "show", "season", "episode", "special"):
-                    continue
-                value = attrs.get(f)
-                if value is not None:
-                    yield f, value
+    @property
+    def endpoint(self):
+        return PBSMM_ASSET_ENDPOINT
 
-        fields = dict(make_fields())
-        fields.update(
-            object_id=asset["id"],
-            api_endpoint=links.get("self"),
-            availability=attrs.get("availabilities"),
-            asset_type=attrs.get("object_type"),
-            date_last_api_update=time_zone_aware_now(),
-            ingest_on_save=True,
-            json=asset,
-            links=links,
-            **kwargs,
-        )
-        Asset.objects.update_or_create(
-            defaults=fields,
-            object_id=asset["id"],
-        )[0]
+    def set_parent(self):
+        parental_fields = ["episode", "season", "show", "special", "franchise"]
+        target_values: dict = {field: None for field in parental_fields}
+
+        # Reload the related ContentRecord to ensure we have the latest api_data
+        # (e.g. if it was updated in the database during pre_save).
+        if self.mm_content:
+            try:
+                self.mm_content.refresh_from_db()
+            except Exception:
+                pass
+
+        if not self.mm_content or not getattr(self.mm_content, "api_data", None):
+            parent_tree = None
+        else:
+            try:
+                parent_tree = self.mm_content.api_data["data"]["attributes"][
+                    "parent_tree"
+                ]
+            except (KeyError, TypeError):
+                parent_tree = None
+
+        if parent_tree:
+            parent_type: str = parent_tree.get("type")
+            parent_cid: str = parent_tree.get("id")
+            if parent_type in parental_fields and parent_cid:
+                try:
+                    model_class = self._meta.get_field(parent_type).related_model
+                    assert model_class is not None
+                    parent_obj = model_class.objects.filter(
+                        mm_content_id=parent_cid
+                    ).first()
+                    if parent_obj:
+                        target_values[parent_type] = parent_obj
+
+                except LookupError:
+                    pass
+
+        # Apply target values to ensure single correct parent is populated
+        for field, value in target_values.items():
+            setattr(self, field, value)
+
+    def save(self, *args, **kwargs):
+        skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
+        content_id = kwargs.pop("content_id", None)
+        if skip_ingest:
+            super().save(*args, **kwargs)
+        else:
+            self.pre_save(content_id)
+            self.set_parent()
+            super().save(*args, **kwargs)
 
     @property
     def transcript_url(self) -> str | None:
@@ -341,6 +294,17 @@ class Asset(PBSMMGenericAsset):
         return part_of_player_code.group(1)
 
     def __str__(self):
-        return (
-            f"{self.pk} | {self.object_id} ({self.legacy_tp_media_id}) | {self.title}"
-        )
+        return f"{self.pk} | {self.mm_content_id} ({self.legacy_tp_media_id}) | {self.title}"
+
+    if TYPE_CHECKING:
+        api_data: dict
+        duration: int
+        transcripts: list[dict]
+        captions: list[dict]
+        player_code: str
+        data_format: str
+        is_excluded_from_dfp: bool
+        platforms: list[dict]
+        availability: dict
+        legacy_tp_media_id: int
+        mm_content_id: UUID

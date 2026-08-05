@@ -1,6 +1,10 @@
 from django.db import models
+from django.db.models.fields.json import KT
+from django.db.models.functions import (
+    Cast,
+    Coalesce,
+)
 from django.utils.safestring import mark_safe
-from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
 
 from pbsmmapi.abstract.models import (
@@ -8,14 +12,40 @@ from pbsmmapi.abstract.models import (
     PBSMMGenericSpecial,
 )
 from pbsmmapi.api.api import PBSMM_SPECIAL_ENDPOINT
+from pbsmmapi.record.models import PBSMMBaseRecordManager
+
+
+class PBSMMSpecialManager(PBSMMBaseRecordManager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                nola=KT("api_data__data__attributes__nola"),
+                language=KT("api_data__data__attributes__language"),
+                tms_id=KT("api_data__data__attributes__tms_id"),
+                links=Coalesce(
+                    Cast(KT("api_data__data__attributes__links"), models.JSONField()),
+                    models.Value([], models.JSONField()),
+                ),
+                premiered_on=Cast(
+                    KT("api_data__data__attributes__premiered_on"),
+                    models.DateField(),
+                ),
+                encored_on=Cast(
+                    KT("api_data__data__attributes__encored_on"),
+                    models.DateField(),
+                ),
+                show_content_id=Cast(
+                    KT("api_data__data__attributes__show__id"), models.UUIDField()
+                ),
+            )
+        )
 
 
 class Special(GenericProvisional, PBSMMGenericSpecial):
-    show_api_id = models.UUIDField(
-        _("Show Object ID"),
-        null=True,
-        blank=True,  # does this work?
-    )
+    objects = PBSMMSpecialManager()
+
     show = models.ForeignKey(
         "show.Show",
         related_name="specials",
@@ -23,20 +53,26 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
         null=True,
         blank=True,
     )
+    mm_content = models.OneToOneField(
+        "record.ContentRecord",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+    )
 
     @classmethod
-    def realize(cls, data: dict, skip_ingest: bool = False):
+    def realize(cls, data: dict, parent_id: int):
         try:
             special = cls.objects.get(
-                show_api_id=data["data"]["attributes"]["show"]["id"],
-                title=data["data"]["attributes"]["title"],
+                show_id=parent_id,
+                title=data["attributes"]["title"],
                 provisional=True,
             )
-            special.object_id = data["data"]["id"]
             special.provisional = False
-            special.save(skip_ingest=skip_ingest)
+            special.save(content_id=data["id"])
+            return special
         except cls.DoesNotExist:
-            return
+            return None
 
     @property
     def nola_code(self):
@@ -52,37 +88,43 @@ class Special(GenericProvisional, PBSMMGenericSpecial):
         out += f'/change/"><B>{self.title}</b></a></td>'
         out += f'\n\t<td><a href="{self.api_endpoint}" target="_new">API</a></td>'
         out += f"\n\t<td>{self.assets.count()}</td>"
-        out += f"\n\t<td>{self.date_last_api_update.strftime('%x %X')}</td>"
+        out += f"\n\t<td>{self.last_updated_display()}</td>"
         out += f"\n\t<td>{self.last_api_status_color()}</td>"
         out += "\n</tr>"
         return mark_safe(out)
 
+    @property
+    def query_param(self):
+        return None
+
+    @property
+    def endpoint(self):
+        return PBSMM_SPECIAL_ENDPOINT
+
     def save(self, *args, **kwargs):
-        skip_ingest = kwargs.pop("skip_ingest", False)
+        skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
+        content_id = kwargs.pop("content_id", None)
         if skip_ingest:
             super().save(*args, **kwargs)
         else:
-            self.pre_save()
+            self.pre_save(content_id)
             super().save(*args, **kwargs)
             self.post_save(self.id)
 
-    def pre_save(self):
-        self.process(PBSMM_SPECIAL_ENDPOINT)
-
-    @staticmethod
+    @classmethod
     @db_task()
-    def post_save(special_id):
-        special = Special.objects.get(id=special_id)
+    def post_save(cls, special_id):
+        special = cls.objects.get(id=special_id)
         endpoint = None
-        if assets := special.json["links"].get("assets"):
+        if assets := special.api_links.get("assets"):
             endpoint = f"{assets}?platform-slug=partnerplayer"
         special.process_assets(endpoint, special_id=special_id)
-        special.delete_stale_assets(special_id=special_id)
 
     def __str__(self):
-        return f"{self.object_id} | {self.show} | {self.title} "
+        return f"{self.content_id} | {self.show} | {self.title} "
 
     class Meta:
         verbose_name = "PBS MM Special"
         verbose_name_plural = "PBS MM Specials"
         db_table = "pbsmm_special"
+        base_manager_name = "objects"

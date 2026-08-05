@@ -1,4 +1,9 @@
 from django.db import models
+from django.db.models.fields.json import KT
+from django.db.models.functions import (
+    Cast,
+    Coalesce,
+)
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from huey.contrib.djhuey import db_task
@@ -8,6 +13,33 @@ from pbsmmapi.abstract.models import (
     PBSMMGenericEpisode,
 )
 from pbsmmapi.api.api import PBSMM_EPISODE_ENDPOINT
+from pbsmmapi.record.models import PBSMMBaseRecordManager
+
+
+class PBSMMEpisodeManager(PBSMMBaseRecordManager):
+    def get_queryset(self):
+        return (
+            super()
+            .get_queryset()
+            .annotate(
+                nola=KT("api_data__data__attributes__nola"),
+                language=KT("api_data__data__attributes__language"),
+                links=Coalesce(
+                    Cast(KT("api_data__data__attributes__links"), models.JSONField()),
+                    models.Value([], models.JSONField()),
+                ),
+                premiered_on=Cast(
+                    KT("api_data__data__attributes__premiered_on"),
+                    models.DateField(),
+                ),
+                encored_on=Cast(
+                    KT("api_data__data__attributes__encored_on"), models.DateField()
+                ),
+                season_content_id=Cast(
+                    KT("api_data__data__attributes__season__id"), models.UUIDField()
+                ),
+            )
+        )
 
 
 class Episode(GenericProvisional, PBSMMGenericEpisode):
@@ -15,11 +47,8 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
     These are the fields that are unique to Episode records.
     """
 
-    encored_on = models.DateTimeField(
-        _("Encored On"),
-        blank=True,
-        null=True,
-    )
+    objects = PBSMMEpisodeManager()
+
     ordinal = models.PositiveIntegerField(
         _("Ordinal"),
         blank=True,
@@ -33,35 +62,56 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         null=True,
         blank=True,
     )
-    season_api_id = models.UUIDField(
-        _("Season Object ID"),
+    mm_content = models.OneToOneField(
+        "record.ContentRecord",
         null=True,
-        blank=True,  # does this work?
+        blank=True,
+        on_delete=models.SET_NULL,
     )
 
     @classmethod
-    def realize(cls, data: dict, skip_ingest: bool = False):
+    def realize(cls, data: dict, parent_id: int):
         try:
             episode = cls.objects.get(
-                season_api_id=data["data"]["attributes"]["season"]["id"],
-                ordinal=data["data"]["attributes"]["ordinal"],
+                season_id=parent_id,
+                ordinal=data["attributes"]["ordinal"],
                 provisional=True,
             )
-            episode.object_id = data["data"]["id"]
             episode.provisional = False
-            episode.save(skip_ingest=skip_ingest)
+            episode.save(content_id=data["id"])
+            return episode
         except cls.DoesNotExist:
-            return
+            return None
 
     @property
-    def segment(self):
-        """
-        Return individual segments of a single episode.
-        """
-        try:
-            return self.json.get("data").get("attributes").get("segment")
-        except AttributeError:
-            return None
+    def query_param(self):
+        return None
+
+    @property
+    def endpoint(self):
+        return PBSMM_EPISODE_ENDPOINT
+
+    def save(self, *args, **kwargs):
+        skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
+        content_id = kwargs.pop("content_id", None)
+        if skip_ingest:
+            super().save(*args, **kwargs)
+        else:
+            self.pre_save(content_id)
+            super().save(*args, **kwargs)
+            self.post_save(self.id)
+
+    @classmethod
+    @db_task()
+    def post_save(cls, episode_id):
+        episode = cls.objects.get(id=episode_id)
+        endpoint = None
+        if assets := episode.api_links.get("assets"):
+            endpoint = f"{assets}?platform-slug=partnerplayer"
+        episode.process_assets(
+            endpoint,
+            episode_id=episode_id,
+        )
 
     @property
     def full_episode_code(self):
@@ -88,14 +138,6 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
 
     short_episode_code.short_description = "Ep #"
 
-    @property
-    def nola_code(self):
-        if self.nola is None or self.nola == "":
-            return None
-        if self.season.show.nola is None or self.season.show.nola == "":
-            return None
-        return f"{self.season.show.nola}{self.nola}"
-
     def create_table_line(self):
         """
         This just formats a line in a Table of Episodes.
@@ -110,7 +152,7 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         )
         out += '\n\t<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
         out += "\n\t<td>%d</td>" % self.assets.count()
-        out += "\n\t<td>%s</td>" % self.date_last_api_update.strftime("%x %X")
+        out += "\n\t<td>%s</td>" % self.last_updated_display()
         out += "\n\t<td>%s</td>" % self.last_api_status_color()
         return mark_safe(out)
 
@@ -121,28 +163,4 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         verbose_name = "PBS MM Episode"
         verbose_name_plural = "PBS MM Episodes"
         db_table = "pbsmm_episode"
-
-    def save(self, *args, **kwargs):
-        skip_ingest = kwargs.pop("skip_ingest", False)
-        if skip_ingest:
-            super().save(*args, **kwargs)
-        else:
-            self.pre_save()
-            super().save(*args, **kwargs)
-            self.post_save(self.id)
-
-    def pre_save(self):
-        self.process(PBSMM_EPISODE_ENDPOINT)
-
-    @staticmethod
-    @db_task()
-    def post_save(episode_id):
-        episode = Episode.objects.get(id=episode_id)
-        endpoint = None
-        if assets := episode.json["links"].get("assets"):
-            endpoint = f"{assets}?platform-slug=partnerplayer"
-        episode.process_assets(
-            endpoint,
-            episode_id=episode_id,
-        )
-        episode.delete_stale_assets(episode_id=episode_id)
+        base_manager_name = "objects"

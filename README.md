@@ -49,3 +49,32 @@ PBSMM_FRANCHISE_SLUGS = [
 Huey will attempt to scrape all Show and/or Franchise data, including Specials, Seasons, Episodes, and Assets. The changelog endpoint will also be scraped.
 
 Once a complete ingest has finished, changelog data is used to ingest updated and newly added objects.
+
+## Deleted objects
+
+When the changelog reports an object as deleted, its row is kept but its `ContentRecord`
+(`mm_content`) is marked with a `deleted` timestamp (taken from the changelog entry). The mark
+also stamps the records of the object's **directly-attached assets** — the only descendants that
+disappear silently: Media Manager requires children to be deleted before their parents, so every
+franchise/show/season/episode/special gets its own changelog delete entry (which stamps its own
+assets in turn), while a parent's assets never get entries of their own.
+
+Marked objects are excluded from every ingestion path — the scrapers, the changelog API fetches
+and the reingest-on-update pass all skip them, and `save()` will not fetch for them — so they are
+neither re-fetched nor resurrected.
+
+A delete is terminal. Recreating an object in the Media Manager Console produces a new content ID
+(ingested here as a brand-new object), and unpublishing arrives as an `update` action, so a delete
+entry is never superseded on the same content ID and there is no un-delete: the *Reingest selected
+items* admin action simply skips deleted objects. For the same reason an asset that drops out of
+its parent's asset list is left untouched on reingest — if it was really deleted, its own changelog
+delete entry marks it.
+
+Rows are never deleted locally, so consuming projects should filter them out where appropriate:
+
+```python
+Show.objects.filter(mm_content__deleted__isnull=True)
+```
+
+Delete entries already recorded in the changelog table are applied automatically by a one-time
+(idempotent) data migration when you run `migrate` after upgrading.

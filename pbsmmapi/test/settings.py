@@ -88,6 +88,7 @@ INSTALLED_APPS = [
     "pbsmmapi.special",
     "pbsmmapi.franchise",
     "pbsmmapi.changelog",
+    "pbsmmapi.record",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
