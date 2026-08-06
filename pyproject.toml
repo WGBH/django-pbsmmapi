@@ -61,6 +61,7 @@ build-backend = "hatchling.build"
 
 [tool.black]
 preview = true
+target-version = ["py311", "py312", "py313", "py314"]
 
 [tool.isort]
 profile = "black"
