@@ -90,7 +90,9 @@ def mocked_requests_get(*args, **kwargs):
 
 
 class ShowIngestTestCase(TestCase):
-    @mock.patch("pbsmmapi.api.api.requests.Session.get", side_effect=mocked_requests_get)
+    @mock.patch(
+        "pbsmmapi.api.api.requests.Session.get", side_effect=mocked_requests_get
+    )
     def setUp(self, mock_get):
         # The ingest cascade runs through post_save @db_task chains; run huey
         # inline so seasons/specials/episodes/assets are created synchronously
@@ -111,7 +113,9 @@ class ShowIngestTestCase(TestCase):
             nova.ingest_episodes = True
             nova.save()
 
-    @mock.patch("pbsmmapi.api.api.requests.Session.get", side_effect=mocked_requests_get)
+    @mock.patch(
+        "pbsmmapi.api.api.requests.Session.get", side_effect=mocked_requests_get
+    )
     def reingest(
         self,
         mock_get,
@@ -126,12 +130,16 @@ class ShowIngestTestCase(TestCase):
         nova.ingest_on_save = True
         nova.save()
 
-    @mock.patch("pbsmmapi.api.api.requests.Session.get", side_effect=mocked_requests_get)
+    @mock.patch(
+        "pbsmmapi.api.api.requests.Session.get", side_effect=mocked_requests_get
+    )
     def test_show_ingested(self, mock_get):
         nova = Show.objects.get(slug="nova")
         self.assertEqual(nova.content_id, UUID("adfb2f9d-f61e-4613-ac58-ab3bde582afb"))
 
-    @mock.patch("pbsmmapi.api.api.requests.Session.get", side_effect=mocked_requests_get)
+    @mock.patch(
+        "pbsmmapi.api.api.requests.Session.get", side_effect=mocked_requests_get
+    )
     def test_show_asset(self, mock_get):
         global data_set
         data_set = default_data_set
@@ -149,7 +157,9 @@ class ShowIngestTestCase(TestCase):
             Asset.objects.filter(slug="nova-switching-genes-on-and-off").exists()
         )
 
-    @mock.patch("pbsmmapi.api.api.requests.Session.get", side_effect=mocked_requests_get)
+    @mock.patch(
+        "pbsmmapi.api.api.requests.Session.get", side_effect=mocked_requests_get
+    )
     def test_season_asset(self, mock_get):
         global data_set
         data_set = default_data_set
@@ -164,7 +174,9 @@ class ShowIngestTestCase(TestCase):
             Asset.objects.filter(slug="predicting-landslides-qh7jt9").exists()
         )
 
-    @mock.patch("pbsmmapi.api.api.requests.Session.get", side_effect=mocked_requests_get)
+    @mock.patch(
+        "pbsmmapi.api.api.requests.Session.get", side_effect=mocked_requests_get
+    )
     def test_special_asset(self, mock_get):
         global data_set
         data_set = default_data_set
@@ -179,7 +191,9 @@ class ShowIngestTestCase(TestCase):
             Asset.objects.filter(slug="front-row-seat-saturn-0vf9j2").exists()
         )
 
-    @mock.patch("pbsmmapi.api.api.requests.Session.get", side_effect=mocked_requests_get)
+    @mock.patch(
+        "pbsmmapi.api.api.requests.Session.get", side_effect=mocked_requests_get
+    )
     def test_episode_asset(self, mock_get):
         global data_set
         data_set = default_data_set
