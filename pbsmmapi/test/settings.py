@@ -122,13 +122,16 @@ PBSMM_API_SECRET = os.getenv("PBSMM_API_SECRET")
 
 PBSMM_SHOW_SLUGS = []
 
+# default to immediate=True with override for running huey normally
+HUEY_IMMEDIATE = os.environ.get("HUEY_IMMEDIATE", "true").lower() != "false"
+
 HUEY = {
     "huey_class": "huey.RedisHuey",
     "store_intermediate_errors": False,
     "name": "mmhuey",
     "results": True,
     "store_none": False,
-    "immediate": False,
+    "immediate": HUEY_IMMEDIATE,
     "utc": True,
     "blocking": True,
     "connection": {
