@@ -169,7 +169,7 @@ class MediaManagerError(Exception):
     pass
 
 
-@task(retries=3, retry_delay=30)
+@task(retries=3, retry_delay=60)
 @HUEY.rate_limit("fetch-pbsmm-record", limit=MAX_QUERIES, per=60)
 def fetch_pbsmm_record(url: str) -> tuple[int, dict]:
     status, mm_response_data = get_PBSMM_record(url)
