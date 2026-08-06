@@ -124,6 +124,7 @@ PBSMM_SHOW_SLUGS = []
 
 HUEY = {
     "huey_class": "huey.RedisHuey",
+    "store_intermediate_errors": False,
     "name": "mmhuey",
     "results": True,
     "store_none": False,

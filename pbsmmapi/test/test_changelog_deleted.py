@@ -1,5 +1,6 @@
 from importlib import import_module
 import json
+import os
 from unittest import mock
 from uuid import UUID
 
@@ -18,7 +19,8 @@ from pbsmmapi.abstract.helpers import parse_changelog_timestamp
 from pbsmmapi.asset.models import Asset
 from pbsmmapi.changelog.models import ChangeLog
 from pbsmmapi.changelog.tasks import (
-    fetch_api_data,
+    MediaManagerError,
+    fetch_pbsmm_record,
     get_changelog_data,
     mark_deleted,
     reingest_updated_objects,
@@ -48,7 +50,7 @@ EPISODE_ID = "ac21bf4b-4930-4c0d-99af-a92fa2730274"
 SHOW_ASSET_ID = "5e36e35c-27a5-4bfa-b0dc-6a9b81b2fdc0"
 EPISODE_ASSET_ID = "8a4b7c39-91e4-4a17-a2f4-2bfcbd9a3f11"
 
-MMAPI_GET_URL = "pbsmmapi.api.api.requests.get"
+MMAPI_GET_URL = "pbsmmapi.abstract.models.get_PBSMM_record"
 
 T0 = "2027-01-01T00:00:00.000000Z"
 T1 = "2027-01-02T00:00:00.000000Z"
@@ -66,12 +68,18 @@ class MockResponse:
         return self.json_data
 
 
-def mocked_requests_get(*args, **kwargs):
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+def mocked_requests_get(url, *args, **kwargs):
     try:
-        with open(url_map[args[0]], "r") as data_file:
-            return MockResponse(json.load(data_file), 200)
-    except KeyError:
-        return MockResponse(None, 404)
+        fixture_path = url_map[url]
+        if not os.path.isabs(fixture_path):
+            fixture_path = os.path.join(BASE_DIR, fixture_path)
+        with open(fixture_path, "r") as data_file:
+            return 200, json.load(data_file)
+    except (KeyError, FileNotFoundError):
+        return 404, {}
 
 
 def make_record(content_id: str) -> ContentRecord:
@@ -382,41 +390,27 @@ class ChangelogDeletedTestCase(TestCase):
         live_log = make_changelog(SHOW2_ID, {T2: "update"})
 
         with (
-            mock.patch("pbsmmapi.changelog.tasks.fetch_api_data") as mock_fetch,
+            mock.patch("pbsmmapi.changelog.tasks.fetch_pbsmm_record") as mock_fetch,
             mock.patch("pbsmmapi.changelog.tasks.realize_provisional_objects"),
         ):
-            get_changelog_data(10)
+            mock_fetch.map.return_value.get.return_value = [(200, {})]
+            get_changelog_data()
 
-        # fetch_api_data is now mapped over ChangeLog PKs, not instances
-        fetched_pks = [
-            pk for call in mock_fetch.map.call_args_list for pk in call.args[0]
+        fetched_urls = [
+            url for call in mock_fetch.map.call_args_list for url in call.args[0]
         ]
-        self.assertNotIn(deleted_log.pk, fetched_pks)
-        self.assertIn(live_log.pk, fetched_pks)
+        self.assertNotIn(deleted_log.api_url, fetched_urls)
+        self.assertIn(live_log.api_url, fetched_urls)
 
-    def test_fetch_api_data_skips_deleted(self):
-        # the object may be deleted between enqueue and execution; the task
-        # refetches by pk and must bail (no API call, no writes) if so.
-        log = make_changelog(SHOW_ID, {T1: "update"})
-        ContentRecord.objects.filter(pk=UUID(SHOW_ID)).update(
-            deleted=parse_changelog_timestamp(T1)
-        )
-
-        with mock.patch("pbsmmapi.changelog.tasks.get_PBSMM_record") as mock_fetch:
-            fetch_api_data.call_local(log.pk)
-
-        mock_fetch.assert_not_called()
-
-    def test_fetch_api_data_updates_and_preserves_entries(self):
-        # writes only its own fields (last_api_status/api_data/api_crawled) and
-        # never clobbers entries via a full-row save.
+    def test_get_changelog_data_updates_record(self):
+        # get_changelog_data updates last_api_status/api_data/api_crawled
         log = make_changelog(SHOW_ID, {T1: "update"})
         api_data = {"data": {"id": SHOW_ID, "attributes": {}}}
 
         with mock.patch(
             "pbsmmapi.changelog.tasks.get_PBSMM_record", return_value=(200, api_data)
         ):
-            fetch_api_data.call_local(log.pk)
+            get_changelog_data()
 
         record = ContentRecord.objects.get(pk=UUID(SHOW_ID))
         self.assertEqual(record.last_api_status, 200)
@@ -424,6 +418,22 @@ class ChangelogDeletedTestCase(TestCase):
         log.refresh_from_db()
         self.assertIsNotNone(log.api_crawled)
         self.assertEqual(list(log.entries.keys()), [T1])
+
+    def test_fetch_pbsmm_record_5xx_raises_exception(self):
+        with mock.patch(
+            "pbsmmapi.changelog.tasks.get_PBSMM_record", return_value=(500, {})
+        ):
+            with self.assertRaises(MediaManagerError):
+                fetch_pbsmm_record.call_local("http://example.com/api/")
+
+    def test_fetch_pbsmm_record_returns_status_and_data(self):
+        api_data = {"data": {"id": SHOW_ID, "attributes": {}}}
+        with mock.patch(
+            "pbsmmapi.changelog.tasks.get_PBSMM_record", return_value=(200, api_data)
+        ):
+            status, data = fetch_pbsmm_record.call_local("http://example.com/api/")
+        self.assertEqual(status, 200)
+        self.assertEqual(data, api_data)
 
     def test_reingest_skips_deleted_objects(self):
         # reingest_updated_objects (restored from rc_1.4.0) must not touch a
