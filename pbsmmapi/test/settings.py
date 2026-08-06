@@ -18,7 +18,7 @@ DATABASES = {
         "HOST": os.environ["PGHOST"],
         "PORT": os.environ["PGPORT"],
         "OPTIONS": {
-            "pool": True,
+            "pool": False,
         },
     },
 }

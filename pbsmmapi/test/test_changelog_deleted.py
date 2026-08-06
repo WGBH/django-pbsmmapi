@@ -1,6 +1,7 @@
 from importlib import import_module
 import json
 import os
+import re
 from unittest import mock
 from uuid import UUID
 
@@ -70,8 +71,38 @@ class MockResponse:
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+ASSET_DETAIL_RE = re.compile(r"/api/v1/assets/([0-9a-f-]{36})/")
+_asset_detail_cache = {}
+
+
+def _asset_detail(asset_id):
+    index = _asset_detail_cache.get(id(url_map))
+    if index is None:
+        index = {}
+        for url, path in url_map.items():
+            if "/assets/?" not in url:
+                continue
+            if not os.path.isabs(path):
+                path = os.path.join(BASE_DIR, path)
+            try:
+                with open(path, "r") as data_file:
+                    data = json.load(data_file)
+            except (OSError, ValueError):
+                continue
+            for item in data.get("data", []):
+                if isinstance(item, dict) and item.get("id"):
+                    index.setdefault(item["id"], item)
+        _asset_detail_cache[id(url_map)] = index
+    return index.get(asset_id)
+
 
 def mocked_requests_get(url, *args, **kwargs):
+    asset_match = ASSET_DETAIL_RE.search(url)
+    if asset_match:
+        item = _asset_detail(asset_match.group(1))
+        if item is None:
+            return 404, {}
+        return 200, {"data": item, "links": item.get("links", {})}
     try:
         fixture_path = url_map[url]
         if not os.path.isabs(fixture_path):
