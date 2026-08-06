@@ -273,7 +273,8 @@ def realize_provisional_objects():
             continue
 
     realized_seasons = []
-    for season in Season.objects.filter(provisional=True).select_related("show"):
+    for season in Season.objects.filter(provisional=True).prefetch_related("show"):
+        # we need to use prefetch_related instead of select_related so the annotations are still loaded on the qs
         try:
             changelog = SeasonChangeLog.objects.get(
                 show_content_id=season.show.content_id,
@@ -286,7 +287,8 @@ def realize_provisional_objects():
         except SeasonChangeLog.DoesNotExist:
             continue
 
-    for episode in Episode.objects.filter(provisional=True).select_related("season"):
+    for episode in Episode.objects.filter(provisional=True).prefetch_related("season"):
+        # we need to use prefetch_related instead of select_related so the annotations are still loaded on the qs
         try:
             changelog = EpisodeChangeLog.objects.get(
                 season_content_id=episode.season.content_id,
@@ -301,7 +303,8 @@ def realize_provisional_objects():
 
     for special in Special.objects.filter(
         provisional=True,
-    ).select_related("show"):
+    ).prefetch_related("show"):
+        # we need to use prefetch_related instead of select_related so the annotations are still loaded on the qs
         try:
             changelog = SpecialChangeLog.objects.get(
                 show_content_id=special.show.content_id,

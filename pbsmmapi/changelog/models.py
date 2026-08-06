@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.db.models.fields.json import KT
+from django.db.models.functions import Cast
 from django.utils.translation import gettext_lazy as _
 
 from pbsmmapi.abstract.constants import PBSMM_BASE_URL
@@ -129,7 +130,12 @@ class SeasonChangeLogManager(PBSMMBaseRecordManager):
             .get_queryset()
             .filter(resource_type="season")
             .annotate(show_content_id=KT("api_data__data__attributes__show__id"))
-            .annotate(ordinal=KT("api_data__data__attributes__ordinal"))
+            .annotate(
+                ordinal=Cast(
+                    KT("api_data__data__attributes__ordinal"),
+                    models.IntegerField(),
+                )
+            )
         )
 
 
@@ -148,7 +154,11 @@ class EpisodeChangeLogManager(PBSMMBaseRecordManager):
             .filter(resource_type="episode")
             .annotate(show_content_id=KT("api_data__data__attributes__show__id"))
             .annotate(season_content_id=KT("api_data__data__attributes__season__id"))
-            .annotate(ordinal=KT("api_data__data__attributes__ordinal"))
+            .annotate(
+                ordinal=Cast(
+                    KT("api_data__data__attributes__ordinal"), models.IntegerField()
+                ),
+            )
         )
 
 
