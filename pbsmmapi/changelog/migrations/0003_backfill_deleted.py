@@ -3,11 +3,11 @@ from datetime import (
     datetime,
 )
 
+import django.db.models.deletion
 from django.db import (
     migrations,
     models,
 )
-import django.db.models.deletion
 
 ASSET_PARENT_TYPES = {"franchise", "show", "season", "episode", "special"}
 
@@ -16,7 +16,7 @@ def parse_changelog_timestamp(timestamp: str) -> datetime:
     # frozen copy of abstract.helpers.parse_changelog_timestamp: the migration
     # must stay hermetic — live app code can change or move, breaking older
     # deployments running migrate
-    parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    parsed = datetime.fromisoformat(timestamp)
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=UTC)
     return parsed.astimezone(UTC)
@@ -72,7 +72,6 @@ def backfill_deleted(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("changelog", "0002_remove_changelog_api_data_and_more"),
         ("record", "0002_contentrecord_added_deleted_field"),

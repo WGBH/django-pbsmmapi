@@ -71,7 +71,6 @@ class GenericProvisional(models.Model):
 
 
 class Ingest(models.Model):
-
     def __init__(self, *args, **kwargs):
         self.ingest_on_save = None
         self.content_id = None
@@ -225,8 +224,9 @@ class PBSMMGenericObject(
     def deleted_flag(self):
         if self.deleted:
             return mark_safe(
-                '<b><span style="color:#f00;">%s</span></b>'
-                % self.deleted.strftime("%Y-%m-%d %H:%M")
+                '<b><span style="color:#f00;">{}</span></b>'.format(
+                    self.deleted.strftime("%Y-%m-%d %H:%M")
+                )
             )
         return ""
 

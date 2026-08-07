@@ -7,7 +7,6 @@ from django.db import (
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("season", "0014_rename_pbsmmseason_season"),
     ]

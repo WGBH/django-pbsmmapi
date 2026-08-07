@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("asset", "0008_remove_asset_windows_alter_asset_availability_and_more"),
     ]

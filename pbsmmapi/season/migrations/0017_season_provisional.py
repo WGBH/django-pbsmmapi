@@ -7,7 +7,6 @@ from django.db import (
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("season", "0016_alter_season_images_alter_season_json_and_more"),
     ]

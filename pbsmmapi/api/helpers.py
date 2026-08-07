@@ -13,9 +13,8 @@ def check_pagination(json):
     It's used in all of the ingest methods (since thankfully, the JSON
     structure is the same for all object types with regards to pagination).
     """
-    if "links" in json.keys():
+    if "links" in json:
         links = json["links"]
-        if "next" in links.keys():
-            if links["next"] is not None:
-                return (True, links["next"])
+        if "next" in links and links["next"] is not None:
+            return (True, links["next"])
     return (False, None)

@@ -7,7 +7,6 @@ from django.db import (
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("show", "0010_show_franchise_show_franchise_api_id"),
     ]

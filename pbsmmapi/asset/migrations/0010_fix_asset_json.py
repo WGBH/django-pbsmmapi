@@ -25,29 +25,28 @@ def fix_asset_json(apps, schema_editor):
         if asset.data_format == "full":
             old_json = asset.json
             content_id = old_json.get("id")
-            reformed_json = dict(
-                jsonapi=dict(version="1.0"),
-                data=old_json,
-                meta=dict(type="resource"),
-                links=dict(self=f"{link_prefix}/{content_id}/"),
-            )
+            reformed_json = {
+                "jsonapi": {"version": "1.0"},
+                "data": old_json,
+                "meta": {"type": "resource"},
+                "links": {"self": f"{link_prefix}/{content_id}/"},
+            }
             asset.json = reformed_json
         elif asset.data_format == "compact":
             old_json: dict = asset.json
             links = old_json.pop("links")
-            reformed_json = dict(
-                jsonapi=dict(version="1.0"),
-                data=old_json,
-                meta=dict(type="resource"),
-                links=links,
-            )
+            reformed_json = {
+                "jsonapi": {"version": "1.0"},
+                "data": old_json,
+                "meta": {"type": "resource"},
+                "links": links,
+            }
             asset.json = reformed_json
 
     Asset.objects.bulk_update(assets, ["json"])
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("asset", "0009_alter_asset_options"),
     ]

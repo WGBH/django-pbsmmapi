@@ -218,23 +218,22 @@ class Show(GenericProvisional, PBSMMGenericShow):
         )
 
     def create_table_line(self):
-        this_title = "Show: %s" % self.title
+        this_title = f"Show: {self.title}"
         out = '<tr style="background-color: #uuu;">'
         out += (
             '<td colspan="3"><a'
-            ' href="/admin/show/show/%d/change/"><b>%s</b></a></td>'
-            % (self.id, this_title)
+            f' href="/admin/show/show/{self.pk}/change/"><b>{this_title}</b></a></td>'
         )
-        out += '<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
-        out += "\n\t<td>%d</td>" % self.assets.count()
-        out += "\n\t<td>%s</td>" % self.last_updated_display()
-        out += "\n\t<td>%s</td>" % self.last_api_status_color()
+        out += f'<td><a href="{self.api_endpoint}" target="_new">API</a></td>'
+        out += f"\n\t<td>{self.assets.count()}</td>"
+        out += f"\n\t<td>{self.last_updated_display()}</td>"
+        out += f"\n\t<td>{self.last_api_status_color()}</td>"
         return mark_safe(out)
 
     def __str__(self):
         if self.title:
             return self.title
-        return "ID %d: unknown" % self.id
+        return f"ID {self.pk}: unknown"
 
     class Meta:
         verbose_name = "PBS MM Show"

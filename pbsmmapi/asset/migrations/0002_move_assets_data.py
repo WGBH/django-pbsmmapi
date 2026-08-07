@@ -51,7 +51,7 @@ def get_type(asset: dict, apps):
         )
 
     _type = asset_type()
-    return next(_type[t] for t in _type.keys() if asset.get(t))
+    return next(_type[t] for t in _type if asset.get(t))
 
 
 def backwards(apps, schema):
