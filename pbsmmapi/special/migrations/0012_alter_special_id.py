@@ -7,7 +7,6 @@ from django.db import (
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("special", "0011_rename_pbsmmspecial_special"),
     ]

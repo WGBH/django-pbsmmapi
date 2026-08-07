@@ -145,15 +145,12 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
         """
         out = "<tr>"
         out += "\t<td></td>"
-        out += "\n\t<td>%02d%02d:</td>" % (self.season.ordinal, self.ordinal)
-        out += (
-            '\n\t<td><a href="/admin/episode/pbsmmepisode/%d/change/"><b>%s</b></td>'
-            % (self.id, self.title)
-        )
-        out += '\n\t<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
-        out += "\n\t<td>%d</td>" % self.assets.count()
-        out += "\n\t<td>%s</td>" % self.last_updated_display()
-        out += "\n\t<td>%s</td>" % self.last_api_status_color()
+        out += f"\n\t<td>{self.season.ordinal:02}{self.ordinal:02}:</td>"
+        out += f'\n\t<td><a href="/admin/episode/pbsmmepisode/{self.pk}/change/"><b>{self.title}</b></td>'
+        out += f'\n\t<td><a href="{self.api_endpoint}" target="_new">API</a></td>'
+        out += f"\n\t<td>{self.assets.count()}</td>"
+        out += f"\n\t<td>{self.last_updated_display()}</td>"
+        out += f"\n\t<td>{self.last_api_status_color()}</td>"
         return mark_safe(out)
 
     def __str__(self):

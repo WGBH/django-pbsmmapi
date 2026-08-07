@@ -207,13 +207,10 @@ class PBSMMShowAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
         out = ""
         specials_list = obj.specials.order_by("-premiered_on")
         if specials_list.count() > 100:
-            out = "<p>There are %s specials.</p>" % "{:,}".format(specials_list.count())
+            out = "<p>There are {} specials.</p>".format(f"{specials_list.count():,}")
             out += "<p>Here are the most recent 50 (by premiere date).</p>"
-            admin_filter_slug = "/admin/special/pbsmmspecial/?show_slug=%s" % obj.slug
-            out += '<p>You can access the entire list at <a href="%s">%s</a>.' % (
-                admin_filter_slug,
-                admin_filter_slug,
-            )
+            admin_filter_slug = f"/admin/special/pbsmmspecial/?show_slug={obj.slug}"
+            out += f'<p>You can access the entire list at <a href="{admin_filter_slug}">{admin_filter_slug}</a>.'
             specials_list_to_show = specials_list[:50]
         else:
             specials_list_to_show = specials_list

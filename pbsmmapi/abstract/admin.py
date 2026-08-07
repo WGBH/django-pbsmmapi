@@ -90,16 +90,12 @@ def get_abstract_asset_table(object_list):
     for item in object_list:
         row_color = "#ffffff;"
 
-        out += '\n<tr style="background-color:%s">' % row_color
-        out += '\n\t<td><a href="%s/%d/change/" target="_new">%s</a></td>' % (
-            url,
-            item.id,
-            item.title,
-        )
-        out += "\n\t<td>%s</td>" % item.asset_type
-        out += "\n\t<td>%s</td>" % item.formatted_duration
-        out += "\n\t<td>%s</td>" % item.asset_publicly_available()
-        out += '\n\t<td><a href="%s" target="_new">API</a></td>' % item.api_endpoint
+        out += f'\n<tr style="background-color:{row_color}">'
+        out += f'\n\t<td><a href="{url}/{item.pk}/change/" target="_new">{item.title}</a></td>'
+        out += f"\n\t<td>{item.asset_type}</td>"
+        out += f"\n\t<td>{item.formatted_duration}</td>"
+        out += f"\n\t<td>{item.asset_publicly_available()}</td>"
+        out += f'\n\t<td><a href="{item.api_endpoint}" target="_new">API</a></td>'
         out += "\n</tr>"
     out += "\n</table>"
     return out

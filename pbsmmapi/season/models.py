@@ -83,17 +83,16 @@ class Season(GenericProvisional, PBSMMGenericSeason):
             return None
 
     def create_table_line(self):
-        this_title = "Season %d: %s" % (self.ordinal, self.title)
+        this_title = f"Season {self.ordinal}: {self.title}"
         out = '<tr style="background-color: #ddd;">'
         out += (
             '<td colspan="3"><a'
-            ' href="/admin/season/pbsmmseason/%d/change/"><b>%s</b></a></td>'
-            % (self.id, this_title)
+            f' href="/admin/season/pbsmmseason/{self.pk}/change/"><b>{this_title}</b></a></td>'
         )
-        out += '<td><a href="%s" target="_new">API</a></td>' % self.api_endpoint
-        out += "\n\t<td>%d</td>" % self.assets.count()
-        out += "\n\t<td>%s</td>" % self.last_updated_display()
-        out += "\n\t<td>%s</td>" % self.last_api_status_color()
+        out += f'<td><a href="{self.api_endpoint}" target="_new">API</a></td>'
+        out += f"\n\t<td>{self.assets.count()}</td>"
+        out += f"\n\t<td>{self.last_updated_display()}</td>"
+        out += f"\n\t<td>{self.last_api_status_color()}</td>"
         return mark_safe(out)
 
     @property

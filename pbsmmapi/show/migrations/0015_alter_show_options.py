@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("show", "0014_remove_show_api_endpoint_remove_show_audience_and_more"),
     ]

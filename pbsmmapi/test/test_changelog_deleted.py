@@ -1,7 +1,7 @@
-from importlib import import_module
 import json
 import os
 import re
+from importlib import import_module
 from unittest import mock
 from uuid import UUID
 
@@ -451,11 +451,13 @@ class ChangelogDeletedTestCase(TestCase):
         self.assertEqual(list(log.entries.keys()), [T1])
 
     def test_fetch_pbsmm_record_5xx_raises_exception(self):
-        with mock.patch(
-            "pbsmmapi.changelog.tasks.get_PBSMM_record", return_value=(500, {})
+        with (
+            mock.patch(
+                "pbsmmapi.changelog.tasks.get_PBSMM_record", return_value=(500, {})
+            ),
+            self.assertRaises(MediaManagerError),
         ):
-            with self.assertRaises(MediaManagerError):
-                fetch_pbsmm_record.call_local("http://example.com/api/")
+            fetch_pbsmm_record.call_local("http://example.com/api/")
 
     def test_fetch_pbsmm_record_returns_status_and_data(self):
         api_data = {"data": {"id": SHOW_ID, "attributes": {}}}

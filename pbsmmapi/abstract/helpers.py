@@ -10,7 +10,7 @@ def parse_changelog_timestamp(timestamp: str) -> datetime:
     Any offset in the string is normalized to UTC; a timestamp with no
     timezone is assumed to be UTC (not the local zone).
     """
-    parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+    parsed = datetime.fromisoformat(timestamp)
     if parsed.tzinfo is None:
         parsed = parsed.replace(tzinfo=UTC)
     return parsed.astimezone(UTC)

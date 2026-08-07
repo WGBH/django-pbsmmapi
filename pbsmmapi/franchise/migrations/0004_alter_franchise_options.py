@@ -4,7 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("franchise", "0003_remove_franchise_api_endpoint_and_more"),
     ]

@@ -2,6 +2,8 @@ import re
 from typing import TYPE_CHECKING
 from uuid import UUID
 
+import requests
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 from django.db.models.fields.json import KT
 from django.db.models.functions import (
@@ -9,7 +11,6 @@ from django.db.models.functions import (
     Coalesce,
 )
 from pycaption import detect_format
-import requests
 
 from pbsmmapi.abstract.models import PBSMMGenericAsset
 from pbsmmapi.api.api import PBSMM_ASSET_ENDPOINT
@@ -202,10 +203,10 @@ class Asset(PBSMMGenericAsset):
 
         # Reload the related ContentRecord to ensure we have the latest api_data
         # (e.g. if it was updated in the database during pre_save).
-        if self.mm_content:
+        if self.mm_content and self.mm_content.pk:
             try:
                 self.mm_content.refresh_from_db()
-            except Exception:
+            except (ObjectDoesNotExist, ValueError):
                 pass
 
         if not self.mm_content or not getattr(self.mm_content, "api_data", None):
@@ -252,7 +253,7 @@ class Asset(PBSMMGenericAsset):
     def transcript_url(self) -> str | None:
         return next(
             filter(lambda x: x.get("primary"), self.transcripts),
-            dict(),
+            {},
         ).get("url", None)
 
     @property

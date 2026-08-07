@@ -1,7 +1,7 @@
 from http import HTTPStatus
 
-from django.conf import settings
 import requests
+from django.conf import settings
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
@@ -36,4 +36,4 @@ def get_PBSMM_record(url: str) -> tuple[int, dict]:
     r = session.get(url, auth=(settings.PBSMM_API_ID, settings.PBSMM_API_SECRET))
     if r.status_code == HTTPStatus.OK:
         return r.status_code, r.json()
-    return r.status_code, dict()
+    return r.status_code, {}

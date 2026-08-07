@@ -7,7 +7,6 @@ from django.db import (
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("show", "0012_show_provisional_show_season_ordinal_and_more"),
     ]

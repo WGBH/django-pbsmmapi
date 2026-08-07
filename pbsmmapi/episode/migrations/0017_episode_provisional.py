@@ -7,7 +7,6 @@ from django.db import (
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("episode", "0016_alter_episode_json_alter_episode_links"),
     ]
