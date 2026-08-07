@@ -26,7 +26,7 @@ classifiers = [
 dependencies = [
     "django>=4.0",
     "requests",
-    "huey>=2.5.3",
+    "huey>=3.0,<3.4",
     "pycaption>=2.2.16",
     "nltk>=3.10",
 ]
@@ -61,6 +61,7 @@ build-backend = "hatchling.build"
 
 [tool.black]
 preview = true
+target-version = ["py311", "py312", "py313", "py314"]
 
 [tool.isort]
 profile = "black"

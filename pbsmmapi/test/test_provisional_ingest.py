@@ -16,7 +16,7 @@ SEASON_ID = "08cd0667-88ae-4c3d-b726-c0833301f55b"
 SPECIAL_ID = "2eb690f2-ebc4-41f6-9558-6962d8e43c48"
 EPISODE_ID = "ac21bf4b-4930-4c0d-99af-a92fa2730274"
 
-MMAPI_GET_URL = "pbsmmapi.api.api.requests.get"
+MMAPI_GET_URL = "pbsmmapi.api.api.requests.Session.get"
 
 
 class MockResponse:

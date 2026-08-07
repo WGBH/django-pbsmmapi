@@ -46,7 +46,10 @@ class ChangeLog(models.Model):
 
     @property
     def api_url(self):
-        return f"{PBSMM_BASE_URL}api/v1/{self.resource_type}s/{self.content_id}/"
+        cid = getattr(self, "content_id", None) or (
+            self.mm_content.content_id if self.mm_content_id else None
+        )
+        return f"{PBSMM_BASE_URL}api/v1/{self.resource_type}s/{cid}/"
 
     def save(self, *args, **kwargs):
         # compare by parsed instant, not string order, so entries with
