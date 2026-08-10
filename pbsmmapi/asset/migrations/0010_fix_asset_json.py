@@ -21,7 +21,10 @@ def fix_asset_json(apps, schema_editor):
         ),
     )
 
-    for asset in assets:
+    batch_size = 1000
+    batch = []
+
+    for asset in assets.iterator(chunk_size=batch_size):
         if asset.data_format == "full":
             old_json = asset.json
             content_id = old_json.get("id")
@@ -43,7 +46,13 @@ def fix_asset_json(apps, schema_editor):
             }
             asset.json = reformed_json
 
-    Asset.objects.bulk_update(assets, ["json"])
+        batch.append(asset)
+        if len(batch) >= batch_size:
+            Asset.objects.bulk_update(batch, ["json"])
+            batch.clear()
+
+    if batch:
+        Asset.objects.bulk_update(batch, ["json"])
 
 
 class Migration(migrations.Migration):

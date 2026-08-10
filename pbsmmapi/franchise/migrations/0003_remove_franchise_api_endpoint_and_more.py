@@ -10,14 +10,28 @@ from django.db import (
 def link_franchises(apps, schema_editor):
     ContentRecord = apps.get_model("record", "ContentRecord")
     Franchise = apps.get_model("franchise", "Franchise")
-    content_records = {
-        record.content_id: record
-        for record in ContentRecord.objects.filter(api_data__data__type="franchise")
-    }
-    franchises = list(Franchise.objects.filter(object_id__isnull=False))
-    for franchise in franchises:
-        franchise.mm_content = content_records.get(franchise.object_id)
-    Franchise.objects.bulk_update(franchises, ["mm_content"])
+    content_record_map = dict(
+        ContentRecord.objects.filter(api_data__data__type="franchise").values_list(
+            "content_id", "pk"
+        )
+    )
+
+    batch_size = 1000
+    batch = []
+
+    for franchise in Franchise.objects.filter(object_id__isnull=False).iterator(
+        chunk_size=batch_size
+    ):
+        content_record_pk = content_record_map.get(franchise.object_id)
+        if content_record_pk:
+            franchise.mm_content_id = content_record_pk
+            batch.append(franchise)
+            if len(batch) >= batch_size:
+                Franchise.objects.bulk_update(batch, ["mm_content"])
+                batch.clear()
+
+    if batch:
+        Franchise.objects.bulk_update(batch, ["mm_content"])
 
 
 class Migration(migrations.Migration):

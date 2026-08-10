@@ -10,14 +10,28 @@ from django.db import (
 def link_seasons(apps, schema_editor):
     ContentRecord = apps.get_model("record", "ContentRecord")
     Season = apps.get_model("season", "Season")
-    content_records = {
-        record.content_id: record
-        for record in ContentRecord.objects.filter(api_data__data__type="season")
-    }
-    seasons = list(Season.objects.filter(object_id__isnull=False))
-    for season in seasons:
-        season.mm_content = content_records.get(season.object_id)
-    Season.objects.bulk_update(seasons, ["mm_content"])
+    content_record_map = dict(
+        ContentRecord.objects.filter(api_data__data__type="season").values_list(
+            "content_id", "pk"
+        )
+    )
+
+    batch_size = 1000
+    batch = []
+
+    for season in Season.objects.filter(object_id__isnull=False).iterator(
+        chunk_size=batch_size
+    ):
+        content_record_pk = content_record_map.get(season.object_id)
+        if content_record_pk:
+            season.mm_content_id = content_record_pk
+            batch.append(season)
+            if len(batch) >= batch_size:
+                Season.objects.bulk_update(batch, ["mm_content"])
+                batch.clear()
+
+    if batch:
+        Season.objects.bulk_update(batch, ["mm_content"])
 
 
 class Migration(migrations.Migration):
