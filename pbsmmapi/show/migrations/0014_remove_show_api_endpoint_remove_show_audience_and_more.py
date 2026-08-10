@@ -10,14 +10,28 @@ from django.db import (
 def link_shows(apps, schema_editor):
     ContentRecord = apps.get_model("record", "ContentRecord")
     Show = apps.get_model("show", "Show")
-    content_records = {
-        record.content_id: record
-        for record in ContentRecord.objects.filter(api_data__data__type="show")
-    }
-    shows = list(Show.objects.filter(object_id__isnull=False))
-    for show in shows:
-        show.mm_content = content_records.get(show.object_id)
-    Show.objects.bulk_update(shows, ["mm_content"])
+    content_record_map = dict(
+        ContentRecord.objects.filter(api_data__data__type="show").values_list(
+            "content_id", "pk"
+        )
+    )
+
+    batch_size = 1000
+    batch = []
+
+    for show in Show.objects.filter(object_id__isnull=False).iterator(
+        chunk_size=batch_size
+    ):
+        content_record_pk = content_record_map.get(show.object_id)
+        if content_record_pk:
+            show.mm_content_id = content_record_pk
+            batch.append(show)
+            if len(batch) >= batch_size:
+                Show.objects.bulk_update(batch, ["mm_content"])
+                batch.clear()
+
+    if batch:
+        Show.objects.bulk_update(batch, ["mm_content"])
 
 
 class Migration(migrations.Migration):

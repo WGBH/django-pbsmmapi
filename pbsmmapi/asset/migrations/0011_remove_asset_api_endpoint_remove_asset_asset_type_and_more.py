@@ -10,14 +10,28 @@ from django.db import (
 def link_assets(apps, schema_editor):
     ContentRecord = apps.get_model("record", "ContentRecord")
     Asset = apps.get_model("asset", "Asset")
-    content_records = {
-        record.content_id: record
-        for record in ContentRecord.objects.filter(api_data__data__type="asset")
-    }
-    assets = list(Asset.objects.filter(object_id__isnull=False))
-    for asset in assets:
-        asset.mm_content = content_records.get(asset.object_id)
-    Asset.objects.bulk_update(assets, ["mm_content"])
+    content_record_map = dict(
+        ContentRecord.objects.filter(api_data__data__type="asset").values_list(
+            "content_id", "pk"
+        )
+    )
+
+    batch_size = 1000
+    batch = []
+
+    for asset in Asset.objects.filter(object_id__isnull=False).iterator(
+        chunk_size=batch_size
+    ):
+        content_record_pk = content_record_map.get(asset.object_id)
+        if content_record_pk:
+            asset.mm_content_id = content_record_pk
+            batch.append(asset)
+            if len(batch) >= batch_size:
+                Asset.objects.bulk_update(batch, ["mm_content"])
+                batch.clear()
+
+    if batch:
+        Asset.objects.bulk_update(batch, ["mm_content"])
 
 
 class Migration(migrations.Migration):

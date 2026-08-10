@@ -10,14 +10,28 @@ from django.db import (
 def link_specials(apps, schema_editor):
     ContentRecord = apps.get_model("record", "ContentRecord")
     Special = apps.get_model("special", "Special")
-    content_records = {
-        record.content_id: record
-        for record in ContentRecord.objects.filter(api_data__data__type="special")
-    }
-    specials = list(Special.objects.filter(object_id__isnull=False))
-    for special in specials:
-        special.mm_content = content_records.get(special.object_id)
-    Special.objects.bulk_update(specials, ["mm_content"])
+    content_record_map = dict(
+        ContentRecord.objects.filter(api_data__data__type="special").values_list(
+            "content_id", "pk"
+        )
+    )
+
+    batch_size = 1000
+    batch = []
+
+    for special in Special.objects.filter(object_id__isnull=False).iterator(
+        chunk_size=batch_size
+    ):
+        content_record_pk = content_record_map.get(special.object_id)
+        if content_record_pk:
+            special.mm_content_id = content_record_pk
+            batch.append(special)
+            if len(batch) >= batch_size:
+                Special.objects.bulk_update(batch, ["mm_content"])
+                batch.clear()
+
+    if batch:
+        Special.objects.bulk_update(batch, ["mm_content"])
 
 
 class Migration(migrations.Migration):
