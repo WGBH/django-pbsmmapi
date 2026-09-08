@@ -26,7 +26,7 @@ classifiers = [
 dependencies = [
     "django~=6.1.1",
     "requests",
-    "huey>=3.0,<3.4",
+    "huey>=3.0,<3.5",
     "pycaption>=2.2.16",
     "nltk>=3.10",
 ]
