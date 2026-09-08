@@ -331,6 +331,31 @@ def realize_provisional_objects():
         show.save()
 
 
+def ingest_new_assets():
+    """
+    For AssetChangeLog entries that haven't been ingested yet and whose
+    ContentRecord has valid API data, create the Asset instance if its
+    parent exists in the database.
+    """
+    candidate_logs = AssetChangeLog.objects.select_related("mm_content").filter(
+        ingested=False,
+        mm_content__last_api_status=200,
+        mm_content__deleted__isnull=True,
+    )
+    for log in candidate_logs:
+        parent = log.get_parent_instance()
+        if parent is not None:
+            attrs = log.mm_content.api_data.get("data", {}).get("attributes", {})
+            asset = Asset.objects.filter(mm_content=log.mm_content).first()
+            if not asset:
+                asset = Asset(
+                    title=attrs.get("title"),
+                    slug=attrs.get("slug"),
+                    mm_content=log.mm_content,
+                )
+            asset.save(skip_ingest=True)
+
+
 def reingest_updated_objects():
     """
     When new actions appear in the changelog, we need to trigger
@@ -444,6 +469,8 @@ def get_changelog_data():
             ChangeLog.objects.filter(pk=log.pk).update(api_crawled=datetime.now(UTC))
 
     realize_provisional_objects()
+    ingest_new_assets()
+    set_ingested()
     reingest_updated_objects()
 
 
@@ -499,6 +526,4 @@ def scrape_changelog():
 
     data = prep_changelog_data(chain.from_iterable(page_entries))
     save_changelog_entries(data)
-
-    set_ingested()
     get_changelog_data()
