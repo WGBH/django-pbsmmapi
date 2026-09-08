@@ -337,7 +337,7 @@ def ingest_new_assets():
     ContentRecord has valid API data, create the Asset instance if its
     parent exists in the database.
     """
-    candidate_logs = AssetChangeLog.objects.filter(
+    candidate_logs = AssetChangeLog.objects.select_related("mm_content").filter(
         ingested=False,
         mm_content__last_api_status=200,
         mm_content__deleted__isnull=True,
