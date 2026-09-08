@@ -219,21 +219,23 @@ class Asset(PBSMMGenericAsset):
             except (KeyError, TypeError):
                 parent_tree = None
 
-        if parent_tree:
-            parent_type: str = parent_tree.get("type")
-            parent_cid: str = parent_tree.get("id")
-            if parent_type in parental_fields and parent_cid:
-                try:
-                    model_class = self._meta.get_field(parent_type).related_model
-                    assert model_class is not None
-                    parent_obj = model_class.objects.filter(
-                        mm_content_id=parent_cid
-                    ).first()
-                    if parent_obj:
-                        target_values[parent_type] = parent_obj
+        if not parent_tree:
+            return
 
-                except LookupError:
-                    pass
+        parent_type: str = parent_tree.get("type")
+        parent_cid: str = parent_tree.get("id")
+        if parent_type in parental_fields and parent_cid:
+            try:
+                model_class = self._meta.get_field(parent_type).related_model
+                assert model_class is not None
+                parent_obj = model_class.objects.filter(
+                    mm_content_id=parent_cid
+                ).first()
+                if parent_obj:
+                    target_values[parent_type] = parent_obj
+
+            except LookupError:
+                pass
 
         # Apply target values to ensure single correct parent is populated
         for field, value in target_values.items():
@@ -242,12 +244,10 @@ class Asset(PBSMMGenericAsset):
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
         content_id = kwargs.pop("content_id", None)
-        if skip_ingest:
-            super().save(*args, **kwargs)
-        else:
+        if not skip_ingest:
             self.pre_save(content_id)
-            self.set_parent()
-            super().save(*args, **kwargs)
+        self.set_parent()
+        super().save(*args, **kwargs)
 
     @property
     def transcript_url(self) -> str | None:
@@ -295,7 +295,8 @@ class Asset(PBSMMGenericAsset):
         return part_of_player_code.group(1)
 
     def __str__(self):
-        return f"{self.pk} | {self.mm_content_id} ({self.legacy_tp_media_id}) | {self.title}"
+        legacy_id = getattr(self, "legacy_tp_media_id", None)
+        return f"{self.pk} | {self.mm_content_id} ({legacy_id}) | {self.title}"
 
     if TYPE_CHECKING:
         api_data: dict
