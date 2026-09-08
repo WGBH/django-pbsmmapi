@@ -12,6 +12,7 @@ from pbsmmapi.season.forms import (
 from pbsmmapi.season.models import Season
 
 
+@admin.register(Season)
 class PBSMMSeasonAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     form = PBSMMSeasonEditForm
     add_form = PBSMMSeasonCreateForm
@@ -121,6 +122,7 @@ class PBSMMSeasonAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
         defaults.update(kwargs)
         return super().get_form(request, obj, **kwargs)
 
+    @admin.display(description="EPISODE LIST")
     def format_episode_list(self, obj):
         out = """
         <table width="100%">\n
@@ -137,8 +139,3 @@ class PBSMMSeasonAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
             out += episode.create_table_line()
         out += "</table>"
         return mark_safe(out)
-
-    format_episode_list.short_description = "EPISODE LIST"
-
-
-admin.site.register(Season, PBSMMSeasonAdmin)

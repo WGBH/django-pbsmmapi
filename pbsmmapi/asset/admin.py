@@ -5,6 +5,7 @@ from pbsmmapi.abstract.admin import AnnotatedReadonlyAdminMixin
 from pbsmmapi.asset.models import Asset
 
 
+@admin.register(Asset)
 class PBSMMAssetAdmin(AnnotatedReadonlyAdminMixin, admin.ModelAdmin):
     model = Asset
 
@@ -121,6 +122,3 @@ class PBSMMAssetAdmin(AnnotatedReadonlyAdminMixin, admin.ModelAdmin):
     )
     def asset_publicly_available(self, obj):
         return obj.asset_publicly_available()
-
-
-admin.site.register(Asset, PBSMMAssetAdmin)

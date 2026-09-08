@@ -3,7 +3,7 @@ name = "django-pbsmmapi"
 dynamic = ['version']
 description = "Django models that import content from the PBS MediaManager API"
 authors = [{ name = "Bob Donahue" }]
-requires-python = ">=3.11,<4.0"
+requires-python = ">=3.12,<4.0"
 readme = "README.md"
 license = "MIT"
 classifiers = [
@@ -24,7 +24,7 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
 ]
 dependencies = [
-    "django>=4.0",
+    "django~=6.1.1",
     "requests",
     "huey>=3.0,<3.4",
     "pycaption>=2.2.16",

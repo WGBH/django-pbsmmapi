@@ -11,6 +11,7 @@ from pbsmmapi.episode.forms import (
 from pbsmmapi.episode.models import Episode
 
 
+@admin.register(Episode)
 class PBSMMEpisodeAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     model = Episode
     form = PBSMMEpisodeEditForm
@@ -128,6 +129,3 @@ class PBSMMEpisodeAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
             )
         defaults.update(kwargs)
         return super().get_form(request, obj, **kwargs)
-
-
-admin.site.register(Episode, PBSMMEpisodeAdmin)

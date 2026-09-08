@@ -12,6 +12,7 @@ from pbsmmapi.show.forms import (
 from pbsmmapi.show.models import Show
 
 
+@admin.register(Show)
 class PBSMMShowAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     form = PBSMMShowEditForm
     add_form = PBSMMShowCreateForm
@@ -180,6 +181,7 @@ class PBSMMShowAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
         defaults.update(kwargs)
         return super().get_form(request, obj, **kwargs)
 
+    @admin.display(description="SEASON LIST")
     def format_seasons_list(self, obj):
         out = """
         <table width="100%" border=2>\n
@@ -199,8 +201,7 @@ class PBSMMShowAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
         out += "</table>"
         return mark_safe(out)
 
-    format_seasons_list.short_description = "SEASON LIST"
-
+    @admin.display(description="SPECIALS LIST")
     def format_specials_list(self, obj):
         # It turns out that some shows, e.g., The Open Mind, have an INSANE
         # number of specials. In this case, just return the Top 50
@@ -230,8 +231,3 @@ class PBSMMShowAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
 
         out += "</table>"
         return mark_safe(out)
-
-    format_specials_list.short_description = "SPECIALS LIST"
-
-
-admin.site.register(Show, PBSMMShowAdmin)
