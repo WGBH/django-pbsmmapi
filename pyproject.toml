@@ -10,12 +10,9 @@ classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Environment :: Web Environment",
     "Framework :: Django",
-    "Framework :: Django :: 4.0",
-    "Framework :: Django :: 4.1",
-    "Framework :: Django :: 4.2",
-    "Framework :: Django :: 5.0",
-    "Framework :: Django :: 5.1",
     "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.0",
+    "Framework :: Django :: 6.1",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Natural Language :: English",
@@ -24,9 +21,9 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
 ]
 dependencies = [
-    "django>=4.0",
+    "django>=5.2",
     "requests",
-    "huey>=3.0,<3.4",
+    "huey>=3.0",
     "pycaption>=2.2.16",
     "nltk>=3.10",
 ]
@@ -43,6 +40,8 @@ dev = [
     "devtools",
     "psycopg[pool]",
     "testcontainers[redis,postgres]",
+    "tox>=4.61.2",
+    "tox-uv>=1.36.0",
 ]
 
 [tool.hatch.version]
