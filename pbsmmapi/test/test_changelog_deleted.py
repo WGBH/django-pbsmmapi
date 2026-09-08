@@ -23,9 +23,11 @@ from pbsmmapi.changelog.tasks import (
     MediaManagerError,
     fetch_pbsmm_record,
     get_changelog_data,
+    ingest_new_assets,
     mark_deleted,
     reingest_updated_objects,
     save_changelog_entries,
+    set_ingested,
     sync_deleted_state,
 )
 from pbsmmapi.episode.models import Episode
@@ -532,3 +534,73 @@ class ChangelogDeletedTestCase(TestCase):
 
         log.refresh_from_db()
         self.assertEqual(log.latest_timestamp, parse_changelog_timestamp(micro))
+
+    def test_ingest_new_assets_creates_asset_with_parent(self):
+        _, _, episode, _, _, _ = self.make_show_tree()
+        asset_id = "f486e939-f2d5-4ad7-9865-40ead32a8095"
+        record = ContentRecord.objects.create(
+            content_id=UUID(asset_id),
+            last_api_status=200,
+            api_data={
+                "data": {
+                    "id": asset_id,
+                    "type": "asset",
+                    "attributes": {
+                        "title": "A Great Video",
+                        "slug": "a-great-video",
+                        "parent_tree": {
+                            "type": "episode",
+                            "id": EPISODE_ID,
+                        },
+                    },
+                }
+            },
+        )
+        log = ChangeLog.objects.create(
+            resource_type="asset",
+            mm_content=record,
+            ingested=False,
+        )
+
+        ingest_new_assets()
+        set_ingested()
+
+        self.assertTrue(Asset.objects.filter(content_id=UUID(asset_id)).exists())
+        asset = Asset.objects.get(content_id=UUID(asset_id))
+        self.assertEqual(asset.title, "A Great Video")
+        self.assertEqual(asset.slug, "a-great-video")
+        self.assertEqual(asset.episode, episode)
+        self.assertEqual(episode.assets.count(), 2)  # 1 from make_show_tree + 1 new
+
+        log.refresh_from_db()
+        self.assertTrue(log.ingested)
+
+    def test_ingest_new_assets_skips_missing_parent(self):
+        asset_id = "f486e939-f2d5-4ad7-9865-40ead32a8096"
+        non_existent_parent = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+        record = ContentRecord.objects.create(
+            content_id=UUID(asset_id),
+            last_api_status=200,
+            api_data={
+                "data": {
+                    "id": asset_id,
+                    "type": "asset",
+                    "attributes": {
+                        "title": "Orphan Asset",
+                        "slug": "orphan-asset",
+                        "parent_tree": {
+                            "type": "episode",
+                            "id": non_existent_parent,
+                        },
+                    },
+                }
+            },
+        )
+        ChangeLog.objects.create(
+            resource_type="asset",
+            mm_content=record,
+            ingested=False,
+        )
+
+        ingest_new_assets()
+        self.assertFalse(Asset.objects.filter(content_id=UUID(asset_id)).exists())
