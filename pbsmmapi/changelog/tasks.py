@@ -526,6 +526,4 @@ def scrape_changelog():
 
     data = prep_changelog_data(chain.from_iterable(page_entries))
     save_changelog_entries(data)
-
-    set_ingested()
     get_changelog_data()
