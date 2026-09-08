@@ -11,6 +11,7 @@ from pbsmmapi.special.forms import (
 from pbsmmapi.special.models import Special
 
 
+@admin.register(Special)
 class PBSMMSpecialAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     model = Special
     form = PBSMMSpecialEditForm
@@ -129,6 +130,3 @@ class PBSMMSpecialAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
             )
         defaults.update(kwargs)
         return super().get_form(request, obj, **kwargs)
-
-
-admin.site.register(Special, PBSMMSpecialAdmin)

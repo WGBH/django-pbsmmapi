@@ -54,6 +54,7 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
         "title",
     ]
 
+    @admin.action(description="Reingest selected items.")
     def force_reingest(self, request, queryset):
         # queryset is the list of Asset items that were selected.
         for item in queryset:
@@ -64,14 +65,11 @@ class PBSMMAbstractAdmin(admin.ModelAdmin):
             # terminal, there is no un-delete.
             item.save()
 
-    force_reingest.short_description = "Reingest selected items."
-
+    @admin.display(description="Assets")
     def assemble_asset_table(self, obj):
         asset_list = obj.assets.all()
         out = get_abstract_asset_table(asset_list)
         return mark_safe(out)
-
-    assemble_asset_table.short_description = "Assets"
 
     class Meta:
         abstract = True
