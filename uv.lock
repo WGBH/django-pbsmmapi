@@ -450,7 +450,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "django", specifier = ">=5.2" },
-    { name = "huey", specifier = ">=3.0" },
+    { name = "huey", specifier = ">=3.0,<3.5" },
     { name = "nltk", specifier = ">=3.10" },
     { name = "pycaption", specifier = ">=2.2.16" },
     { name = "requests" },

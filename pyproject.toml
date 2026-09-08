@@ -23,7 +23,7 @@ classifiers = [
 dependencies = [
     "django>=5.2",
     "requests",
-    "huey>=3.0",
+    "huey>=3.0,<3.5",
     "pycaption>=2.2.16",
     "nltk>=3.10",
 ]
