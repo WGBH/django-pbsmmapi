@@ -12,6 +12,7 @@ from pbsmmapi.franchise.forms import (
 from pbsmmapi.franchise.models import Franchise
 
 
+@admin.register(Franchise)
 class PBSMMFranchiseAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
     form = PBSMMFranchiseEditForm
     add_form = PBSMMFranchiseCreateForm
@@ -158,6 +159,7 @@ class PBSMMFranchiseAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
         defaults.update(kwargs)
         return super().get_form(request, obj, **kwargs)
 
+    @admin.display(description="SHOW LIST")
     def format_shows_list(self, obj):
         out = """
         <table width="100%" border=2>\n
@@ -174,8 +176,3 @@ class PBSMMFranchiseAdmin(AnnotatedReadonlyAdminMixin, PBSMMAbstractAdmin):
 
         out += "</table>"
         return mark_safe(out)
-
-    format_shows_list.short_description = "SHOW LIST"
-
-
-admin.site.register(Franchise, PBSMMFranchiseAdmin)
