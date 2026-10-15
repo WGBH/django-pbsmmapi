@@ -172,21 +172,28 @@ class Show(GenericProvisional, PBSMMGenericShow):
         if not self.ingest_seasons:
             return
 
-        def set_season(mm_season_data: dict, _):
-            try:
-                season = Season.objects.get(content_id=mm_season_data["id"])
-                season.save()
-            except Season.DoesNotExist:
-                season = Season.realize(mm_season_data, self.id)
-                if season is None:
-                    season = Season(
-                        show_id=self.id,
-                        ingest_on_save=True,
-                        ingest_episodes=self.ingest_episodes,
-                    )
-                    season.save(content_id=mm_season_data["id"])
+        self.flip_api_pages(
+            self.api_links.get("seasons"),
+            lambda data, _: self.ingest_season(data),
+        )
 
-        self.flip_api_pages(self.api_links.get("seasons"), set_season)
+    def ingest_season(self, mm_season_data: dict):
+        """
+        Bring one PBS season of this show in: refresh it, claim the placeholder
+        waiting for its number, or create it
+        """
+        try:
+            season = Season.objects.get(content_id=mm_season_data["id"])
+            season.save()
+        except Season.DoesNotExist:
+            season = Season.realize(mm_season_data, self.id)
+            if season is None:
+                season = Season(
+                    show_id=self.id,
+                    ingest_on_save=True,
+                    ingest_episodes=self.ingest_episodes,
+                )
+                season.save(content_id=mm_season_data["id"])
 
     def process_specials(self):
         if not self.ingest_specials:
