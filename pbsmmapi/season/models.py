@@ -115,6 +115,7 @@ class Season(GenericProvisional, PBSMMGenericSeason):
 
     def _pre_save_update_fields(self, json_data, content):
         self.title = json_data["data"]["attributes"]["title"]
+        self.ordinal = json_data["data"]["attributes"]["ordinal"]
         self.mm_content = content
 
     def save(self, *args, **kwargs):
@@ -148,20 +149,24 @@ class Season(GenericProvisional, PBSMMGenericSeason):
         if not self.ingest_episodes:
             return
 
-        def set_episode(mm_episode_data: dict, _):
-            try:
-                episode = Episode.objects.get(content_id=mm_episode_data["id"])
-                episode.save()
-            except Episode.DoesNotExist:
-                episode = Episode.realize(mm_episode_data, self.id)
-                if episode is None:
-                    episode = Episode(
-                        season_id=self.id,
-                        ingest_on_save=True,
-                    )
-                    episode.save(content_id=mm_episode_data["id"])
+        self.flip_api_pages(endpoint, lambda data, _: self.ingest_episode(data))
 
-        self.flip_api_pages(endpoint, set_episode)
+    def ingest_episode(self, mm_episode_data: dict):
+        """
+        Bring one PBS episode of this season in: refresh it, claim the
+        placeholder waiting for its number, or create it
+        """
+        try:
+            episode = Episode.objects.get(content_id=mm_episode_data["id"])
+            episode.save()
+        except Episode.DoesNotExist:
+            episode = Episode.realize(mm_episode_data, self.id)
+            if episode is None:
+                episode = Episode(
+                    season_id=self.id,
+                    ingest_on_save=True,
+                )
+                episode.save(content_id=mm_episode_data["id"])
 
     def stop_ingestion_restart(self):
         Season.objects.filter(id=self.id).update(

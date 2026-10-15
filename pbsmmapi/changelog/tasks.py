@@ -331,6 +331,44 @@ def realize_provisional_objects():
         show.save()
 
 
+def ingest_new_seasons():
+    """
+    Seasons PBS publishes under a show we already have, that no placeholder
+    claimed.
+    """
+    candidate_logs = SeasonChangeLog.objects.select_related("mm_content").filter(
+        ingested=False,
+        mm_content__last_api_status=200,
+        mm_content__deleted__isnull=True,
+        show_content_id__isnull=False,
+    )
+    for log in candidate_logs:
+        if Season.objects.filter(mm_content=log.mm_content).exists():
+            continue
+        show = Show.objects.filter(mm_content_id=log.show_content_id).first()
+        if show is not None:
+            show.ingest_season(log.mm_content.api_data["data"])
+
+
+def ingest_new_episodes():
+    """
+    Episodes PBS publishes under a season we already have, that no placeholder
+    claimed.
+    """
+    candidate_logs = EpisodeChangeLog.objects.select_related("mm_content").filter(
+        ingested=False,
+        mm_content__last_api_status=200,
+        mm_content__deleted__isnull=True,
+        season_content_id__isnull=False,
+    )
+    for log in candidate_logs:
+        if Episode.objects.filter(mm_content=log.mm_content).exists():
+            continue
+        season = Season.objects.filter(mm_content_id=log.season_content_id).first()
+        if season is not None:
+            season.ingest_episode(log.mm_content.api_data["data"])
+
+
 def ingest_new_assets():
     """
     For AssetChangeLog entries that haven't been ingested yet and whose
@@ -469,6 +507,8 @@ def get_changelog_data():
             ChangeLog.objects.filter(pk=log.pk).update(api_crawled=datetime.now(UTC))
 
     realize_provisional_objects()
+    ingest_new_seasons()
+    ingest_new_episodes()
     ingest_new_assets()
     set_ingested()
     reingest_updated_objects()
