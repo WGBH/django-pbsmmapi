@@ -514,7 +514,7 @@ def changelog_urls() -> list[str]:
 
 
 @db_periodic_task(crontab(minute="*/1"))
-@lock_task("changelog-ingest")
+@lock_task("changelog-ingest", ttl=360)
 def scrape_changelog():
     urls = changelog_urls()
     results = fetch_pbsmm_record.map(urls)
