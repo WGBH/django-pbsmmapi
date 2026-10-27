@@ -8,7 +8,7 @@ from pbsmmapi.asset.models import Asset
 
 
 @db_periodic_task(crontab(minute="*/1"))
-@lock_task("update-partial-assets")
+@lock_task("update-partial-assets", ttl=360)
 def update_partial_assets() -> None:
     """
     Most Asset instances should have complete data, but in some cases we still
