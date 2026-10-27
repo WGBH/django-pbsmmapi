@@ -91,6 +91,10 @@ class Episode(GenericProvisional, PBSMMGenericEpisode):
     def endpoint(self):
         return PBSMM_EPISODE_ENDPOINT
 
+    def _pre_save_update_fields(self, json_data, content):
+        super()._pre_save_update_fields(json_data, content)
+        self.ordinal = json_data["data"]["attributes"]["ordinal"]
+
     def save(self, *args, **kwargs):
         skip_ingest = kwargs.pop("skip_ingest", False) or self.deleted is not None
         content_id = kwargs.pop("content_id", None)
