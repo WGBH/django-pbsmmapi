@@ -104,8 +104,7 @@ class Ingest(models.Model):
         self.ingest_on_save = False
         return status, json_data
 
-    def _pre_save_update_fields(self, json_data, content):
-        self.title = json_data["data"]["attributes"]["title"]
+    def _pre_save_on_first_ingest(self, json_data, content):
         self.slug = json_data["data"]["attributes"]["slug"]
         self.mm_content = content
 
@@ -135,8 +134,9 @@ class Ingest(models.Model):
                 "date_last_api_update": time_zone_aware_now(),
             },
         )
+        self.title = json_data["data"]["attributes"]["title"]
         if self.mm_content is None:
-            self._pre_save_update_fields(json_data, content)
+            self._pre_save_on_first_ingest(json_data, content)
 
         return status
 

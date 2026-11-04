@@ -113,8 +113,7 @@ class Season(GenericProvisional, PBSMMGenericSeason):
     def endpoint(self):
         return PBSMM_SEASON_ENDPOINT
 
-    def _pre_save_update_fields(self, json_data, content):
-        self.title = json_data["data"]["attributes"]["title"]
+    def _pre_save_on_first_ingest(self, json_data, content):
         self.mm_content = content
 
     def save(self, *args, **kwargs):
