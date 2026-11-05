@@ -1,10 +1,6 @@
 from typing import TYPE_CHECKING
 
 from django.contrib.contenttypes.models import ContentType
-from django.core.exceptions import (
-    ObjectDoesNotExist,
-    ValidationError,
-)
 from django.db import models
 from django.db.models.fields.json import KT
 from django.db.models.functions import Cast
@@ -225,10 +221,7 @@ class AssetChangeLog(ChangeLog):
         model = self.get_parent_model_class()
         if model is None or not self.parent_id:
             return None
-        try:
-            return model.objects.filter(mm_content_id=self.parent_id).first()
-        except (ObjectDoesNotExist, ValueError, TypeError, ValidationError):
-            return None
+        return model.objects.filter(mm_content_id=self.parent_id).first()
 
     def __str__(self):
         return f"AssetChangelog for {self.content_id} - parent {self.get_parent_instance()}"
