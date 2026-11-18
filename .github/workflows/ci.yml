@@ -24,21 +24,17 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
-      - uses: j178/prek-action@44924fe9ef4a6f88253c4b6b1bf11c689d3ce53d # ratchet:j178/prek-action@v3.1.0
+      - uses: j178/prek-action@7b101f8338a08d2bd6fdb3625e4e7692428763a3 # ratchet:j178/prek-action@v3.1.1
 
   check:
     if: always()
     permissions:
       contents: read
-
     outputs:
       result: ${{ steps.all-green.outputs.result }}
-
     needs:
       - lint
-
     runs-on: ubuntu-latest
-
     steps:
       - name: Ensure all checks pass
         uses: re-actors/alls-green@b5b5b37504aa4183270bd3d855c52a67f212be35 # ratchet:re-actors/alls-green@release/v1
@@ -53,26 +49,19 @@ jobs:
     environment: release
     permissions:
       id-token: write
-
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # ratchet:actions/checkout@v7
-
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # ratchet:astral-sh/setup-uv@v10.3.3
-
         with:
           python-version: "3.12"
-
       - name: Check version
         id: check-tag
         uses: samuelcolvin/check-python-version@ee87cddb8049d2694cc03badc8569765a05cef00 # ratchet:samuelcolvin/check-python-version@v5
         with:
           version_file_path: pbsmmapi/__init__.py
-
       - name: Install dependencies
         run: uv sync
-
       - name: Build library
         run: uv build
-
       - name: Upload package to PyPI
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086 # ratchet:pypa/gh-action-pypi-publish@release/v1
